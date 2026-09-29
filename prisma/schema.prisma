@@ -1,0 +1,161 @@
+// Prisma Schema for FoodSense AI
+// Smart Food Waste Management & Redistribution Platform
+// Database: PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_URI")
+}
+
+enum InstitutionType {
+  KITCHEN
+  FACTORY
+  NGO
+}
+
+enum UserRole {
+  KITCHEN_MANAGER
+  FACTORY_MANAGER
+  NGO_PARTNER
+  LOGISTICS
+  ADMIN
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum BatchStatus {
+  SAFE
+  EXPIRING_SOON
+  URGENT_ACTION
+  DISPATCHED
+  EXPIRED
+}
+
+model Institution {
+  id              String           @id @default(cuid())
+  name            String
+  type            InstitutionType
+  city            String
+  fssaiNumber     String           @unique
+  latitude        Float?
+  longitude       Float?
+  esgScore        Float            @default(78.0)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  users           User[]
+  predictions     DemandPrediction[]
+  wasteRecords    WasteRecord[]
+  surplusBatches  SurplusBatch[]
+  factoryBatches  FactoryRawBatch[]
+  machineSensors  MachineSensor[]
+}
+
+model User {
+  id              String        @id @default(cuid())
+  name            String
+  email           String        @unique
+  role            UserRole
+  institutionId   String
+  institution     Institution   @relation(fields: [institutionId], references: [id])
+  createdAt       DateTime      @default(now())
+}
+
+model DemandPrediction {
+  id              String        @id @default(cuid())
+  institutionId   String
+  institution     Institution   @relation(fields: [institutionId], references: [id])
+  date            DateTime
+  mealType        MealType
+  predictedMeals  Int
+  actualMeals     Int?
+  confidencePct   Float
+  factors         String[]      // e.g. ["Monday", "Exam week +12%", "Rain -5%"]
+  overrideMeals   Int?
+  overrideReason  String?
+  createdAt       DateTime      @default(now())
+}
+
+model WasteRecord {
+  id              String        @id @default(cuid())
+  institutionId   String
+  institution     Institution   @relation(fields: [institutionId], references: [id])
+  date            DateTime
+  category        String        // Rice, Curry, Bread, Veg, Other
+  quantityKg      Float
+  costInr         Float
+  co2PreventedKg  Float
+  createdAt       DateTime      @default(now())
+}
+
+model SurplusBatch {
+  id                 String       @id @default(cuid())
+  institutionId      String
+  institution        Institution  @relation(fields: [institutionId], references: [id])
+  foodItem           String       // e.g. "Dal Makhani", "Steamed Rice"
+  quantityKg         Float
+  preparedAt         DateTime
+  safeUntil          DateTime
+  status             BatchStatus  @default(SAFE)
+  
+  // Rule-based FSSAI Safety Checks
+  prepTimeRecorded   Boolean      @default(true)
+  storageTempCelsius Float        @default(4.0)
+  hygienicHandling   Boolean      @default(true)
+  safetyVerified     Boolean      @default(true)
+  
+  matchedNgoName     String?
+  pickupStatus       String?      // PENDING, CONFIRMED, DISPATCHED, DELIVERED
+  createdAt          DateTime     @default(now())
+}
+
+model FactoryRawBatch {
+  id                 String       @id @default(cuid())
+  institutionId      String
+  institution        Institution  @relation(fields: [institutionId], references: [id])
+  batchCode          String       @unique // e.g. TOM-2024-0234
+  rawItem            String       // Tomatoes, Potatoes, etc.
+  quantityKg         Float
+  storageUnit        String       // Unit A, Unit B
+  temperatureC       Float
+  humidityPct        Float
+  intakeAgeDays      Int
+  spoilageEstHours   Float
+  riskLevel          RiskLevel    @default(LOW)
+  confidencePct      Float
+  salvageableKg      Float
+  recommendation     String
+  status             String       @default("MONITORED")
+  createdAt          DateTime     @default(now())
+}
+
+model MachineSensor {
+  id                 String       @id @default(cuid())
+  institutionId      String
+  institution        Institution  @relation(fields: [institutionId], references: [id])
+  machineId          String       // e.g. PM-03
+  name               String       // Peeling Machine
+  efficiencyPct      Float
+  expectedMinPct     Float
+  expectedMaxPct     Float
+  anomalyDetected    Boolean      @default(false)
+  anomalyDetails     String?
+  extraLossPerHourKg Float?
+  assignedTechnician String?
+  lastChecked        DateTime     @default(now())
+}
