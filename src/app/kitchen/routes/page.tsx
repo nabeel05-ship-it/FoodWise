@@ -788,7 +788,7 @@ function RoutesContent() {
                 </div>
               </div>
               <div>
-                <div className="text-[#9CA3AF]">{t("kitchen.route.ai_fuel_savings")}</div>
+                <div className="text-[#9CA3AF]">Fuel Savings</div>
                 <div className="font-mono-data font-bold text-[16px] text-[#059669]">
                   18%
                 </div>

@@ -9,11 +9,12 @@ export default function NgoLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { setCurrentRole } = useApp();
+  const { setCurrentRole, setUserRole } = useApp();
 
   useEffect(() => {
     setCurrentRole("NGO_PARTNER");
-  }, [setCurrentRole]);
+    setUserRole("NGO");
+  }, [setCurrentRole, setUserRole]);
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "#F4F6FA" }}>
@@ -26,4 +27,3 @@ export default function NgoLayout({
     </div>
   );
 }
-

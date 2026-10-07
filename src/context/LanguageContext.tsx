@@ -7,18 +7,25 @@ import {
   translateHindiToEnglish,
   isDevanagari,
 } from "./dictionary";
+import {
+  KN_PHRASE_DICTIONARY,
+  translateDynamicEnglishToKannada,
+  translateKannadaToEnglish,
+  isKannada,
+} from "./kannadaDictionary";
+import { KN_TRANSLATIONS } from "./locales/kn";
 import DomAutoTranslator from "./domTranslator";
 
-export type Language = "en" | "hi";
+export type Language = "en" | "hi" | "kn";
 
 interface LanguageContextType {
   lang: Language;
   setLang: (lang: Language) => void;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
   toggleLang: () => void;
 }
 
-const translations: Record<string, Record<Language, string>> = {
+const translations: Record<string, Partial<Record<Language, string>>> = {
   // ─── Common / Global ─────────────────────────────────
   "app.name": { en: "FoodWise", hi: "FoodWise" },
   "app.tagline": { en: "Smart Food Waste Platform", hi: "स्मार्ट खाद्य अपशिष्ट प्लेटफ़ॉर्म" },
@@ -53,6 +60,278 @@ const translations: Record<string, Record<Language, string>> = {
   "common.continue": { en: "Continue", hi: "आगे बढ़ें" },
   "common.skip": { en: "Skip", hi: "छोड़ें" },
   "common.language": { en: "Language", hi: "भाषा" },
+  "common.details": { en: "Details", hi: "विवरण", kn: "ವಿವರಗಳು" },
+  "Vegetarian": { en: "Vegetarian", hi: "शाकाहारी", kn: "ಸಸ್ಯಾಹಾರಿ" },
+  "Non-Vegetarian": { en: "Non-Vegetarian", hi: "मांसाहारी", kn: "ಮಾಂಸಾಹಾರಿ" },
+  "Lunch Service": { en: "Lunch Service", hi: "दोपहर का भोजन सेवा", kn: "ಮಧ್ಯಾಹ್ನದ ಊಟ ಸೇವೆ" },
+  "Dinner Service": { en: "Dinner Service", hi: "रात का भोजन सेवा", kn: "ರಾತ್ರಿ ಊಟ ಸೇವೆ" },
+  "Please fill in all mandatory fields.": { en: "Please fill in all mandatory fields.", hi: "कृपया सभी अनिवार्य फ़ील्ड भरें।", kn: "ದಯವಿಟ್ಟು ಎಲ್ಲಾ ಕಡ್ಡಾಯ ಕ್ಷೇತ್ರಗಳನ್ನು ಭರ್ತಿ ಮಾಡಿ." },
+  "Please provide the required fields.": { en: "Please provide the required fields.", hi: "कृपया आवश्यक फ़ील्ड प्रदान करें।", kn: "ದಯವಿಟ್ಟು ಅಗತ್ಯ ಕ್ಷೇತ್ರಗಳನ್ನು ಒದಗಿಸಿ." },
+  "Please enter the volunteer driver contact details.": { en: "Please enter the volunteer driver contact details.", hi: "कृपया स्वयंसेवक चालक संपर्क विवरण दर्ज करें।", kn: "ದಯವಿಟ್ಟು ಸ್ವಯಂಸೇವಕ ಚಾಲಕ ಸಂಪರ್ಕ ವಿವರಗಳನ್ನು ನಮೂದಿಸಿ." },
+  "Donor Appreciation Certificate (PDF)": { en: "Donor Appreciation Certificate (PDF)", hi: "दाता प्रशंसा प्रमाण पत्र (PDF)", kn: "ದಾನಿ ಮೆಚ್ಚುಗೆ ಪ್ರಮಾಣಪತ್ರ (PDF)" },
+  "District Food Security Audit (CSV)": { en: "District Food Security Audit (CSV)", hi: "जिला खाद्य सुरक्षा ऑडिट (CSV)", kn: "ಜಿಲ್ಲಾ ಆಹಾರ ಭದ್ರತಾ ಲೆಕ್ಕಪರಿಶೋಧನೆ (CSV)" },
+  "PDF": { en: "PDF", hi: "PDF", kn: "PDF" },
+  "CSV": { en: "CSV", hi: "CSV", kn: "CSV" },
+  "repeatFood": { en: "Food Item", hi: "खाद्य पदार्थ", kn: "ಆಹಾರ ಪದಾರ್ಥ" },
+  "repeatCategory": { en: "Category", hi: "श्रेणी", kn: "ವರ್ಗ" },
+  "repeatKg": { en: "Quantity (kg)", hi: "मात्रा (कि.ग्रा.)", kn: "ಪ್ರಮಾಣ (ಕಿ.ಗ್ರಾಂ)" },
+  "repeatServings": { en: "Servings", hi: "परोसता है", kn: "ಸೇವೆಗಳು" },
+  "repeatDiet": { en: "Diet", hi: "आहार", kn: "ಆಹಾರ" },
+  "nav.home": { en: "Home", hi: "होम", kn: "ಮುಖಪುಟ" },
+  "nav.donate_food": { en: "Donate Food", hi: "भोजन दान करें", kn: "ಆಹಾರ ದಾನ ಮಾಡಿ" },
+  "nav.my_donations": { en: "My Donations", hi: "मेरे दान", kn: "ನನ್ನ ದಾನಗಳು" },
+  "nav.pickup_handover": { en: "Pickup / Handover", hi: "पिकअप / हस्तांतरण", kn: "ಪಿಕಪ್ / ಹಸ್ತಾಂತರ" },
+  "nav.impact": { en: "Impact", hi: "प्रभाव", kn: "ಪರಿಣಾಮ" },
+  "nav.profile": { en: "Profile", hi: "प्रोफ़ाइल", kn: "ಪ್ರೊಫೈಲ್" },
+  "nav.find_food": { en: "Find Food", hi: "भोजन खोजें", kn: "ಆಹಾರ ಹುಡುಕಿ" },
+  "nav.requests": { en: "Requests", hi: "अनुरोध", kn: "ವಿನಂತಿಗಳು" },
+  "nav.accepted_donations": { en: "Accepted Donations", hi: "स्वीकृत दान", kn: "ಸ್ವೀಕರಿಸಿದ ದಾನಗಳು" },
+  "nav.completed": { en: "Completed", hi: "पूर्ण", kn: "ಪೂರ್ಣಗೊಂಡಿದೆ" },
+  "nav.dashboard": { en: "Dashboard", hi: "डैशबोर्ड", kn: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್" },
+  "nav.post_food": { en: "Post Food", hi: "भोजन पोस्ट करें", kn: "ಆಹಾರ ಪೋಸ್ಟ್ ಮಾಡಿ" },
+  "nav.post_meals": { en: "Post Meals", hi: "भोजन पोस्ट करें", kn: "ಆಹಾರ ಪೋಸ್ಟ್ ಮಾಡಿ" },
+  "nav.share_food": { en: "Share Food", hi: "भोजन साझा करें", kn: "ಆಹಾರ ಹಂಚಿಕೊಳ್ಳಿ" },
+  "nav.live_feed": { en: "Live Feed", hi: "लाइव फ़ीड", kn: "ಲೈವ್ ಫೀಡ್" },
+  "nav.community_platform": { en: "Community Platform", hi: "सामुदायिक प्लेटफ़ॉर्म", kn: "ಸಮುದಾಯ ವೇದಿಕೆ" },
+  "nav.dont_let_good_food": { en: "Don't Let Good Food Go to Waste", hi: "अच्छे भोजन को बर्बाद न होने दें", kn: "ಉತ್ತಮ ಆಹಾರವನ್ನು ವ್ಯರ್ಥವಾಗಲು ಬಿಡಬೇಡಿ" },
+  "nav.sign_in": { en: "Sign In", hi: "साइन इन करें", kn: "ಸೈನ್ ಇನ್ ಮಾಡಿ" },
+  
+  // ─── Landing Page ──────────────────────────────────────
+  "notif.new_surplus_title": { en: "New Surplus Donation Available", hi: "नया अतिरिक्त भोजन दान उपलब्ध है", kn: "ಹೊಸ ಹೆಚ್ಚುವರಿ ಆಹಾರ ದಾನ ಲಭ್ಯವಿದೆ" },
+  "notif.new_surplus_msg": { en: "{{donor}} listed {{quantity}} kg {{item}} ({{location}}). Available until {{time}}.", hi: "{{donor}} ने {{quantity}} कि.ग्रा. {{item}} उपलब्ध कराया है ({{location}})। {{time}} तक उपलब्ध।", kn: "{{donor}} {{location}} ನಲ್ಲಿ {{quantity}} ಕಿ.ಗ್ರಾಂ {{item}} ಅನ್ನು ಪಟ್ಟಿ ಮಾಡಿದೆ. {{time}} ವರೆಗೆ ಲಭ್ಯವಿದೆ." },
+  "notif.request_received_title": { en: "Donation Request Received", hi: "भोजन दान का अनुरोध प्राप्त हुआ", kn: "ಆಹಾರ ದಾನದ ವಿನಂತಿ ಬಂದಿದೆ" },
+  "notif.request_received_msg": { en: "{{ngo}} requested your {{item}} surplus ({{quantity}} kg).", hi: "{{ngo}} ने आपके {{quantity}} कि.ग्रा. {{item}} का अनुरोध किया है।", kn: "{{ngo}} ನಿಮ್ಮ {{quantity}} ಕಿ.ಗ್ರಾಂ {{item}} ಗಾಗಿ ವಿನಂತಿಸಿದೆ." },
+  "notif.surplus_delivered_title": { en: "Surplus Delivered: {{ngo}}", hi: "अतिरिक्त भोजन वितरित: {{ngo}}", kn: "ಹೆಚ್ಚುವರಿ ಆಹಾರ ವಿತರಿಸಲಾಗಿದೆ: {{ngo}}" },
+  "notif.surplus_delivered_msg": { en: "{{quantity}} kg {{service}} surplus successfully verified and delivered to {{ngo}}.", hi: "{{quantity}} कि.ग्रा. {{service}} का अतिरिक्त भोजन सफलतापूर्वक सत्यापित किया गया और {{ngo}} को वितरित किया गया।", kn: "{{quantity}} ಕಿ.ಗ್ರಾಂ {{service}} ಹೆಚ್ಚುವರಿ ಆಹಾರವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ ಮತ್ತು {{ngo}} ಗೆ ವಿತರಿಸಲಾಗಿದೆ." },
+  "notif.pickup_verified_title": { en: "Pickup Handover Verified", hi: "पिकअप हस्तांतरण सत्यापित", kn: "ಪಿಕಪ್ ಹಸ್ತಾಂತರವನ್ನು ಪರಿಶೀಲಿಸಲಾಗಿದೆ" },
+  "notif.pickup_verified_msg": { en: "Handover OTP verified with driver {{driver}}. {{portions}} portions distributed.", hi: "चालक {{driver}} के साथ हस्तांतरण OTP सत्यापित किया गया। {{portions}} हिस्से वितरित किए गए।", kn: "ಚಾಲಕ {{driver}} ಅವರೊಂದಿಗೆ ಹಸ್ತಾಂತರ OTP ಪರಿಶೀಲಿಸಲಾಗಿದೆ. {{portions}} ಭಾಗಗಳನ್ನು ವಿತರಿಸಲಾಗಿದೆ." },
+  "notif.pickup_dispatched_title": { en: "Redistribution Pickup Dispatched", hi: "पुनर्वितरण पिकअप भेजा गया", kn: "ಮರುಹಂಚಿಕೆ ಪಿಕಪ್ ಕಳುಹಿಸಲಾಗಿದೆ" },
+  "notif.pickup_dispatched_msg": { en: "Pickup scheduled with {{ngo}} for {{food}}. Driver dispatched.", hi: "{{ngo}} के साथ {{food}} का पिकअप निर्धारित किया गया है। चालक भेज दिया गया है।", kn: "{{ngo}} ನೊಂದಿಗೆ {{food}} ಗಾಗಿ ಪಿಕಪ್ ನಿಗದಿಪಡಿಸಲಾಗಿದೆ. ಚಾಲಕನನ್ನು ಕಳುಹಿಸಲಾಗಿದೆ." },
+  "notif.batch_prioritized_title": { en: "Batch TOM-2024-0234 Prioritized", hi: "बैच TOM-2024-0234 को प्राथमिकता दी गई", kn: "ಬ್ಯಾಚ್ TOM-2024-0234 ಗೆ ಆದ್ಯತೆ ನೀಡಲಾಗಿದೆ" },
+  "notif.batch_prioritized_msg": { en: "Batch moved to Front of Line for Ketchup Processing Unit 2. Production rerouted to salvage 2,800 kg.", hi: "बैच को केचप प्रोसेसिंग यूनिट 2 के लिए सबसे आगे किया गया। 2,800 कि.ग्रा. बचाने के लिए उत्पादन मार्ग बदला गया।", kn: "ಬ್ಯಾಚ್ ಅನ್ನು ಕೆಚಪ್ ಸಂಸ್ಕರಣಾ ಘಟಕ 2 ಕ್ಕೆ ಮುಂದಕ್ಕೆ ಸ್ಥಳಾಂತರಿಸಲಾಗಿದೆ. 2,800 ಕಿ.ಗ್ರಾಂ ಉಳಿಸಲು ಉತ್ಪಾದನಾ ಮಾರ್ಗವನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ." },
+  "notif.technician_dispatched_title": { en: "Technician Dispatched for PM-03", hi: "PM-03 के लिए तकनीशियन भेजा गया", kn: "PM-03 ಗಾಗಿ ತಂತ್ರಜ್ಞರನ್ನು ಕಳುಹಿಸಲಾಗಿದೆ" },
+  "notif.technician_dispatched_msg": { en: "Work Order #WO-891 assigned to Rajesh Kumar. Abrasive drum & blade alignment scheduled at 3:00 PM shift change.", hi: "कार्य आदेश #WO-891 राजेश कुमार को सौंपा गया। दोपहर 3:00 बजे शिफ्ट परिवर्तन पर ड्रम और ब्लेड अलाइनमेंट निर्धारित।", kn: "ಕಾರ್ಯಾದೇಶ #WO-891 ರಾಜೇಶ್ ಕುಮಾರ್ ಅವರಿಗೆ ನಿಯೋಜಿಸಲಾಗಿದೆ. ಮಧ್ಯಾಹ್ನ 3:00 ಗಂಟೆಯ ಶಿಫ್ಟ್ ಬದಲಾವಣೆಯಲ್ಲಿ ಡ್ರಮ್ ಮತ್ತು ಬ್ಲೇಡ್ ಜೋಡಣೆಯನ್ನು ನಿಗದಿಪಡಿಸಲಾಗಿದೆ." },
+  "notif.meal_target_adjusted_title": { en: "Meal Target Adjusted", hi: "भोजन लक्ष्य समायोजित किया गया", kn: "ಆಹಾರ ಗುರಿಯನ್ನು ಹೊಂದಿಸಲಾಗಿದೆ" },
+  "notif.meal_target_adjusted_msg": { en: "Kitchen manager set daily target to {{meals}} meals (Reason: {{reason}}).", hi: "किचन प्रबंधक ने दैनिक लक्ष्य को {{meals}} भोजन पर सेट किया (कारण: {{reason}})।", kn: "ಅಡಿಗೆಮನೆ ವ್ಯವಸ್ಥಾಪಕರು ದೈನಂದಿನ ಗುರಿಯನ್ನು {{meals}} ಊಟಗಳಿಗೆ ಹೊಂದಿಸಿದ್ದಾರೆ (ಕಾರಣ: {{reason}})." },
+  "notif.schedule_restored_title": { en: "Daily Meal Schedule Restored", hi: "दैनिक भोजन अनुसूची बहाल की गई", kn: "ದೈನಂದಿನ ಆಹಾರ ವೇಳಾಪಟ್ಟಿಯನ್ನು ಮರುಸ್ಥಾಪಿಸಲಾಗಿದೆ" },
+  "notif.schedule_restored_msg": { en: "Daily meal planning target reset to standard baseline.", hi: "दैनिक भोजन योजना लक्ष्य को मानक बेसलाइन पर रीसेट किया गया।", kn: "ದೈನಂದಿನ ಆಹಾರ ಯೋಜನೆ ಗುರಿಯನ್ನು ಪ್ರಮಾಣಿತ ಬೇಸ್‌ಲೈನ್‌ಗೆ ಮರುಹೊಂದಿಸಲಾಗಿದೆ." },
+  "notif.pickup_confirmed_title": { en: "Pickup Confirmed by NGO", hi: "NGO द्वारा पिकअप की पुष्टि की गई", kn: "NGO ನಿಂದ ಪಿಕಪ್ ದೃಢೀಕರಿಸಲಾಗಿದೆ" },
+  "notif.pickup_confirmed_msg": { en: "Your volunteer driver assigned. Verification OTP generated. Thank you for preventing waste!", hi: "आपका स्वयंसेवक चालक नियुक्त किया गया है। सत्यापन OTP उत्पन्न हुआ। अपशिष्ट रोकने के लिए धन्यवाद!", kn: "ನಿಮ್ಮ ಸ್ವಯಂಸೇವಕ ಚಾಲಕನನ್ನು ನಿಯೋಜಿಸಲಾಗಿದೆ. ಪರಿಶೀಲನೆ OTP ರಚಿಸಲಾಗಿದೆ. ತ್ಯಾಜ್ಯವನ್ನು ತಡೆಗಟ್ಟಿದ್ದಕ್ಕಾಗಿ ಧನ್ಯವಾದಗಳು!" },
+  "notif.points_awarded_title": { en: "+{{points}} Points Awarded to {{donor}}", hi: "{{donor}} को +{{points}} अंक प्रदान किए गए", kn: "{{donor}} ಗೆ +{{points}} ಅಂಕಗಳನ್ನು ನೀಡಲಾಗಿದೆ" },
+  "notif.points_awarded_msg": { en: "NGO feedback submitted: {{rating}}/5 avg rating. {{points}} points added to donor leaderboard.", hi: "NGO प्रतिक्रिया जमा की गई: {{rating}}/5 औसत रेटिंग। दाता लीडरबोर्ड में {{points}} अंक जोड़े गए।", kn: "NGO ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ಸಲ್ಲಿಸಲಾಗಿದೆ: {{rating}}/5 ಸರಾಸರಿ ರೇಟಿಂಗ್. ದಾನಿ ಲೀಡರ್‌ಬೋರ್ಡ್‌ಗೆ {{points}} ಅಂಕಗಳನ್ನು ಸೇರಿಸಲಾಗಿದೆ." },
+  "notif.new_surplus_posted_title": { en: "New Surplus Food Donation Posted", hi: "नया अतिरिक्त भोजन दान पोस्ट किया गया", kn: "ಹೊಸ ಹೆಚ್ಚುವರಿ ಆಹಾರ ದಾನವನ್ನು ಪೋಸ್ಟ್ ಮಾಡಲಾಗಿದೆ" },
+  "notif.new_surplus_posted_msg": { en: "{{donor}} ({{type}}) posted {{quantity}} kg of {{food}} ({{servings}} servings) in {{city}}.", hi: "{{donor}} ({{type}}) ने {{city}} में {{quantity}} कि.ग्रा. {{food}} ({{servings}} लोगों के लिए) पोस्ट किया।", kn: "{{donor}} ({{type}}) {{city}} ನಲ್ಲಿ {{quantity}} ಕಿ.ಗ್ರಾಂ {{food}} ({{servings}} ಜನರಿಗೆ) ಅನ್ನು ಪೋಸ್ಟ್ ಮಾಡಿದ್ದಾರೆ." },
+  "notif.donation_claimed_title": { en: "Donation Claimed by NGO!", hi: "NGO द्वारा दान स्वीकार किया गया!", kn: "NGO ದಾನವನ್ನು ಸ್ವೀಕರಿಸಿದೆ!" },
+  "notif.donation_claimed_msg": { en: "{{ngo}} accepted {{food}} from {{donor}}. Pickup OTP: {{otp}}.", hi: "{{ngo}} ने {{donor}} से {{food}} स्वीकार किया। पिकअप OTP: {{otp}}।", kn: "{{ngo}} {{donor}} ಅವರಿಂದ {{food}} ಅನ್ನು ಸ್ವೀಕರಿಸಿದೆ. ಪಿಕಪ್ OTP: {{otp}}." },
+  "notif.food_delivered_title": { en: "Food Delivered & Verified!", hi: "भोजन वितरित और सत्यापित!", kn: "ಆಹಾರ ವಿತರಿಸಲಾಗಿದೆ ಮತ್ತು ಪರಿಶೀಲಿಸಲಾಗಿದೆ!" },
+  "notif.food_delivered_msg": { en: "Handover verified! ~{{people}} people fed and {{weight}} kg food waste prevented.", hi: "हस्तांतरण सत्यापित! लगभग {{people}} लोगों को भोजन कराया गया और {{weight}} कि.ग्रा. खाद्य अपशिष्ट रोका गया।", kn: "ಹಸ್ತಾಂತರವನ್ನು ಪರಿಶೀಲಿಸಲಾಗಿದೆ! ಸುಮಾರು {{people}} ಜನರಿಗೆ ಆಹಾರ ನೀಡಲಾಗಿದೆ ಮತ್ತು {{weight}} ಕಿ.ಗ್ರಾಂ ಆಹಾರ ತ್ಯಾಜ್ಯವನ್ನು ತಡೆಗಟ್ಟಲಾಗಿದೆ." },
+  "notif.category.donation": { en: "Donation", hi: "दान", kn: "ದಾನ" },
+  "notif.category.redistribution": { en: "Redistribution", hi: "पुनर्वितरण", kn: "ಮರುಹಂಚಿಕೆ" },
+  "notif.category.logistics": { en: "Logistics", hi: "लॉजिस्टिक्स", kn: "ಲಾಜಿಸ್ಟಿಕ್ಸ್" },
+  "notif.category.kitchen": { en: "Kitchen", hi: "रसोई", kn: "ಅಡಿಗೆಮನೆ" },
+  "notif.category.factory": { en: "Factory", hi: "फ़ैक्टरी", kn: "ಕಾರ್ಖಾನೆ" },
+  "notif.category.iot": { en: "IoT", hi: "IoT", kn: "IoT" },
+
+  "impact.download_certificate": { en: "Download Certificate (PDF)", hi: "प्रमाणपत्र डाउनलोड करें (PDF)", kn: "ಪ್ರಮಾಣಪತ್ರ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ (PDF)" },
+  "impact.food_received": { en: "Food Received", hi: "भोजन प्राप्त हुआ", kn: "ಸ್ವೀಕರಿಸಿದ ಆಹಾರ" },
+  "impact.food_donated": { en: "Food Donated", hi: "दान किया गया भोजन", kn: "ದಾನ ಮಾಡಿದ ಆಹಾರ" },
+  "impact.wholesome_home": { en: "Wholesome home meals shared", hi: "पौष्टिक घर का बना भोजन साझा किया गया", kn: "ಆರೋಗ್ಯಕರ ಮನೆಯ ಊಟ ಹಂಚಿಕೊಳ್ಳಲಾಗಿದೆ" },
+  "impact.fresh_kitchen": { en: "Fresh kitchen surplus redirected", hi: "रसोई का ताजा अधिशेष पुनर्निर्देशित किया गया", kn: "ತಾಜಾ ಅಡಿಗೆಮನೆ ಹೆಚ್ಚುವರಿ ಆಹಾರವನ್ನು ಮರುನಿರ್ದೇಶಿಸಲಾಗಿದೆ" },
+  "impact.banquet_rescued": { en: "Banquet & buffet batches rescued", hi: "बैंक्वेट और बुफे भोजन बचाया गया", kn: "ಔತಣಕೂಟ ಮತ್ತು ಬಫೆಟ್ ಆಹಾರವನ್ನು ಉಳಿಸಲಾಗಿದೆ" },
+  "impact.collected_distributed": { en: "Collected and distributed", hi: "एकत्रित और वितरित", kn: "ಸಂಗ್ರಹಿಸಿ ವಿತರಿಸಲಾಗಿದೆ" },
+  "impact.completed_pickups": { en: "Completed Pickups", hi: "पूर्ण किए गए पिकअप", kn: "ಪೂರ್ಣಗೊಂಡ ಪಿಕ್ಅಪ್‌ಗಳು" },
+  "impact.completed_donations": { en: "Completed Donations", hi: "पूर्ण किए गए दान", kn: "ಪೂರ್ಣಗೊಂಡ ದಾನಗಳು" },
+  "impact.safe_handovers": { en: "Safe handovers executed", hi: "सुरक्षित हस्तांतरण निष्पादित", kn: "ಸುರಕ್ಷಿತ ಹಸ್ತಾಂತರಗಳನ್ನು ನಡೆಸಲಾಗಿದೆ" },
+  "impact.delivered_verified": { en: "Delivered via verified NGOs", hi: "सत्यापित NGOs के माध्यम से वितरित", kn: "ಪರಿಶೀಲಿಸಿದ ಎನ್‌ಜಿಒಗಳ ಮೂಲಕ ವಿತರಿಸಲಾಗಿದೆ" },
+  "impact.people_helped": { en: "People Helped", hi: "मदद किए गए लोग", kn: "ಸಹಾಯ ಪಡೆದ ಜನರು" },
+  "impact.people_served": { en: "People Served", hi: "परोसे गए लोग", kn: "ಸೇವೆ ಸಲ್ಲಿಸಿದ ಜನರು" },
+  "impact.nutritious_portions": { en: "Nutritious portions provided", hi: "पौष्टिक भोजन प्रदान किया गया", kn: "ಪೌಷ್ಟಿಕ ಆಹಾರ ಒದಗಿಸಲಾಗಿದೆ" },
+  "impact.active_donors": { en: "Active Donor Partners", hi: "सक्रिय दाता भागीदार", kn: "ಸಕ್ರಿಯ ದಾನಿ ಪಾಲುದಾರರು" },
+  "impact.food_waste_prevented": { en: "Food Waste Prevented", hi: "रोका गया खाद्य अपशिष्ट", kn: "ತಡೆಯಲಾದ ಆಹಾರ ತ್ಯಾಜ್ಯ" },
+  "impact.three_donors": { en: "3 Donors", hi: "3 दाता", kn: "3 ದಾನಿಗಳು" },
+  "impact.restaurants_hotels": { en: "Restaurants, hotels & homes", hi: "रेस्तरां, होटल और घर", kn: "ರೆಸ್ಟೋರೆಂಟ್‌ಗಳು, ಹೋಟೆಲ್‌ಗಳು ಮತ್ತು ಮನೆಗಳು" },
+  "impact.kept_out_waste": { en: "Kept out of municipal waste", hi: "नगरपालिका अपशिष्ट से बाहर रखा गया", kn: "ಪುರಸಭೆಯ ತ್ಯಾಜ್ಯದಿಂದ ದೂರವಿಡಲಾಗಿದೆ" },
+  "impact.how_contributes": { en: "How Your Activity Contributes", hi: "आपकी गतिविधि कैसे योगदान देती है", kn: "ನಿಮ್ಮ ಚಟುವಟಿಕೆ ಹೇಗೆ ಕೊಡುಗೆ ನೀಡುತ್ತದೆ" },
+  "impact.connects_sdg": { en: "FoodWise connects your donations to global Sustainable Development Goals.", hi: "FoodWise आपके दान को वैश्विक सतत विकास लक्ष्यों (SDGs) से जोड़ता है।", kn: "FoodWise ನಿಮ್ಮ ದಾನಗಳನ್ನು ಜಾಗತಿಕ ಸುಸ್ಥಿರ ಅಭಿವೃದ್ಧಿ ಗುರಿಗಳಿಗೆ (SDGs) ಸಂಪರ್ಕಿಸುತ್ತದೆ." },
+  "impact.sdg2_title": { en: "Zero Hunger", hi: "शून्य भुखमरी", kn: "ಶೂನ್ಯ ಹಸಿವು" },
+  "impact.sdg2_household": { en: "Your donations help redirect edible surplus food to people who need it, supporting SDG 2.", hi: "आपके दान से खाने योग्य अतिरिक्त भोजन जरूरतमंद लोगों तक पहुँचता है, जो SDG 2 का समर्थन करता है।", kn: "ನಿಮ್ಮ ದಾನವು ತಿನ್ನಬಹುದಾದ ಹೆಚ್ಚುವರಿ ಆಹಾರವನ್ನು ಅಗತ್ಯವಿರುವ ಜನರಿಗೆ ತಲುಪಿಸಲು ಸಹಾಯ ಮಾಡುತ್ತದೆ, ಇದು SDG 2 ಅನ್ನು ಬೆಂಬಲಿಸುತ್ತದೆ." },
+  "impact.sdg2_restaurant": { en: "Surplus meals from your restaurant are collected by verified NGOs to provide immediate, dignified food assistance to vulnerable communities, helping expand food access under SDG 2.", hi: "आपके रेस्तरां से अतिरिक्त भोजन सत्यापित NGOs द्वारा एकत्र किया जाता है, ताकि कमजोर समुदायों को तत्काल सहायता मिल सके। यह SDG 2 का समर्थन करता है।", kn: "ನಿಮ್ಮ ರೆಸ್ಟೋರೆಂಟ್‌ನಿಂದ ಹೆಚ್ಚುವರಿ ಊಟವನ್ನು ಪರಿಶೀಲಿಸಿದ ಎನ್‌ಜಿಒಗಳು ಸಂಗ್ರಹಿಸಿ ದುರ್ಬಲ ಸಮುದಾಯಗಳಿಗೆ ತ್ವರಿತ, ಘನತೆಯ ಆಹಾರ ಸಹಾಯವನ್ನು ಒದಗಿಸುತ್ತವೆ, ಇದು SDG 2 ಅಡಿಯಲ್ಲಿ ಆಹಾರ ಪ್ರವೇಶವನ್ನು ವಿಸ್ತರಿಸಲು ಸಹಾಯ ಮಾಡುತ್ತದೆ." },
+  "impact.sdg2_hotel": { en: "Surplus food from hotel kitchens, buffets, banquets, and events is channeled directly into community food relief, converting hospitality surplus into nourishment under SDG 2.", hi: "होटल किचन और बैंक्वेट से बचा भोजन सीधे सामुदायिक राहत के लिए भेजा जाता है, जो SDG 2 के तहत अतिरिक्त भोजन को पोषण में बदलता है।", kn: "ಹೋಟೆಲ್ ಅಡಿಗೆಮನೆಗಳು, ಬಫೆಟ್‌ಗಳು, ಔತಣಕೂಟಗಳು ಮತ್ತು ಈವೆಂಟ್‌ಗಳಿಂದ ಹೆಚ್ಚುವರಿ ಆಹಾರವನ್ನು ನೇರವಾಗಿ ಸಮುದಾಯದ ಆಹಾರ ಪರಿಹಾರಕ್ಕೆ ರವಾನಿಸಲಾಗುತ್ತದೆ, SDG 2 ರ ಅಡಿಯಲ್ಲಿ ಆತಿಥ್ಯದ ಹೆಚ್ಚುವರಿ ಆಹಾರವನ್ನು ಪೋಷಣೆಯಾಗಿ ಪರಿವರ್ತಿಸುತ್ತದೆ." },
+  "impact.sdg2_ngo": { en: "Your organization converts surplus food donations into immediate meals for families, children, and individuals who need assistance, directly contributing to SDG 2.", hi: "आपका संगठन दान किए गए अतिरिक्त भोजन को परिवारों और बच्चों के लिए तत्काल भोजन में बदलता है, जो सीधे SDG 2 में योगदान देता है।", kn: "ನಿಮ್ಮ ಸಂಸ್ಥೆಯು ದಾನ ಮಾಡಿದ ಹೆಚ್ಚುವರಿ ಆಹಾರವನ್ನು ಕುಟುಂಬಗಳು, ಮಕ್ಕಳು ಮತ್ತು ಸಹಾಯದ ಅಗತ್ಯವಿರುವ ವ್ಯಕ್ತಿಗಳಿಗೆ ತ್ವರಿತ ಊಟವಾಗಿ ಪರಿವರ್ತಿಸುತ್ತದೆ, ಇದು ನೇರವಾಗಿ SDG 2 ಗೆ ಕೊಡುಗೆ ನೀಡುತ್ತದೆ." },
+  "impact.sdg2_target": { en: "Target 2.1 • Access to safe, nutritious food all year round", hi: "लक्ष्य 2.1 • वर्ष भर सुरक्षित और पौष्टिक भोजन तक पहुँच", kn: "ಗುರಿ 2.1 • ವರ್ಷಪೂರ್ತಿ ಸುರಕ್ಷಿತ, ಪೌಷ್ಟಿಕ ಆಹಾರದ ಪ್ರವೇಶ" },
+  "impact.sdg12_title": { en: "Responsible Consumption & Production", hi: "जिम्मेदार खपत और उत्पादन", kn: "ಜವಾಬ್ದಾರಿಯುತ ಬಳಕೆ ಮತ್ತು ಉತ್ಪಾದನೆ" },
+  "impact.sdg12_household": { en: "By preventing edible food from becoming waste, your family donations support responsible consumption and contribute to SDG 12.", hi: "खाने योग्य भोजन को बर्बाद होने से रोककर, आपके परिवार का दान जिम्मेदार खपत का समर्थन करता है और SDG 12 में योगदान देता है।", kn: "ತಿನ್ನಬಹುದಾದ ಆಹಾರವು ತ್ಯಾಜ್ಯವಾಗುವುದನ್ನು ತಡೆಯುವ ಮೂಲಕ, ನಿಮ್ಮ ಕುಟುಂಬದ ದಾನವು ಜವಾಬ್ದಾರಿಯುತ ಬಳಕೆಯನ್ನು ಬೆಂಬಲಿಸುತ್ತದೆ ಮತ್ತು SDG 12 ಗೆ ಕೊಡುಗೆ ನೀಡುತ್ತದೆ." },
+  "impact.sdg12_restaurant": { en: "Listing and redistributing edible surplus food before daily closing prevents avoidable commercial waste and supports responsible resource management under SDG 12.", hi: "दैनिक समापन से पहले अतिरिक्त भोजन को सूचीबद्ध और पुनर्वितरित करने से व्यावसायिक अपशिष्ट से बचा जाता है, जो SDG 12 का समर्थन करता है।", kn: "ದೈನಂದಿನ ಮುಕ್ತಾಯದ ಮೊದಲು ತಿನ್ನಬಹುದಾದ ಹೆಚ್ಚುವರಿ ಆಹಾರವನ್ನು ಪಟ್ಟಿ ಮಾಡುವುದು ಮತ್ತು ಮರುಹಂಚಿಕೆ ಮಾಡುವುದು ವಾಣಿಜ್ಯ ತ್ಯಾಜ್ಯವನ್ನು ತಡೆಯುತ್ತದೆ ಮತ್ತು SDG 12 ಅಡಿಯಲ್ಲಿ ಜವಾಬ್ದಾರಿಯುತ ಸಂಪನ್ಮೂಲ ನಿರ್ವಹಣೆಯನ್ನು ಬೆಂಬಲಿಸುತ್ತದೆ." },
+  "impact.sdg12_hotel": { en: "Responsible coordination and timely redistribution of large-scale buffet and event surplus prevents massive quantities of edible food from ending up in landfills, advancing SDG 12.", hi: "बड़े पैमाने पर बुफे अधिशेष का समय पर पुनर्वितरण बड़ी मात्रा में भोजन को लैंडफिल में जाने से रोकता है, जो SDG 12 को आगे बढ़ाता है।", kn: "ದೊಡ್ಡ ಪ್ರಮಾಣದ ಬಫೆಟ್ ಮತ್ತು ಈವೆಂಟ್‌ನ ಹೆಚ್ಚುವರಿ ಆಹಾರದ ಜವಾಬ್ದಾರಿಯುತ ಸಮನ್ವಯ ಮತ್ತು ಸಕಾಲಿಕ ಮರುಹಂಚಿಕೆಯು ಅಪಾರ ಪ್ರಮಾಣದ ತಿನ್ನಬಹುದಾದ ಆಹಾರವು ಭೂಭರ್ತಿಗೆ ಹೋಗುವುದನ್ನು ತಡೆಯುತ್ತದೆ, ಇದು SDG 12 ಅನ್ನು ಮುನ್ನಡೆಸುತ್ತದೆ." },
+  "impact.sdg12_ngo": { en: "By ensuring that donated food is collected safely and distributed promptly, your organization plays a vital role in preventing edible food from being discarded, supporting SDG 12.", hi: "यह सुनिश्चित करके कि दान किया गया भोजन सुरक्षित रूप से एकत्र किया जाए और तुरंत वितरित किया जाए, आपका संगठन भोजन को फेंकने से रोकने में महत्वपूर्ण भूमिका निभाता है।", kn: "ದಾನ ಮಾಡಿದ ಆಹಾರವನ್ನು ಸುರಕ್ಷಿತವಾಗಿ ಸಂಗ್ರಹಿಸಲಾಗಿದೆ ಮತ್ತು ತ್ವರಿತವಾಗಿ ವಿತರಿಸಲಾಗಿದೆ ಎಂದು ಖಚಿತಪಡಿಸಿಕೊಳ್ಳುವ ಮೂಲಕ, ತಿನ್ನಬಹುದಾದ ಆಹಾರವನ್ನು ತಿರಸ್ಕರಿಸುವುದನ್ನು ತಡೆಯುವಲ್ಲಿ ನಿಮ್ಮ ಸಂಸ್ಥೆಯು ಪ್ರಮುಖ ಪಾತ್ರ ವಹಿಸುತ್ತದೆ, ಇದು SDG 12 ಅನ್ನು ಬೆಂಬಲಿಸುತ್ತದೆ." },
+  "impact.sdg12_target": { en: "Target 12.3 • Halve per capita food waste & reduce losses", hi: "लक्ष्य 12.3 • प्रति व्यक्ति खाद्य अपशिष्ट को आधा करना", kn: "ಗುರಿ 12.3 • ತಲಾ ಆಹಾರ ತ್ಯಾಜ್ಯವನ್ನು ಅರ್ಧಕ್ಕೆ ಇಳಿಸುವುದು ಮತ್ತು ನಷ್ಟವನ್ನು ಕಡಿಮೆ ಮಾಡುವುದು" },
+  "impact.verified_history": { en: "Verified Food Rescues & Handover History", hi: "सत्यापित खाद्य बचाव और हस्तांतरण इतिहास", kn: "ಪರಿಶೀಲಿಸಿದ ಆಹಾರ ರಕ್ಷಣೆಗಳು ಮತ್ತು ಹಸ್ತಾಂತರ ಇತಿಹಾಸ" },
+  "impact.verified_ngo_partner": { en: "Verified NGO Partner", hi: "सत्यापित NGO भागीदार", kn: "ಪರಿಶೀಲಿಸಿದ ಎನ್‌ಜಿಒ ಪಾಲುದಾರ" },
+  "impact.delivered": { en: "Delivered", hi: "वितरित", kn: "ವಿತರಿಸಲಾಗಿದೆ" },
+  "impact.lifetime_record": { en: "Lifetime donations on record: ", hi: "रिकॉर्ड पर आजीवन दान: ", kn: "ದಾಖಲೆಯಲ್ಲಿನ ಜೀವಮಾನದ ದಾನಗಳು: " },
+  "impact.completed_rescues_count": { en: " completed rescues", hi: " पूर्ण बचाव", kn: " ಪೂರ್ಣಗೊಂಡ ರಕ್ಷಣೆಗಳು" },
+  "impact.totaling": { en: " totaling ", hi: " कुल मात्रा ", kn: " ಒಟ್ಟು ಪ್ರಮಾಣ " },
+  "impact.newly_posted": { en: ". Newly posted donations will appear here once verified by the collecting NGO.", hi: "। एकत्रित करने वाले NGO द्वारा सत्यापित होने के बाद नए दान यहाँ दिखाई देंगे।", kn: ". ಸಂಗ್ರಹಿಸುವ ಎನ್‌ಜಿಒನಿಂದ ಪರಿಶೀಲಿಸಿದ ನಂತರ ಹೊಸದಾಗಿ ಪೋಸ್ಟ್ ಮಾಡಿದ ದಾನಗಳು ಇಲ್ಲಿ ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತವೆ." },
+  "impact.total_donated": { en: "Total Food Donated", hi: "कुल दान किया गया भोजन", kn: "ಒಟ್ಟು ದಾನ ಮಾಡಿದ ಆಹಾರ" },
+  "impact.across_donors": { en: "Across restaurants, hotels & homes", hi: "रेस्तरां, होटल और घरों में", kn: "ರೆಸ್ಟೋರೆಂಟ್‌ಗಳು, ಹೋಟೆಲ್‌ಗಳು ಮತ್ತು ಮನೆಗಳಾದ್ಯಂತ" },
+  "impact.people_fed": { en: "People Fed / Servings", hi: "लोगों को भोजन कराया गया / सर्विंग्स", kn: "ಜನರಿಗೆ ಆಹಾರ ನೀಡಲಾಗಿದೆ / ಸರ್ವಿಂಗ್ಸ್" },
+  "impact.meals_distributed": { en: "Meals distributed to shelters", hi: "आश्रयों में वितरित भोजन", kn: "ಆಶ್ರಯಗಳಿಗೆ ವಿತರಿಸಿದ ಊಟ" },
+  "impact.diverted_landfills": { en: "Diverted from municipal landfills", hi: "नगरपालिका लैंडफिल से बचाया गया", kn: "ಪುರಸಭೆಯ ಲ್ಯಾಂಡ್‌ಫಿಲ್‌ಗಳಿಂದ ಬೇರೆಡೆಗೆ ತಿರುಗಿಸಲಾಗಿದೆ" },
+  "impact.emissions_averted": { en: "Emissions Averted", hi: "उत्सर्जन को रोका गया", kn: "ಹೊರಸೂಸುವಿಕೆಯನ್ನು ತಡೆಯಲಾಗಿದೆ" },
+  "impact.co2_saved": { en: "~2.5 kg CO₂e saved per kg diverted", hi: "~2.5 कि.ग्रा. CO₂e प्रति कि.ग्रा. बचाया गया", kn: "ವ್ಯರ್ಥವಾಗುವುದನ್ನು ತಡೆದ ಪ್ರತಿ ಕಿ.ಗ್ರಾಂಗೆ ~2.5 ಕಿ.ಗ್ರಾಂ CO₂e ಉಳಿಸಲಾಗಿದೆ" },
+  "impact.monthly_growth": { en: "Monthly Community Food Redistribution Growth", hi: "मासिक सामुदायिक खाद्य पुनर्वितरण वृद्धि", kn: "ಮಾಸಿಕ ಸಮುದಾಯ ಆಹಾರ ಮರುಹಂಚಿಕೆ ಬೆಳವಣಿಗೆ" },
+  "impact.cumulative_surplus": { en: "Cumulative surplus food preserved and meals served across all donor partners.", hi: "सभी दाता भागीदारों में संचयी अधिशेष भोजन बचाया गया और परोसा गया।", kn: "ಎಲ್ಲಾ ದಾನಿ ಪಾಲುದಾರರಾದ್ಯಂತ ಒಟ್ಟಾರೆ ಹೆಚ್ಚುವರಿ ಆಹಾರವನ್ನು ಸಂರಕ್ಷಿಸಲಾಗಿದೆ ಮತ್ತು ಊಟವನ್ನು ನೀಡಲಾಗಿದೆ." },
+  "impact.verified_ledger": { en: "Verified Community Ledger", hi: "सत्यापित सामुदायिक लेजर", kn: "ಪರಿಶೀಲಿಸಿದ ಸಮುದಾಯ ಲೆಡ್ಜರ್" },
+  "impact.food_rescued": { en: "Food Rescued", hi: "बचाया गया भोजन", kn: "ಉಳಿಸಿದ ಆಹಾರ" },
+  "impact.meals_provided": { en: "Meals Provided", hi: "प्रदान किया गया भोजन", kn: "ಒದಗಿಸಿದ ಊಟ" },
+  "impact.kg_surplus": { en: "kg surplus", hi: "कि.ग्रा. अधिशेष", kn: "ಕಿ.ಗ್ರಾಂ ಹೆಚ್ಚುವರಿ" },
+  "impact.portions": { en: "portions", hi: "हिस्से", kn: "ಭಾಗಗಳು" },
+
+  "landing.foodwise": { en: "FoodWise", hi: "FoodWise", kn: "FoodWise" },
+  "landing.food_waste_reduction": { en: "Food Waste Reduction & Food Donation Platform", hi: "खाद्य अपशिष्ट में कमी और खाद्य दान मंच", kn: "ಆಹಾರ ತ್ಯಾಜ್ಯ ಕಡಿತ ಮತ್ತು ಆಹಾರ ದಾನ ವೇದಿಕೆ" },
+  "landing.community_project_po": { en: "Community Project • PO6 & PO12 • SDG 2 & SDG 12", hi: "सामुदायिक परियोजना • PO6 और PO12 • SDG 2 और SDG 12", kn: "ಸಮುದಾಯ ಯೋಜನೆ • PO6 ಮತ್ತು PO12 • SDG 2 ಮತ್ತು SDG 12" },
+  "landing.donor": { en: "DONOR", hi: "दाता", kn: "ದಾನಿ" },
+  "landing.ngo_relief": { en: "NGO / RELIEF", hi: "NGO / राहत", kn: "ಎನ್‌ಜಿಒ / ಪರಿಹಾರ" },
+  "landing.donor_type": { en: "Donor Type:", hi: "दाता प्रकार:", kn: "ದಾನಿ ಪ್ರಕಾರ:" },
+  "landing.email_address": { en: "Email Address *", hi: "ईमेल पता *", kn: "ಇಮೇಲ್ ವಿಳಾಸ *" },
+  "landing.password": { en: "Password *", hi: "पासवर्ड *", kn: "ಪಾಸ್‌ವರ್ಡ್ *" },
+  "landing.pre_filled_for_demo": { en: "Pre-filled for Demo", hi: "डेमो के लिए पूर्व-भरा हुआ", kn: "ಡೆಮೊಗಾಗಿ ಮೊದಲೇ ಭರ್ತಿ ಮಾಡಲಾಗಿದೆ" },
+  "landing.need_a_new_donor_pro": { en: "Need a new donor profile?", hi: "क्या एक नई दाता प्रोफ़ाइल चाहिए?", kn: "ಹೊಸ ದಾನಿ ಪ್ರೊಫೈಲ್ ಬೇಕೇ?" },
+  "landing.register_as_a_donor": { en: "Register as a Donor", hi: "दाता के रूप में पंजीकरण करें", kn: "ದಾನಿಯಾಗಿ ನೋಂದಾಯಿಸಿ" },
+  "landing.new_relief_organizat": { en: "New relief organization?", hi: "नया राहत संगठन?", kn: "ಹೊಸ ಪರಿಹಾರ ಸಂಸ್ಥೆಯೇ?" },
+  "landing.register_your_ngo": { en: "Register your NGO", hi: "अपना NGO पंजीकृत करें", kn: "ನಿಮ್ಮ ಎನ್‌ಜಿಒ ಅನ್ನು ನೋಂದಾಯಿಸಿ" },
+  "landing.contact_person": { en: "Contact Person *", hi: "संपर्क व्यक्ति *", kn: "ಸಂಪರ್ಕ ವ್ಯಕ್ತಿ *" },
+  "landing.phone_number": { en: "Phone Number *", hi: "फ़ोन नंबर *", kn: "ಫೋನ್ ಸಂಖ್ಯೆ *" },
+  "landing.pickup_address_amp_l": { en: "Pickup Address & Location *", hi: "पिकअप का पता और स्थान *", kn: "ಪಿಕ್ಅಪ್ ವಿಳಾಸ ಮತ್ತು ಸ್ಥಳ *" },
+  "landing.city": { en: "City", hi: "शहर", kn: "ನಗರ" },
+  "landing.fssai_number_optiona": { en: "FSSAI Number (Optional)", hi: "FSSAI नंबर (वैकल्पिक)", kn: "FSSAI ಸಂಖ್ಯೆ (ಐಚ್ಛಿಕ)" },
+  "landing.back_to_login": { en: "← Back to Login", hi: "← लॉगिन पर वापस जाएं", kn: "← ಲಾಗಿನ್‌ಗೆ ಹಿಂತಿರುಗಿ" },
+  "landing.ngo_relief_organizat": { en: "NGO / Relief Organization Name *", hi: "NGO / राहत संगठन का नाम *", kn: "ಎನ್‌ಜಿಒ / ಪರಿಹಾರ ಸಂಸ್ಥೆಯ ಹೆಸರು *" },
+  "landing.coordinator_lead_nam": { en: "Coordinator / Lead Name *", hi: "समन्वयक / लीड का नाम *", kn: "ಸಂಯೋಜಕ / ಲೀಡ್ ಹೆಸರು *" },
+  "landing.distribution_center": { en: "Distribution Center Address *", hi: "वितरण केंद्र का पता *", kn: "ವಿತರಣಾ ಕೇಂದ್ರದ ವಿಳಾಸ *" },
+  "landing.coverage_service_are": { en: "Coverage / Service Area", hi: "कवरेज / सेवा क्षेत्र", kn: "ವ್ಯಾಪ್ತಿ / ಸೇವಾ ಪ್ರದೇಶ" },
+  "landing.ngo_darpan_registrat": { en: "NGO DARPAN Registration (Optional)", hi: "NGO दर्पण पंजीकरण (वैकल्पिक)", kn: "ಎನ್‌ಜಿಒ ದರ್ಪಣ ನೋಂದಣಿ (ಐಚ್ಛಿಕ)" },
+  "landing.how_foodwise_works": { en: "How FoodWise Works", hi: "FoodWise कैसे काम करता है", kn: "FoodWise ಹೇಗೆ ಕೆಲಸ ಮಾಡುತ್ತದೆ" },
+  "landing.the_circular_surplus": { en: "The Circular Surplus Food Journey", hi: "चक्रीय अधिशेष खाद्य यात्रा", kn: "ವೃತ್ತಾಕಾರದ ಹೆಚ್ಚುವರಿ ಆಹಾರದ ಪ್ರಯಾಣ" },
+  "landing.simple_transparent_a": { en: "Simple, transparent, and direct connection between food donors and community relief organizations.", hi: "खाद्य दाताओं और सामुदायिक राहत संगठनों के बीच सरल, पारदर्शी और सीधा संबंध।", kn: "ಆಹಾರ ದಾನಿಗಳು ಮತ್ತು ಸಮುದಾಯ ಪರಿಹಾರ ಸಂಸ್ಥೆಗಳ ನಡುವಿನ ಸರಳ, ಪಾರದರ್ಶಕ ಮತ್ತು ನೇರ ಸಂಪರ್ಕ." },
+  "landing.sdg_2_zero_hunger": { en: "SDG 2: Zero Hunger", hi: "SDG 2: शून्य भुखमरी", kn: "SDG 2: ಶೂನ್ಯ ಹಸಿವು" },
+  "landing.target_2_1_universal": { en: "Target 2.1 — Universal access to safe and nutritious food.", hi: "लक्ष्य 2.1 — सुरक्षित और पौष्टिक भोजन तक सार्वभौमिक पहुंच।", kn: "ಗುರಿ 2.1 — ಸುರಕ್ಷಿತ ಮತ್ತು ಪೌಷ್ಟಿಕ ಆಹಾರದ ಸಾರ್ವತ್ರಿಕ ಪ್ರವೇಶ." },
+  "landing.sdg_12_responsible_c": { en: "SDG 12: Responsible Consumption", hi: "SDG 12: जिम्मेदार खपत", kn: "SDG 12: ಜವಾಬ್ದಾರಿಯುತ ಬಳಕೆ" },
+  "landing.target_12_3_halving": { en: "Target 12.3 — Halving food waste at retail and consumer levels.", hi: "लक्ष्य 12.3 — खुदरा और उपभोक्ता स्तरों पर भोजन की बर्बादी को आधा करना।", kn: "ಗುರಿ 12.3 — ಚಿಲ್ಲರೆ ಮತ್ತು ಗ್ರಾಹಕ ಮಟ್ಟದಲ್ಲಿ ಆಹಾರದ ತ್ಯಾಜ್ಯವನ್ನು ಅರ್ಧಕ್ಕಿಳಿಸುವುದು." },
+  "landing.po6_engineer_amp_soc": { en: "PO6: Engineer & Society", hi: "PO6: इंजीनियर और समाज", kn: "PO6: ಇಂಜಿನಿಯರ್ ಮತ್ತು ಸಮಾಜ" },
+  "landing.applying_technology": { en: "Applying technology to solve grassroots hunger and food wastage.", hi: "जमीनी स्तर पर भुखमरी और भोजन की बर्बादी को हल करने के लिए तकनीक का उपयोग।", kn: "ತಳಮಟ್ಟದ ಹಸಿವು ಮತ್ತು ಆಹಾರ ವ್ಯರ್ಥವನ್ನು ಪರಿಹರಿಸಲು ತಂತ್ರಜ್ಞಾನದ ಬಳಕೆ." },
+  "landing.po12_continuous_lear": { en: "PO12: Continuous Learning", hi: "PO12: निरंतर शिक्षा", kn: "PO12: ನಿರಂತರ ಕಲಿಕೆ" },
+  "landing.practical_real_world": { en: "Practical, real-world deployment of modern collaborative software.", hi: "आधुनिक सहयोगी सॉफ़्टवेयर की व्यावहारिक, वास्तविक दुनिया में तैनाती।", kn: "ಆಧುನಿಕ ಸಹಯೋಗದ ಸಾಫ್ಟ್‌ವೇರ್‌ನ ಪ್ರಾಯೋಗಿಕ, ನೈಜ-ಪ್ರಪಂಚದ ನಿಯೋಜನೆ." },
+  "landing.foodwise_community_p": { en: "FoodWise Community Project • Food Waste Reduction and Food Donation Platform •", hi: "FoodWise सामुदायिक परियोजना • खाद्य अपशिष्ट न्यूनीकरण और खाद्य दान मंच •", kn: "FoodWise ಸಮುದಾಯ ಯೋಜನೆ • ಆಹಾರ ತ್ಯಾಜ್ಯ ಕಡಿತ ಮತ್ತು ಆಹಾರ ದಾನ ವೇದಿಕೆ •" },
+  "landing.ldquo_don_apos_t_le": { en: "“Don't Let Good Food Go to Waste”", hi: "“अच्छे खाने को बर्बाद न होने दें”", kn: "“ಉತ್ತಮ ಆಹಾರವನ್ನು ವ್ಯರ್ಥವಾಗಲು ಬಿಡಬೇಡಿ”" },
+  "landing.foodwise_logo": { en: "FoodWise Logo", hi: "FoodWise लोगो", kn: "FoodWise ಲೋಗೋ" },
+  "landing.name_organization_co": { en: "name@organization.com", hi: "name@organization.com", kn: "name@organization.com" },
+  "landing.e_g_ramesh_kumar": { en: "e.g. Ramesh Kumar", hi: "जैसे रमेश कुमार", kn: "ಉದಾಹರಣೆಗೆ ರಮೇಶ್ ಕುಮಾರ್" },
+  "landing.e_g_12_4_market_stre": { en: "e.g. 12/4 Market Street, Karol Bagh", hi: "जैसे 12/4 मार्केट स्ट्रीट, करोल बाग", kn: "ಉದಾ. 12/4 ಮಾರ್ಕೆಟ್ ಸ್ಟ್ರೀಟ್, ಕರೋಲ್ ಬಾಗ್" },
+  "landing.e_g_10019011006542": { en: "e.g. 10019011006542", hi: "जैसे 10019011006542", kn: "ಉದಾಹರಣೆಗೆ 10019011006542" },
+  "landing.e_g_feeding_hope_fou": { en: "e.g. Feeding Hope Foundation", hi: "जैसे फीडिंग होप फाउंडेशन", kn: "ಉದಾಹರಣೆಗೆ ಫೀಡಿಂಗ್ ಹೋಪ್ ಫೌಂಡೇಶನ್" },
+  "landing.e_g_priya_sundaram": { en: "e.g. Priya Sundaram", hi: "जैसे प्रिया सुंदरम", kn: "ಉದಾಹರಣೆಗೆ ಪ್ರಿಯಾ ಸುಂದರಂ" },
+  "landing.e_g_sector_4_communi": { en: "e.g. Sector 4 Community Center, Rohini", hi: "जैसे सेक्टर 4 कम्युनिटी सेंटर, रोहिणी", kn: "ಉದಾ. ಸೆಕ್ಟರ್ 4 ಕಮ್ಯುನಿಟಿ ಸೆಂಟರ್, ರೋಹಿಣಿ" },
+  "landing.e_g_north_west_delhi": { en: "e.g. North & West Delhi", hi: "जैसे उत्तर और पश्चिम दिल्ली", kn: "ಉದಾಹರಣೆಗೆ ಉತ್ತರ ಮತ್ತು ಪಶ್ಚಿಮ ದೆಹಲಿ" },
+  "landing.e_g_dl_2021_0291823": { en: "e.g. DL/2021/0291823", hi: "जैसे DL/2021/0291823", kn: "ಉದಾಹರಣೆಗೆ DL/2021/0291823" },
+  "landing.foodwise_sustainable": { en: "FoodWise Sustainable Kitchen & Food Logistics", hi: "FoodWise सस्टेनेबल किचन और फूड लॉजिस्टिक्स", kn: "FoodWise ಸುಸ್ಥಿರ ಅಡುಗೆಮನೆ ಮತ್ತು ಆಹಾರ ಲಾಜಿಸ್ಟಿಕ್ಸ್" },
+
+  
+  // ─── DonationCard ──────────────────────────────────────
+  "dash.card_available": { en: "Available", hi: "उपलब्ध", kn: "ಲಭ್ಯವಿದೆ" },
+  "dash.card_accepted": { en: "Accepted", hi: "स्वीकृत", kn: "ಸ್ವೀಕರಿಸಲಾಗಿದೆ" },
+  "dash.card_completed": { en: "Completed", hi: "पूर्ण", kn: "ಪೂರ್ಣಗೊಂಡಿದೆ" },
+  "dash.card_by": { en: "By", hi: "द्वारा", kn: "ಇವರಿಂದ" },
+  "dash.card_quantity": { en: "Quantity", hi: "मात्रा", kn: "ಪ್ರಮಾಣ" },
+  "dash.card_serves": { en: "Serves", hi: "परोसता है", kn: "ಸೇವೆ ಮಾಡುತ್ತದೆ" },
+  "dash.card_people": { en: "people", hi: "लोग", kn: "ಜನರು" },
+  "dash.card_available_until": { en: "Available until:", hi: "तक उपलब्ध:", kn: "ಅಲ್ಲಿಯವರೆಗೆ ಲಭ್ಯವಿದೆ:" },
+  "dash.card_distributed": { en: "Distributed", hi: "वितरित", kn: "ವಿತರಿಸಲಾಗಿದೆ" },
+  "dash.card_ready_pickup": { en: "Ready for pickup", hi: "पिकअप के लिए तैयार", kn: "ಪಿಕ್ಅಪ್‌ಗೆ ಸಿದ್ಧವಾಗಿದೆ" },
+  "dash.card_request": { en: "Request Food", hi: "भोजन का अनुरोध करें", kn: "ಆಹಾರವನ್ನು ವಿನಂತಿಸಿ" },
+  "dash.card_verify": { en: "Verify Handover", hi: "हैंडओवर सत्यापित करें", kn: "ಹಸ್ತಾಂತರವನ್ನು ಪರಿಶೀಲಿಸಿ" },
+  "dash.card_donate_again": { en: "Donate Again", hi: "फिर से दान करें", kn: "ಮತ್ತೆ ದಾನ ಮಾಡಿ" },
+  
+  // ─── Dash Global ───────────────────────────────────────
+  "dash.awaiting_pickup": { en: "Awaiting NGO pickup", hi: "NGO पिकअप की प्रतीक्षा में", kn: "ಎನ್‌ಜಿಒ ಪಿಕ್ಅಪ್‌ಗಾಗಿ ಕಾಯಲಾಗುತ್ತಿದೆ" },
+  "dash.upcoming_pickups": { en: "Upcoming Pickups", hi: "आगामी पिकअप", kn: "ಮುಂಬರುವ ಪಿಕ್ಅಪ್‌ಗಳು" },
+  "dash.volunteer_assigned": { en: "Volunteer driver assigned", hi: "स्वयंसेवक चालक नियुक्त", kn: "ಸ್ವಯಂಸೇವಕ ಚಾಲಕನನ್ನು ನಿಯೋಜಿಸಲಾಗಿದೆ" },
+  "dash.distributed_shelters": { en: "Distributed to shelters", hi: "आश्रयों में वितरित", kn: "ಆಶ್ರಯಗಳಿಗೆ ವಿತರಿಸಲಾಗಿದೆ" },
+  "dash.people_served": { en: "People Served", hi: "लोगों को परोसा गया", kn: "ಸೇವೆ ಸಲ್ಲಿಸಿದ ಜನರು" },
+  "dash.direct_impact": { en: "Direct community impact", hi: "सीधा सामुदायिक प्रभाव", kn: "ನೇರ ಸಮುದಾಯದ ಪ್ರಭಾವ" },
+  "dash.pickup_scheduled_by": { en: "Pickup Scheduled by", hi: "द्वारा निर्धारित पिकअप", kn: "ಇವರಿಂದ ಪಿಕ್ಅಪ್ ನಿಗದಿಯಾಗಿದೆ" },
+  "dash.driver": { en: "Driver", hi: "चालक", kn: "ಚಾಲಕ" },
+  "dash.volunteer_driver": { en: "Volunteer Driver", hi: "स्वयंसेवक चालक", kn: "ಸ್ವಯಂಸೇವಕ ಚಾಲಕ" },
+  "dash.handover_otp": { en: "Handover OTP", hi: "हैंडओवर ओटीपी", kn: "ಹಸ್ತಾಂತರದ ಓಟಿಪಿ" },
+  "dash.confirm_handover": { en: "Confirm Handover", hi: "हैंडओवर की पुष्टि करें", kn: "ಹಸ್ತಾಂತರವನ್ನು ದೃಢೀಕರಿಸಿ" },
+  "dash.distributed_by": { en: "Distributed by", hi: "द्वारा वितरित", kn: "ವಿತರಿಸಿದವರು" },
+  "dash.verified_delivered": { en: "Verified Delivered", hi: "सत्यापित रूप से वितरित", kn: "ವಿತರಣೆಯನ್ನು ದೃಢೀಕರಿಸಲಾಗಿದೆ" },
+  
+  // ─── Restaurant Dashboard ──────────────────────────────
+  "restaurant.portal": { en: "Restaurant Portal", hi: "रेस्तरां पोर्टल", kn: "ರೆಸ್ಟೋರೆಂಟ್ ಪೋರ್ಟಲ್" },
+  "restaurant.dashboard_title": { en: "Restaurant Dashboard", hi: "रेस्तरां डैशबोर्ड", kn: "ರೆಸ್ಟೋರೆಂಟ್ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್" },
+  "common.logged_in_as": { en: "Logged in as", hi: "के रूप में लॉग इन किया गया", kn: "ಹೀಗೆ ಲಾಗಿನ್ ಆಗಿದ್ದೀರಿ" },
+  "restaurant.manage_surplus": { en: "Manage your surplus food donations.", hi: "अपने अधिशेष भोजन दान का प्रबंधन करें।", kn: "ನಿಮ್ಮ ಹೆಚ್ಚುವರಿ ಆಹಾರ ದಾನಗಳನ್ನು ನಿರ್ವಹಿಸಿ." },
+  "restaurant.donate_btn": { en: "+ Donate Surplus Food", hi: "+ अधिशेष भोजन दान करें", kn: "+ ಹೆಚ್ಚುವರಿ ಆಹಾರ ದಾನ ಮಾಡಿ" },
+  "restaurant.surplus_listed": { en: "Surplus Listed", hi: "अधिशेष सूचीबद्ध", kn: "ಹೆಚ್ಚುವರಿ ಪಟ್ಟಿಮಾಡಲಾಗಿದೆ" },
+  "restaurant.safe_hot_holding": { en: "Safe hot-holding ready", hi: "सुरक्षित गर्म-होल्डिंग तैयार", kn: "ಸುರಕ್ಷಿತ ಬಿಸಿ-ಹೋಲ್ಡಿಂಗ್ ಸಿದ್ಧವಾಗಿದೆ" },
+  "restaurant.active_donations_desc": { en: "Food available or currently being collected by NGO volunteers.", hi: "भोजन उपलब्ध है या वर्तमान में NGO स्वयंसेवकों द्वारा एकत्र किया जा रहा है।", kn: "ಆಹಾರ ಲಭ್ಯವಿದೆ ಅಥವಾ ಪ್ರಸ್ತುತ ಎನ್‌ಜಿಒ ಸ್ವಯಂಸೇವಕರಿಂದ ಸಂಗ್ರಹಿಸಲಾಗುತ್ತಿದೆ." },
+  "common.view_all": { en: "View All", hi: "सभी देखें", kn: "ಎಲ್ಲವನ್ನೂ ವೀಕ್ಷಿಸಿ" },
+  "restaurant.no_active_donations": { en: "No active donations right now", hi: "अभी कोई सक्रिय दान नहीं है", kn: "ಪ್ರಸ್ತುತ ಯಾವುದೇ ಸಕ್ರಿಯ ದಾನಗಳಿಲ್ಲ" },
+  "restaurant.no_active_donations_desc": { en: "Have extra meals from your lunch or dinner service? Post them to feed people in need.", hi: "क्या आपके लंच या डिनर सर्विस से अतिरिक्त भोजन बचा है? जरूरतमंद लोगों को खिलाने के लिए उन्हें पोस्ट करें।", kn: "ನಿಮ್ಮ ಊಟ ಅಥವಾ ಭೋಜನ ಸೇವೆಯಿಂದ ಹೆಚ್ಚುವರಿ ಊಟವಿದೆಯೇ? ಅಗತ್ಯವಿರುವ ಜನರಿಗೆ ಉಣಿಸಲು ಅವುಗಳನ್ನು ಪೋಸ್ಟ್ ಮಾಡಿ." },
+  "restaurant.recent_completed": { en: "Recent Completed Donations", hi: "हाल ही में पूरे किए गए दान", kn: "ಇತ್ತೀಚೆಗೆ ಪೂರ್ಣಗೊಂಡ ದಾನಗಳು" },
+  "restaurant.recent_completed_desc": { en: "Quickly repeat previous donations with 1 click.", hi: "1 क्लिक के साथ पिछले दान को तुरंत दोहराएं।", kn: "1 ಕ್ಲಿಕ್‌ನೊಂದಿಗೆ ಹಿಂದಿನ ದಾನಗಳನ್ನು ತ್ವರಿತವಾಗಿ ಪುನರಾವರ್ತಿಸಿ." },
+  "ngo.partner": { en: "NGO Partner", hi: "NGO पार्टनर", kn: "ಎನ್‌ಜಿಒ ಪಾಲುದಾರ" },
+  
+  // ─── Hotel Dashboard ──────────────────────────────
+  "hotel.portal": { en: "Hotel & Banquet Portal", hi: "होटल और बैंक्वेट पोर्टल", kn: "ಹೋಟೆಲ್ ಮತ್ತು ಔತಣಕೂಟ ಪೋರ್ಟಲ್" },
+  "hotel.dashboard_title": { en: "Hotel Dashboard", hi: "होटल डैशबोर्ड", kn: "ಹೋಟೆಲ್ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್" },
+  "hotel.manage_surplus": { en: "Manage surplus meals and coordinate banquet donations.", hi: "अधिशेष भोजन प्रबंधित करें और बैंक्वेट दान का समन्वय करें।", kn: "ಹೆಚ್ಚುವರಿ ಊಟಗಳನ್ನು ನಿರ್ವಹಿಸಿ ಮತ್ತು ಔತಣಕೂಟ ದಾನಗಳನ್ನು ಸಂಯೋಜಿಸಿ." },
+  "hotel.donate_btn": { en: "+ Donate Surplus Meals", hi: "+ अधिशेष भोजन दान करें", kn: "+ ಹೆಚ್ಚುವರಿ ಊಟಗಳನ್ನು ದಾನ ಮಾಡಿ" },
+  "hotel.todays_surplus": { en: "Today's Surplus", hi: "आज का अधिशेष", kn: "ಇಂದಿನ ಹೆಚ್ಚುವರಿ" },
+  "hotel.banquet_volume": { en: "Banquet & buffet volume", hi: "बैंक्वेट और बुफे मात्रा", kn: "ಔತಣಕೂಟ ಮತ್ತು ಬಫೆಟ್ ಪ್ರಮಾಣ" },
+  "hotel.ready_loading_bay": { en: "Ready in loading bay", hi: "लोडिंग बे में तैयार", kn: "ಲೋಡಿಂಗ್ ಬೇನಲ್ಲಿ ಸಿದ್ಧವಾಗಿದೆ" },
+  "hotel.scheduled_pickups": { en: "Scheduled Pickups", hi: "निर्धारित पिकअप", kn: "ನಿಗದಿತ ಪಿಕ್ಅಪ್‌ಗಳು" },
+  "hotel.ngo_vehicle_enroute": { en: "NGO vehicle en-route", hi: "NGO वाहन रास्ते में है", kn: "ಎನ್‌ಜಿಒ ವಾಹನ ಮಾರ್ಗಮಧ್ಯೆ ಇದೆ" },
+  "hotel.zero_landfill": { en: "Zero landfill impact", hi: "शून्य लैंडफिल प्रभाव", kn: "ಶೂನ್ಯ ಭೂಭರ್ತಿ ಪ್ರಭಾವ" },
+  "hotel.scheduled_collection_by": { en: "Scheduled Banquet Collection by", hi: "द्वारा निर्धारित बैंक्वेट संग्रह", kn: "ಇವರಿಂದ ನಿಗದಿತ ಔತಣಕೂಟ ಸಂಗ್ರಹಣೆ" },
+  "hotel.dock_handover_otp": { en: "Dock Handover OTP", hi: "डॉक हैंडओवर ओटीपी", kn: "ಡಾಕ್ ಹಸ್ತಾಂತರ ಓಟಿಪಿ" },
+  "hotel.confirm_complete": { en: "Confirm Complete", hi: "पूर्ण होने की पुष्टि करें", kn: "ಪೂರ್ಣಗೊಂಡಿದೆ ಎಂದು ದೃಢೀಕರಿಸಿ" },
+  "hotel.active_food_donations": { en: "Active Hotel Food Donations", hi: "सक्रिय होटल खाद्य दान", kn: "ಸಕ್ರಿಯ ಹೋಟೆಲ್ ಆಹಾರ ದಾನಗಳು" },
+  "hotel.active_donations_desc": { en: "Buffet and banquet surplus waiting for NGO vehicle collection.", hi: "NGO वाहन संग्रह की प्रतीक्षा में बुफे और बैंक्वेट अधिशेष।", kn: "ಎನ್‌ಜಿಒ ವಾಹನ ಸಂಗ್ರಹಣೆಗಾಗಿ ಕಾಯುತ್ತಿರುವ ಬಫೆಟ್ ಮತ್ತು ಔತಣಕೂಟದ ಹೆಚ್ಚುವರಿ." },
+  "hotel.no_active_donations": { en: "No active hotel donations right now", hi: "अभी कोई सक्रिय होटल दान नहीं है", kn: "ಪ್ರಸ್ತುತ ಯಾವುದೇ ಸಕ್ರಿಯ ಹೋಟೆಲ್ ದಾನಗಳಿಲ್ಲ" },
+  "hotel.no_active_donations_desc": { en: "Post surplus food from today's banquets, breakfast buffets, or dinner service.", hi: "आज के बैंक्वेट, ब्रेकफास्ट बुफे या डिनर सर्विस से अधिशेष भोजन पोस्ट करें।", kn: "ಇಂದಿನ ಔತಣಕೂಟಗಳು, ಉಪಹಾರ ಬಫೆಟ್‌ಗಳು ಅಥವಾ ಭೋಜನ ಸೇವೆಯಿಂದ ಹೆಚ್ಚುವರಿ ಆಹಾರವನ್ನು ಪೋಸ್ಟ್ ಮಾಡಿ." },
+  "hotel.recent_banquet": { en: "Recent Banquet & Buffet Donations", hi: "हाल ही के बैंक्वेट और बुफे दान", kn: "ಇತ್ತೀಚಿನ ಔತಣಕೂಟ ಮತ್ತು ಬಫೆಟ್ ದಾನಗಳು" },
+  "hotel.recent_banquet_desc": { en: "Repeat identical banquet menu postings with 1 click.", hi: "1 क्लिक के साथ समान बैंक्वेट मेनू पोस्टिंग दोहराएं।", kn: "1 ಕ್ಲಿಕ್‌ನೊಂದಿಗೆ ಒಂದೇ ರೀತಿಯ ಔತಣಕೂಟದ ಮೆನು ಪೋಸ್ಟಿಂಗ್‌ಗಳನ್ನು ಪುನರಾವರ್ತಿಸಿ." },
+  "hotel.handed_over_to": { en: "Handed over to", hi: "को सौंप दिया", kn: "ಇವರಿಗೆ ಹಸ್ತಾಂತರಿಸಲಾಗಿದೆ" },
+  "hotel.repeat_donation": { en: "Repeat Donation", hi: "दान दोहराएं", kn: "ದಾನವನ್ನು ಪುನರಾವರ್ತಿಸಿ" },
+  
+  // ─── Household Dashboard ──────────────────────────────
+  "household.donor": { en: "Household Donor", hi: "घरेलू दाता", kn: "ಗೃಹಸ್ಥ ದಾನಿ" },
+  "household.title": { en: "Your Food Donations", hi: "आपके खाद्य दान", kn: "ನಿಮ್ಮ ಆಹಾರ ದಾನಗಳು" },
+  "household.subtitle": { en: "Share extra food with people who need it.", hi: "जरूरतमंद लोगों के साथ अतिरिक्त भोजन साझा करें।", kn: "ಅಗತ್ಯವಿರುವ ಜನರೊಂದಿಗೆ ಹೆಚ್ಚುವರಿ ಆಹಾರವನ್ನು ಹಂಚಿಕೊಳ್ಳಿ." },
+  "household.donate_btn": { en: "+ Donate Food", hi: "+ भोजन दान करें", kn: "+ ಆಹಾರ ದಾನ ಮಾಡಿ" },
+  "dash.active_donations": { en: "Active Donations", hi: "सक्रिय दान", kn: "ಸಕ್ರಿಯ ದಾನಗಳು" },
+  "dash.available_scheduled": { en: "Available or scheduled", hi: "उपलब्ध या निर्धारित", kn: "ಲಭ್ಯವಿದೆ ಅಥವಾ ನಿಗದಿಯಾಗಿದೆ" },
+  "dash.completed_rescues": { en: "Completed Rescues", hi: "पूरे किए गए बचाव", kn: "ಪೂರ್ಣಗೊಂಡ ರಕ್ಷಣೆಗಳು" },
+  "dash.collected_volunteers": { en: "Collected by volunteers", hi: "स्वयंसेवकों द्वारा एकत्र किया गया", kn: "ಸ್ವಯಂಸೇವಕರಿಂದ ಸಂಗ್ರಹಿಸಲಾಗಿದೆ" },
+  "dash.food_donated": { en: "Food Donated", hi: "भोजन दान किया गया", kn: "ಆಹಾರ ದಾನ ಮಾಡಲಾಗಿದೆ" },
+  "dash.surplus_saved": { en: "Surplus saved from waste", hi: "बर्बादी से बचाया गया अधिशेष", kn: "ತ್ಯಾಜ್ಯದಿಂದ ಉಳಿಸಿದ ಹೆಚ್ಚುವರಿ" },
+  "dash.people_helped": { en: "People Helped", hi: "लोगों की मदद की गई", kn: "ಸಹಾಯ ಪಡೆದ ಜನರು" },
+  "dash.nutritious_portions": { en: "Nutritious portions shared", hi: "पौष्टिक भाग साझा किए गए", kn: "ಪೌಷ್ಟಿಕಾಂಶದ ಭಾಗಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳಲಾಗಿದೆ" },
+  "household.my_active_donations": { en: "My Active Donations", hi: "मेरे सक्रिय दान", kn: "ನನ್ನ ಸಕ್ರಿಯ ದಾನಗಳು" },
+  "household.no_donations": { en: "You haven't donated any food yet", hi: "आपने अभी तक कोई भोजन दान नहीं किया है", kn: "ನೀವು ಇನ್ನೂ ಯಾವುದೇ ಆಹಾರವನ್ನು ದಾನ ಮಾಡಿಲ್ಲ" },
+  "household.no_donations_desc": { en: "Have extra food from dinner or fresh groceries? Post it here so nearby volunteers can safely collect it.", hi: "रात के खाने या ताजे किराने से अतिरिक्त भोजन है? इसे यहां पोस्ट करें ताकि आस-पास के स्वयंसेवक इसे सुरक्षित रूप से एकत्र कर सकें।", kn: "ಭೋಜನ ಅಥವಾ ತಾಜಾ ದಿನಸಿಗಳಿಂದ ಹೆಚ್ಚುವರಿ ಆಹಾರವಿದೆಯೇ? ಹತ್ತಿರದ ಸ್ವಯಂಸೇವಕರು ಸುರಕ್ಷಿತವಾಗಿ ಸಂಗ್ರಹಿಸಲು ಇಲ್ಲಿ ಪೋಸ್ಟ್ ಮಾಡಿ." },
+  "household.donate_food": { en: "Donate Food", hi: "भोजन दान करें", kn: "ಆಹಾರ ದಾನ ಮಾಡಿ" },
+  "household.recent_completed": { en: "Recent Completed Donations", hi: "हाल ही में पूरे किए गए दान", kn: "ಇತ್ತೀಚೆಗೆ ಪೂರ್ಣಗೊಂಡ ದಾನಗಳು" },
+  "household.safety_checklist": { en: "Household Safety Checklist", hi: "घरेलू सुरक्षा जांच सूची", kn: "ಗೃಹಸ್ಥರ ಸುರಕ್ಷತಾ ಪರಿಶೀಲನಾ ಪಟ್ಟಿ" },
+  "household.safety_1": { en: "Only donate food that is fresh, wholesome, and prepared today.", hi: "केवल वही भोजन दान करें जो आज तैयार किया गया हो, ताज़ा और पौष्टिक हो।", kn: "ಇಂದು ತಯಾರಿಸಿದ ತಾಜಾ ಮತ್ತು ಪೌಷ್ಟಿಕ ಆಹಾರವನ್ನು ಮಾತ್ರ ದಾನ ಮಾಡಿ." },
+  "household.safety_2": { en: "Use clean, food-safe containers or sealed foil packs.", hi: "स्वच्छ, भोजन-सुरक्षित कंटेनर या सील किए गए फ़ॉइल पैक का उपयोग करें।", kn: "ಶುದ್ಧ, ಆಹಾರ-ಸುರಕ್ಷಿತ ಪಾತ್ರೆಗಳು ಅಥವಾ ಮುಚ್ಚಿದ ಫಾಯಿಲ್ ಪ್ಯಾಕ್‌ಗಳನ್ನು ಬಳಸಿ." },
+  "household.safety_3": { en: "Provide clear pickup instructions (floor, bell, landmark).", hi: "स्पष्ट पिकअप निर्देश प्रदान करें (मंजिल, घंटी, लैंडमार्क)।", kn: "ಸ್ಪಷ್ಟ ಪಿಕ್ಅಪ್ ಸೂಚನೆಗಳನ್ನು ನೀಡಿ (ಮಹಡಿ, ಗಂಟೆ, ಹೆಗ್ಗುರುತು)." },
+  "household.how_it_works": { en: "How Food Sharing Works", hi: "भोजन साझा करना कैसे काम करता है", kn: "ಆಹಾರ ಹಂಚಿಕೆ ಹೇಗೆ ಕೆಲಸ ಮಾಡುತ್ತದೆ" },
+  "household.step_1": { en: "Post extra food in under 1 minute.", hi: "1 मिनट से भी कम समय में अतिरिक्त भोजन पोस्ट करें।", kn: "1 ನಿಮಿಷದೊಳಗೆ ಹೆಚ್ಚುವರಿ ಆಹಾರವನ್ನು ಪೋಸ್ಟ್ ಮಾಡಿ." },
+  "household.step_2": { en: "A nearby NGO or relief worker accepts your donation.", hi: "पास का कोई NGO या राहत कार्यकर्ता आपका दान स्वीकार करता है।", kn: "ಹತ್ತಿರದ ಎನ್‌ಜಿಒ ಅಥವಾ ಪರಿಹಾರ ಕಾರ್ಯಕರ್ತರು ನಿಮ್ಮ ದಾನವನ್ನು ಸ್ವೀಕರಿಸುತ್ತಾರೆ." },
+  "household.step_3": { en: "They pick up the package from your doorstep and feed families.", hi: "वे आपके घर से पैकेज लेते हैं और परिवारों को खिलाते हैं।", kn: "ಅವರು ನಿಮ್ಮ ಮನೆಯ ಬಾಗಿಲಿನಿಂದ ಪ್ಯಾಕೇಜ್ ತೆಗೆದುಕೊಂಡು ಕುಟುಂಬಗಳಿಗೆ ಉಣಿಸುತ್ತಾರೆ." },
 
   // ─── Login Page ───────────────────────────────────────
   "login.title": { en: "Welcome to FoodWise", hi: "FoodWise में आपका स्वागत है" },
@@ -138,6 +417,64 @@ const translations: Record<string, Record<Language, string>> = {
   "ngo.volunteers": { en: "Volunteers", hi: "स्वयंसेवक" },
   "ngo.beneficiaries": { en: "Beneficiaries", hi: "लाभार्थी" },
 
+  // ─── Common Modals ────────────────────────────────────
+  "modal_claim.request_claim_food": { en: "Request & Claim Food", hi: "अनुरोध करें और भोजन का दावा करें", kn: "ಆಹಾರವನ್ನು ವಿನಂತಿಸಿ ಮತ್ತು ಕ್ಲೈಮ್ ಮಾಡಿ" },
+  "modal_claim.dispatch_volunteer_d": { en: "Dispatch volunteer driver for", hi: "स्वयंसेवक चालक को इसके लिए भेजें", kn: "ಸ್ವಯಂಸೇವಕ ಚಾಲಕರನ್ನು ಕಳುಹಿಸಿ" },
+  "modal_claim.listing": { en: "Listing •", hi: "सूची •", kn: "ಪಟ್ಟಿ •" },
+  "modal_claim.quantity": { en: "Quantity:", hi: "मात्रा:", kn: "ಪ್ರಮಾಣ:" },
+  "modal_claim.kg": { en: "kg", hi: "किग्रा", kn: "ಕಿ.ಗ್ರಾಂ" },
+  "modal_claim.estimated_servings": { en: "estimated servings)", hi: "अनुमानित सर्विंग)", kn: "ಅಂದಾಜು ಸೇವೆಗಳು)" },
+  "modal_claim.pickup_location": { en: "Pickup location:", hi: "पिकअप का स्थान:", kn: "ಪಿಕ್ಅಪ್ ಸ್ಥಳ:" },
+  "modal_claim.assigned_volunteer_d": { en: "Assigned Volunteer Driver Name *", hi: "नियुक्त स्वयंसेवक चालक का नाम *", kn: "ನಿಯೋಜಿತ ಸ್ವಯಂಸೇವಕ ಚಾಲಕನ ಹೆಸರು *" },
+  "modal_claim.driver_contact_mobil": { en: "Driver Contact Mobile *", hi: "चालक संपर्क मोबाइल *", kn: "ಚಾಲಕನ ಸಂಪರ್ಕ ಮೊಬೈಲ್ *" },
+  "modal_claim.a_4_digit_handover_o": { en: "A 4-digit handover OTP will be generated immediately for donor verification at pickup.", hi: "पिकअप पर दाता सत्यापन के लिए तुरंत 4 अंकों का हैंडओवर ओटीपी जनरेट किया जाएगा।", kn: "ಪಿಕ್ಅಪ್‌ನಲ್ಲಿ ದಾನಿ ಪರಿಶೀಲನೆಗಾಗಿ ತಕ್ಷಣವೇ 4-ಅಂಕಿಯ ಹಸ್ತಾಂತರ ಓಟಿಪಿ ರಚಿಸಲಾಗುತ್ತದೆ." },
+  "modal_claim.cancel": { en: "Cancel", hi: "रद्द करें", kn: "ರದ್ದುಮಾಡಿ" },
+  "modal_claim.confirm_dispatch": { en: "Confirm & Dispatch", hi: "पुष्टि करें और भेजें", kn: "ದೃಢೀಕರಿಸಿ ಮತ್ತು ಕಳುಹಿಸಿ" },
+  "modal_claim.e_g_ramesh_kumar": { en: "e.g. Ramesh Kumar", hi: "जैसे रमेश कुमार", kn: "ಉದಾಹರಣೆಗೆ ರಮೇಶ್ ಕುಮಾರ್" },
+  "modal_dir.google_maps_route_tr": { en: "Google Maps Route & Traffic Intelligence", hi: "Google Maps मार्ग और ट्रैफ़िक इंटेलिजेंस", kn: "ಗೂಗಲ್ ಮ್ಯಾಪ್ಸ್ ಮಾರ್ಗ ಮತ್ತು ಟ್ರಾಫಿಕ್ ಇಂಟೆಲಿಜೆನ್ಸ್" },
+  "modal_dir.live_directions": { en: "Live Directions", hi: "लाइव दिशा-निर्देश", kn: "ಲೈವ್ ನಿರ್ದೇಶನಗಳು" },
+  "modal_dir.route_to": { en: "Route to", hi: "मार्ग", kn: "ಮಾರ್ಗ" },
+  "modal_dir.time_to_deliver_food": { en: "Time to Deliver Food", hi: "भोजन पहुंचाने का समय", kn: "ಆಹಾರವನ್ನು ತಲುಪಿಸುವ ಸಮಯ" },
+  "modal_dir.mins": { en: "mins", hi: "मिनट", kn: "ನಿಮಿಷಗಳು" },
+  "modal_dir.arrival_in": { en: "Arrival in ~", hi: "लगभग आगमन समय", kn: "ಆಗಮನದ ಸಮಯ ~" },
+  "modal_dir.traffic_condition": { en: "Traffic Condition", hi: "ट्रैफ़िक स्थिति", kn: "ಟ್ರಾಫಿಕ್ ಸ್ಥಿತಿ" },
+  "modal_dir.traffic": { en: "Traffic", hi: "ट्रैफ़िक", kn: "ಟ್ರಾಫಿಕ್" },
+  "modal_dir.total_distance": { en: "Total Distance", hi: "कुल दूरी", kn: "ಒಟ್ಟು ದೂರ" },
+  "modal_dir.km": { en: "km", hi: "किमी", kn: "ಕಿ.ಮೀ" },
+  "modal_dir.direct_transit_line": { en: "Direct Transit Line", hi: "सीधी पारगमन रेखा", kn: "ನೇರ ಸಾರಿಗೆ ಮಾರ್ಗ" },
+  "modal_dir.food_safety_window": { en: "Food Safety Window", hi: "खाद्य सुरक्षा विंडो", kn: "ಆಹಾರ ಸುರಕ್ಷತೆ ವಿಂಡೋ" },
+  "modal_dir.safety_window_valid": { en: "Safety Window Valid", hi: "सुरक्षा विंडो वैध", kn: "ಸುರಕ್ಷತೆ ವಿಂಡೋ ಮಾನ್ಯವಾಗಿದೆ" },
+  "modal_dir.live_traffic": { en: "Live Traffic:", hi: "लाइव ट्रैफ़िक:", kn: "ಲೈವ್ ಟ್ರಾಫಿಕ್:" },
+  "modal_dir.open_in_google_maps": { en: "Open in Google Maps", hi: "Google Maps में खोलें", kn: "ಗೂಗಲ್ ಮ್ಯಾಪ್ಸ್‌ನಲ್ಲಿ ತೆರೆಯಿರಿ" },
+  "modal_dir.origin": { en: "Origin:", hi: "मूल:", kn: "ಮೂಲ:" },
+  "modal_dir.destination": { en: "Destination:", hi: "गंतव्य:", kn: "ಗಮ್ಯಸ್ಥಾನ:" },
+  "modal_dir.avg_speed": { en: "Avg Speed:", hi: "औसत गति:", kn: "ಸರಾಸರಿ ವೇಗ:" },
+  "modal_dir.transit_route_corrid": { en: "Transit Route Corridor & Traffic Breakdown", hi: "पारगमन मार्ग गलियारा और ट्रैफ़िक ब्रेकडाउन", kn: "ಸಾರಿಗೆ ಮಾರ್ಗ ಕಾರಿಡಾರ್ ಮತ್ತು ಟ್ರಾಫಿಕ್ ವಿಭಜನೆ" },
+  "modal_dir.delivery_vehicle_dl": { en: "Delivery Vehicle: DL-01-AB-1234", hi: "वितरण वाहन: DL-01-AB-1234", kn: "ವಿತರಣಾ ವಾಹನ: DL-01-AB-1234" },
+  "modal_dir.step_1_departure": { en: "Step 1 • Departure", hi: "चरण 1 • प्रस्थान", kn: "ಹಂತ 1 • ನಿರ್ಗಮನ" },
+  "modal_dir.iit_delhi_main_gate": { en: "IIT Delhi Main Gate", hi: "IIT दिल्ली मुख्य गेट", kn: "ಐಐಟಿ ದೆಹಲಿ ಮುಖ್ಯ ಗೇಟ್" },
+  "modal_dir.sri_aurobindo_marg_0": { en: "Sri Aurobindo Marg (0.8 km)", hi: "श्री अरबिंदो मार्ग (0.8 किमी)", kn: "ಶ್ರೀ ಅರಬಿಂದೋ ಮಾರ್ಗ (0.8 ಕಿ.ಮೀ)" },
+  "modal_dir.step_2_main_transit": { en: "Step 2 • Main Transit", hi: "चरण 2 • मुख्य पारगमन", kn: "ಹಂತ 2 • ಮುಖ್ಯ ಸಾರಿಗೆ" },
+  "modal_dir.outer_ring_rd_flyove": { en: "Outer Ring Rd / Flyover", hi: "आउटर रिंग रोड / फ्लाईओवर", kn: "ಹೊರವರ್ತುಲ ರಸ್ತೆ / ಫ್ಲೈಓವರ್" },
+  "modal_dir.step_3_arrival": { en: "Step 3 • Arrival", hi: "चरण 3 • आगमन", kn: "ಹಂತ 3 • ಆಗಮನ" },
+  "modal_dir.drop_off_point_safe": { en: "Drop-off Point Safe", hi: "ड्रॉप-ऑफ़ पॉइंट सुरक्षित", kn: "ಡ್ರಾಪ್-ಆಫ್ ಪಾಯಿಂಟ್ ಸುರಕ್ಷಿತ" },
+  "modal_dir.open_live_directions": { en: "Open Live Directions in Google Maps", hi: "Google Maps में लाइव दिशा-निर्देश खोलें", kn: "ಗೂಗಲ್ ಮ್ಯಾಪ್ಸ್‌ನಲ್ಲಿ ಲೈವ್ ನಿರ್ದೇಶನಗಳನ್ನು ತೆರೆಯಿರಿ" },
+  "modal_dir.call_ngo": { en: "Call NGO", hi: "NGO को कॉल करें", kn: "ಎನ್‌ಜಿಒಗೆ ಕರೆ ಮಾಡಿ" },
+  "modal_dir.route_dispatched": { en: "Route Dispatched!", hi: "मार्ग प्रेषित!", kn: "ಮಾರ್ಗವನ್ನು ಕಳುಹಿಸಲಾಗಿದೆ!" },
+  "modal_dir.dispatch_van_lock_ro": { en: "Dispatch Van & Lock Route (", hi: "वैन भेजें और मार्ग लॉक करें (", kn: "ವ್ಯಾನ್ ಕಳುಹಿಸಿ ಮತ್ತು ಮಾರ್ಗವನ್ನು ಲಾಕ್ ಮಾಡಿ (" },
+  "modal_dir.m": { en: "m)", hi: "m)", kn: "m)" },
+
+  "ngo.find_available_food": { en: "+ Find Available Food", hi: "+ उपलब्ध भोजन खोजें", kn: "+ ಲಭ್ಯವಿರುವ ಆಹಾರವನ್ನು ಹುಡುಕಿ" },
+  "ngo.kg": { en: "kg (~", hi: "किग्रा (~", kn: "ಕಿ.ಗ್ರಾಂ (~" },
+  "ngo.hauz_khas_12": { en: "Hauz Khas: 12", hi: "हौज खास: 12", kn: "ಹೌಜ್ ಖಾಸ್: 12" },
+  "ngo.aiims_22": { en: "AIIMS: 22", hi: "AIIMS: 22", kn: "ಏಮ್ಸ್: 22" },
+  "ngo.oberoi_okhla_38_45": { en: "Oberoi / Okhla: 38-45", hi: "ओबेरॉय / ओखला: 38-45", kn: "ಒಬೆರಾಯ್ / ಓಖ್ಲಾ: 38-45" },
+  "ngo.aiims_flyover_22": { en: "AIIMS Flyover: 22", hi: "AIIMS फ्लाईओवर: 22", kn: "ಏಮ್ಸ್ ಫ್ಲೈಓವರ್: 22" },
+  "ngo.mathura_road_okhla_4": { en: "Mathura Road / Okhla: 45", hi: "मथुरा रोड / ओखला: 45", kn: "ಮಥುರಾ ರಸ್ತೆ / ಓಖ್ಲಾ: 45" },
+  "ngo.google_maps_live_dir": { en: "Google Maps Live Directions & Traffic", hi: "Google Maps लाइव दिशा-निर्देश और ट्रैफ़िक", kn: "ಗೂಗಲ್ ಮ್ಯಾಪ್ಸ್ ಲೈವ್ ನಿರ್ದೇಶನಗಳು ಮತ್ತು ಟ್ರಾಫಿಕ್" },
+  "ngo.view_scheduled_deliv": { en: "View scheduled delivery", hi: "निर्धारित डिलीवरी देखें", kn: "ನಿಗದಿತ ವಿತರಣೆಯನ್ನು ವೀಕ್ಷಿಸಿ" },
+  "ngo.google_maps_live_rou": { en: "Google Maps Live Routing", hi: "Google Maps लाइव रूटिंग", kn: "ಗೂಗಲ್ ಮ್ಯಾಪ್ಸ್ ಲೈವ್ ರೂಟಿಂಗ್" },
+
   // ─── Settings Modal ──────────────────────────────────
   "settings.title": { en: "System Settings & Preferences", hi: "सिस्टम सेटिंग्स और प्राथमिकताएँ" },
   "settings.subtitle": { en: "Configure facility profiles, alert thresholds, and AI automation", hi: "सुविधा प्रोफ़ाइल, अलर्ट सीमा, और AI स्वचालन कॉन्फ़िगर करें" },
@@ -162,6 +499,41 @@ const translations: Record<string, Record<Language, string>> = {
   "settings.confidence_cutoff": { en: "Anomaly Confidence Cutoff", hi: "विसंगति विश्वास सीमा" },
   "settings.saved": { en: "Settings saved!", hi: "सेटिंग्स सहेजी गईं!" },
   "settings.fssai_verified": { en: "Verified FSSAI Compliance Tier", hi: "सत्यापित FSSAI अनुपालन स्तर" },
+
+  // ─── Settings Page ────────────────────────────────────
+  "settings_page.account_amp_platform": { en: "Account & Platform Settings", hi: "खाता और प्लेटफ़ॉर्म सेटिंग्स", kn: "ಖಾತೆ ಮತ್ತು ವೇದಿಕೆ ಸೆಟ್ಟಿಂಗ್‌ಗಳು" },
+  "settings_page.manage_your_contact": { en: "Manage your contact information, pickup instructions, and notification preferences.", hi: "अपनी संपर्क जानकारी, पिकअप निर्देश और अधिसूचना प्राथमिकताएं प्रबंधित करें।", kn: "ನಿಮ್ಮ ಸಂಪರ್ಕ ಮಾಹಿತಿ, ಪಿಕ್ಅಪ್ ಸೂಚನೆಗಳು ಮತ್ತು ಅಧಿಸೂಚನೆ ಆದ್ಯತೆಗಳನ್ನು ನಿರ್ವಹಿಸಿ." },
+  "settings_page.save_changes": { en: "Save Changes", hi: "परिवर्तन सहेजें", kn: "ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿ" },
+  "settings_page.your_settings_and_pr": { en: "Your settings and preferences have been updated successfully.", hi: "आपकी सेटिंग्स और प्राथमिकताएं सफलतापूर्वक अपडेट कर दी गई हैं।", kn: "ನಿಮ್ಮ ಸೆಟ್ಟಿಂಗ್‌ಗಳು ಮತ್ತು ಆದ್ಯತೆಗಳನ್ನು ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ." },
+  "settings_page.notification_prefere": { en: "Notification Preferences", hi: "अधिसूचना प्राथमिकताएं", kn: "ಅಧಿಸೂಚನೆ ಆದ್ಯತೆಗಳು" },
+  "settings_page.security_amp_account": { en: "Security & Account", hi: "सुरक्षा और खाता", kn: "ಭದ್ರತೆ ಮತ್ತು ಖಾತೆ" },
+  "settings_page.verified_partner": { en: "Verified Partner", hi: "सत्यापित भागीदार", kn: "ಪರಿಶೀಲಿಸಿದ ಪಾಲುದಾರ" },
+  "settings_page.phone_mobile_number": { en: "Phone / Mobile Number", hi: "फोन / मोबाइल नंबर", kn: "ಫೋನ್ / ಮೊಬೈಲ್ ಸಂಖ್ಯೆ" },
+  "settings_page.official_email_addre": { en: "Official Email Address", hi: "आधिकारिक ईमेल पता", kn: "ಅಧಿಕೃತ ಇಮೇಲ್ ವಿಳಾಸ" },
+  "settings_page.save_profile": { en: "Save Profile", hi: "प्रोफ़ाइल सहेजें", kn: "ಪ್ರೊಫೈಲ್ ಉಳಿಸಿ" },
+  "settings_page.city_state": { en: "City / State", hi: "शहर / राज्य", kn: "ನಗರ / ರಾಜ್ಯ" },
+  "settings_page.coverage_areas_pinco": { en: "Coverage Areas / Pincodes", hi: "कवरेज क्षेत्र / पिनकोड", kn: "ವ್ಯಾಪ್ತಿ ಪ್ರದೇಶಗಳು / ಪಿನ್‌ಕೋಡ್‌ಗಳು" },
+  "settings_page.save_location_detail": { en: "Save Location Details", hi: "स्थान विवरण सहेजें", kn: "ಸ್ಥಳದ ವಿವರಗಳನ್ನು ಉಳಿಸಿ" },
+  "settings_page.donation_amp_pickup": { en: "Donation & Pickup Alerts", hi: "दान और पिकअप अलर्ट", kn: "ದಾನ ಮತ್ತು ಪಿಕ್ಅಪ್ ಎಚ್ಚರಿಕೆಗಳು" },
+  "settings_page.configure_notificati": { en: "Configure notifications for actual food donation events and scheduled pickups.", hi: "वास्तविक खाद्य दान कार्यक्रमों और निर्धारित पिकअप के लिए सूचनाएं कॉन्फ़िगर करें।", kn: "ನೈಜ ಆಹಾರ ದಾನ ಕಾರ್ಯಕ್ರಮಗಳು ಮತ್ತು ನಿಗದಿತ ಪಿಕ್ಅಪ್‌ಗಳಿಗಾಗಿ ಅಧಿಸೂಚನೆಗಳನ್ನು ಕಾನ್ಫಿಗರ್ ಮಾಡಿ." },
+  "settings_page.delivery_handover_am": { en: "Delivery Handover & Impact Confirmation", hi: "वितरण सौंपना और प्रभाव की पुष्टि", kn: "ವಿತರಣೆ ಹಸ್ತಾಂತರ ಮತ್ತು ಪ್ರಭಾವ ದೃಢೀಕರಣ" },
+  "settings_page.receive_verified_con": { en: "Receive verified confirmation when food is handed over, OTP is matched, and meals are shared.", hi: "भोजन सौंपे जाने, ओटीपी का मिलान होने और भोजन साझा किए जाने पर सत्यापित पुष्टि प्राप्त करें।", kn: "ಆಹಾರ ಹಸ್ತಾಂತರಿಸಿದಾಗ, ಓಟಿಪಿ ಹೊಂದಾಣಿಕೆಯಾದಾಗ ಮತ್ತು ಊಟವನ್ನು ಹಂಚಿಕೊಂಡಾಗ ಪರಿಶೀಲಿಸಿದ ದೃಢೀಕರಣವನ್ನು ಸ್ವೀಕರಿಸಿ." },
+  "settings_page.in_browser_audio_ale": { en: "In-Browser Audio Alerts", hi: "इन-ब्राउज़र ऑडियो अलर्ट", kn: "ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಆಡಿಯೊ ಎಚ್ಚರಿಕೆಗಳು" },
+  "settings_page.play_a_gentle_audio": { en: "Play a gentle audio chime when a time-sensitive pickup or handover notification arrives.", hi: "जब समय के प्रति संवेदनशील पिकअप या हैंडओवर अधिसूचना आए तो एक सौम्य ऑडियो चाइम बजाएं।", kn: "ಸಮಯ-ಸೂಕ್ಷ್ಮ ಪಿಕ್ಅಪ್ ಅಥವಾ ಹಸ್ತಾಂತರ ಅಧಿಸೂಚನೆ ಬಂದಾಗ ಮೃದುವಾದ ಆಡಿಯೊ ಚೈಮ್ ಅನ್ನು ಪ್ಲೇ ಮಾಡಿ." },
+  "settings_page.save_preferences": { en: "Save Preferences", hi: "प्राथमिकताएं सहेजें", kn: "ಆದ್ಯತೆಗಳನ್ನು ಉಳಿಸಿ" },
+  "settings_page.change_password": { en: "Change Password", hi: "पासवर्ड बदलें", kn: "ಪಾಸ್ವರ್ಡ್ ಬದಲಾಯಿಸಿ" },
+  "settings_page.current_password": { en: "Current Password", hi: "वर्तमान पासवर्ड", kn: "ಪ್ರಸ್ತುತ ಪಾಸ್‌ವರ್ಡ್" },
+  "settings_page.new_password": { en: "New Password", hi: "नया पासवर्ड", kn: "ಹೊಸ ಪಾಸ್‌ವರ್ಡ್" },
+  "settings_page.confirm_new_password": { en: "Confirm New Password", hi: "नए पासवर्ड की पुष्टि करें", kn: "ಹೊಸ ಪಾಸ್‌ವರ್ಡ್ ದೃಢೀಕರಿಸಿ" },
+  "settings_page.update_password": { en: "Update Password", hi: "पासवर्ड अपडेट करें", kn: "ಪಾಸ್‌ವರ್ಡ್ ನವೀಕರಿಸಿ" },
+  "settings_page.active_session": { en: "Active Session", hi: "सक्रिय सत्र", kn: "ಸಕ್ರಿಯ ಅಧಿವೇಶನ" },
+  "settings_page.signed_in_as": { en: "Signed in as", hi: "के रूप में साइन इन किया", kn: "ಈ ಹೆಸರಿನಲ್ಲಿ ಸೈನ್ ಇನ್ ಮಾಡಲಾಗಿದೆ" },
+  "settings_page.log_out_of_foodwise": { en: "Log Out of FoodWise", hi: "FoodWise से लॉग आउट करें", kn: "FoodWise ನಿಂದ ಲಾಗ್ ಔಟ್ ಮಾಡಿ" },
+
+  // ─── NGO Report Page ──────────────────────────────────
+  "ngo_report.bull": { en: "•", hi: "•", kn: "•" },
+  "ngo_report.pts": { en: "pts", hi: "अंक", kn: "ಅಂಕಗಳು" },
+
 
   // ─── Notification Drawer ─────────────────────────────
   "notif.title": { en: "Notifications", hi: "सूचनाएँ" },
@@ -213,7 +585,7 @@ const translations: Record<string, Record<Language, string>> = {
 
   // ─── Extra labels ────────────────────────────────────
   "nav.navigation": { en: "Navigation", hi: "नेविगेशन" },
-  "inst.fssai_verified": { en: "FSSAI Verified", hi: "FSSAI सत्यापित" },
+  "inst.fssai_verified": { en: "Verified Partner", hi: "सत्यापित पार्टनर" },
   "common.connected": { en: "Connected", hi: "कनेक्टेड" },
   "common.connect": { en: "Connect", hi: "कनेक्ट करें" },
   "common.linked": { en: "Linked", hi: "लिंक्ड" },
@@ -713,7 +1085,7 @@ const translations: Record<string, Record<Language, string>> = {
   "ngo.report.last_quarter": { en: "Last Quarter", hi: "पिछली तिमाही" },
   "ngo.report.year_to_date": { en: "Year to Date", hi: "वर्ष अब तक" },
   "ngo.report.exporting": { en: "Exporting...", hi: "निर्यात हो रहा है..." },
-  "ngo.report.certificate_80g": { en: "80G Certificate", hi: "80G प्रमाणपत्र" },
+  "ngo.report.certificate_80g": { en: "Appreciation Certificate (PDF)", hi: "सम्मान प्रमाणपत्र (PDF)" },
   "ngo.report.export_csv": { en: "Export CSV", hi: "CSV निर्यात करें" },
   "ngo.report.total_meals": { en: "Total Meals Distributed", hi: "कुल वितरित भोजन" },
   "ngo.report.vs_last_month": { en: "+24.8% vs last month", hi: "+24.8% पिछले माह से" },
@@ -1533,6 +1905,30 @@ const translations: Record<string, Record<Language, string>> = {
   "factory.report.download_vibration_log": { en: "Download Machine Vibration Audit Log (PDF)", hi: "मशीन कंपन ऑडिट लॉग डाउनलोड करें (PDF)" },
 };
 
+
+// Populate all keys from KN_TRANSLATIONS and phrase dictionaries
+for (const [key, knVal] of Object.entries(KN_TRANSLATIONS)) {
+  if (!translations[key]) {
+    translations[key] = {
+      en: key,
+      hi: PHRASE_DICTIONARY[key] || key,
+      kn: knVal,
+    };
+  } else {
+    translations[key].kn = knVal;
+  }
+}
+
+for (const key of Object.keys(translations)) {
+  const enVal = translations[key].en || "";
+  if (!translations[key].kn) {
+    translations[key].kn = KN_TRANSLATIONS[key] || KN_PHRASE_DICTIONARY[enVal] || KN_TRANSLATIONS[enVal] || enVal;
+  }
+  if (!translations[key].hi) {
+    translations[key].hi = PHRASE_DICTIONARY[enVal] || PHRASE_DICTIONARY[key] || enVal;
+  }
+}
+
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
@@ -1541,7 +1937,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const stored = localStorage.getItem("fw_lang") as Language;
-      if (stored === "hi") setLangState("hi");
+      if (stored === "hi" || stored === "kn" || stored === "en") {
+        setLangState(stored);
+      }
     } catch {
       // ignore
     }
@@ -1557,33 +1955,65 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const toggleLang = useCallback(() => {
-    setLang(lang === "en" ? "hi" : "en");
+    setLang(lang === "en" ? "hi" : lang === "hi" ? "kn" : "en");
   }, [lang, setLang]);
 
   const t = useCallback(
-    (keyOrText: string): string => {
+    (keyOrText: string, params?: Record<string, string | number>): string => {
       if (!keyOrText) return "";
+      
+      let result = keyOrText;
+      let isTranslated = false;
+
       // 1. Direct translation key
       if (translations[keyOrText]?.[lang]) {
-        return translations[keyOrText][lang];
-      }
-      if (lang === "en") {
+        const candidate = translations[keyOrText]![lang]!;
+        if (lang === "kn" && candidate === translations[keyOrText]?.en && KN_PHRASE_DICTIONARY[candidate]) {
+          result = KN_PHRASE_DICTIONARY[candidate];
+        } else if (lang === "hi" && candidate === translations[keyOrText]?.en && PHRASE_DICTIONARY[candidate]) {
+          result = PHRASE_DICTIONARY[candidate];
+        } else {
+          result = candidate;
+        }
+        isTranslated = true;
+      } else if (lang === "en") {
         if (translations[keyOrText]?.en) {
-          return translations[keyOrText].en;
+          result = translations[keyOrText]!.en!;
+          isTranslated = true;
+        } else if (isDevanagari(keyOrText)) {
+          result = translateHindiToEnglish(keyOrText);
+          isTranslated = true;
+        } else if (isKannada(keyOrText)) {
+          result = translateKannadaToEnglish(keyOrText);
+          isTranslated = true;
         }
-        // If keyOrText has Hindi/Devanagari, translate back to English
-        if (isDevanagari(keyOrText)) {
-          return translateHindiToEnglish(keyOrText);
+      } else if (lang === "kn") {
+        const trimmed = keyOrText.trim();
+        if (KN_PHRASE_DICTIONARY[trimmed]) {
+          result = KN_PHRASE_DICTIONARY[trimmed];
+          isTranslated = true;
+        } else if (KN_TRANSLATIONS[trimmed]) {
+          result = KN_TRANSLATIONS[trimmed];
+          isTranslated = true;
         }
-        return keyOrText;
+      } else {
+        // lang === "hi"
+        const trimmed = keyOrText.trim();
+        if (PHRASE_DICTIONARY[trimmed]) {
+          result = PHRASE_DICTIONARY[trimmed];
+          isTranslated = true;
+        }
       }
-      // 2. When lang is Hindi: Direct phrase match in dictionary
-      const trimmed = keyOrText.trim();
-      if (PHRASE_DICTIONARY[trimmed]) {
-        return PHRASE_DICTIONARY[trimmed];
+
+      // Interpolate parameters if provided
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          const regex = new RegExp(`{{${key}}}`, "g");
+          result = result.replace(regex, String(value));
+        });
       }
-      // 3. Dynamic English to Hindi translation
-      return translateDynamicEnglishToHindi(keyOrText);
+
+      return result;
     },
     [lang]
   );
@@ -1603,3 +2033,4 @@ export function useLang() {
   }
   return context;
 }
+

@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
-import { getDb } from "@/lib/mongodb";
+import {
+  getNotifications,
+  createNotification,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+} from "@/lib/dataService";
 
 // GET all notifications
 export async function GET() {
   try {
-    const db = await getDb();
-    const notifications = await db.collection("notifications").find({}).sort({ createdAt: -1 }).toArray();
+    const notifications = await getNotifications();
     return NextResponse.json({ success: true, data: notifications });
   } catch (error) {
     console.error("Notifications GET error:", error);
@@ -17,22 +21,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const db = await getDb();
-
-    const notification = {
-      notifId: body.notifId || `notif-${Date.now()}`,
-      title: body.title,
-      message: body.message,
-      time: body.time || "Just now",
-      severity: body.severity || "info",
-      category: body.category || "Kitchen",
-      actionLabel: body.actionLabel,
-      actionUrl: body.actionUrl,
-      read: false,
-      createdAt: body.createdAt ? new Date(body.createdAt) : new Date(),
-    };
-
-    await db.collection("notifications").insertOne(notification);
+    const notification = await createNotification(body);
     return NextResponse.json({ success: true, data: notification });
   } catch (error) {
     console.error("Notifications POST error:", error);
@@ -44,18 +33,14 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
-    const db = await getDb();
 
     if (body.markAllRead) {
-      await db.collection("notifications").updateMany({}, { $set: { read: true } });
+      await markAllNotificationsAsRead();
       return NextResponse.json({ success: true, message: "All notifications marked as read" });
     }
 
     if (body.notifId) {
-      await db.collection("notifications").updateOne(
-        { notifId: body.notifId },
-        { $set: { read: true } }
-      );
+      await markNotificationAsRead(body.notifId);
       return NextResponse.json({ success: true, message: `Notification ${body.notifId} marked as read` });
     }
 

@@ -604,11 +604,11 @@ export default function MobileNotificationPreview({
             <div className="text-[11px] text-emerald-900 leading-normal">
               {activeSector === "factory" ? (
                 <>
-                  <strong>ISO 22000 & FSSAI Batch Compliance:</strong> Every factory alert is timestamped and synchronized with processing silo telemetry. Prioritizing a batch within 8 hours salvages up to 88% of raw material value before biological decay sets in.
+                  <strong>Quality & Dispatch Safety Protocol:</strong> Every batch dispatch alert is timestamped. Prioritizing a batch within 8 hours salvages up to 88% of surplus food value before freshness decreases.
                 </>
               ) : (
                 <>
-                  <strong>FSSAI 2-Hour Window Notice:</strong> Every surplus push notification carries a live countdown timer. When an NGO taps <em className="font-semibold text-emerald-700">"Tap to claim →"</em>, the delivery route is locked and volunteer transit begins immediately.
+                  <strong>Surplus Safety Window:</strong> Every surplus push notification carries a live countdown timer. When an NGO taps <em className="font-semibold text-emerald-700">"Tap to claim →"</em>, the delivery route is locked and volunteer transit begins immediately.
                 </>
               )}
             </div>

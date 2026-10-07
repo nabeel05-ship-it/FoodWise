@@ -9,13 +9,11 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@prisma/client": "^7.10.0",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "framer-motion": "^13.4.0",
     "jspdf": "^4.2.1",
     "lucide-react": "^1.47.0",
-    "mongodb": "^6.21.0",
     "next": "^16.3.5",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -31,7 +29,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
-    "prisma": "^8.0.0-rc.15",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

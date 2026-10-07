@@ -86,17 +86,17 @@ export default function NotificationDrawer() {
         hour12: true,
       });
 
-      if (diffSec < 45) return `Just now`;
+      if (diffSec < 45) return t("common.just_now");
       const diffMins = Math.floor(diffSec / 60);
-      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffMins < 60) return `${diffMins} ${t("minutes ago")}`;
       const diffHours = Math.floor(diffMins / 60);
-      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffHours < 24) return `${diffHours} ${t("hours ago")}`;
       const diffDays = Math.floor(diffHours / 24);
-      if (diffDays === 1) return `Yesterday`;
-      return `${diffDays}d ago`;
+      if (diffDays === 1) return t("common.yesterday");
+      return `${diffDays} ${t("days ago")}`;
     }
 
-    return time === "Just now" ? "Just now" : time;
+    return time === "Just now" ? t("common.just_now") : t(time);
   };
 
   return (
@@ -184,7 +184,7 @@ export default function NotificationDrawer() {
                           notif.severity
                         )}`}
                       >
-                        {notif.category}
+                        {t(notif.category) || notif.category}
                       </span>
                       <span className="text-[11px] text-[#6B7280] font-medium flex items-center gap-1 shrink-0">
                         <Clock className="w-3 h-3" />
@@ -192,10 +192,10 @@ export default function NotificationDrawer() {
                       </span>
                     </div>
                     <h3 className="text-sm font-semibold text-[#111827] mb-1">
-                      {notif.title}
+                      {t(notif.title, notif.titleParams)}
                     </h3>
                     <p className="text-xs text-[#6B7280] leading-relaxed mb-3">
-                      {notif.message}
+                      {t(notif.message, notif.messageParams)}
                     </p>
                     {notif.actionLabel && notif.actionUrl && (
                       <Link
@@ -203,7 +203,7 @@ export default function NotificationDrawer() {
                         onClick={closeDrawer}
                         className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg transition-colors border border-emerald-200"
                       >
-                        {notif.actionLabel}
+                        {t(notif.actionLabel)}
                         <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
                     )}

@@ -2,10 +2,9 @@
 
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
-  BrainCircuit,
   Trash2,
   PackageCheck,
   HeartHandshake,
@@ -14,16 +13,9 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Factory,
   Utensils,
-  Layers,
-  Flame,
-  Cpu,
-  RefreshCw,
-  Boxes,
   ThermometerSnowflake,
   ShieldCheck,
-  ShieldAlert,
   Star,
   Bell,
   Sparkles,
@@ -34,6 +26,8 @@ import {
   Menu,
   X,
   LogOut,
+  Users,
+  CheckCircle2,
 } from "lucide-react";
 import { INSTITUTIONS } from "@/lib/mockData";
 import { useApp } from "@/context/AppContext";
@@ -41,7 +35,7 @@ import { useLang } from "@/context/LanguageContext";
 import LanguageToggle from "@/components/common/LanguageToggle";
 
 interface SidebarProps {
-  type: "kitchen" | "factory" | "ngo";
+  type: "restaurant" | "hotel" | "household" | "ngo" | "kitchen";
 }
 
 interface NavItem {
@@ -55,75 +49,136 @@ interface NavItem {
 function SidebarContent({ type }: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { unreadCount, setIsNotificationOpen, setIsSettingsOpen } = useApp();
+  const { unreadCount, setIsNotificationOpen, setIsSettingsOpen, activeDonor, activeNgo, logout, userRole } = useApp();
   const { t } = useLang();
 
+  // Resolve role: "restaurant" | "hotel" | "household" | "ngo"
+  const role: "restaurant" | "hotel" | "household" | "ngo" =
+    type === "restaurant" || type === "hotel" || type === "household" || type === "ngo"
+      ? type
+      : userRole === "HOTEL" || activeDonor?.type === "Hotel"
+      ? "hotel"
+      : userRole === "HOUSEHOLD" || activeDonor?.type === "Household"
+      ? "household"
+      : userRole === "NGO"
+      ? "ngo"
+      : "restaurant";
+
   const institution =
-    type === "kitchen"
-      ? INSTITUTIONS.kitchen
-      : type === "factory"
-      ? INSTITUTIONS.factory
-      : INSTITUTIONS.ngo;
+    role === "restaurant"
+      ? {
+          name: activeDonor?.name || "Green Leaf Restaurant",
+          city: activeDonor?.city || "Connaught Place, New Delhi",
+          fssai: activeDonor?.fssaiNumber || "Verified Food Partner",
+          code: "RESTAURANT-DONOR",
+          category: t("Restaurant Donor"),
+        }
+      : role === "hotel"
+      ? {
+          name: activeDonor?.name || "Hotel Mayura Grand",
+          city: activeDonor?.city || "Bangalore / Shimoga",
+          fssai: activeDonor?.fssaiNumber || "Verified Banquet Partner",
+          code: "HOTEL-DONOR",
+          category: t("Hotel & Banquet Donor"),
+        }
+      : role === "household"
+      ? {
+          name: activeDonor?.name || "Sharma Family Residence",
+          city: activeDonor?.city || "Hauz Khas, New Delhi",
+          fssai: "Verified Community Contributor",
+          code: "HOUSEHOLD-DONOR",
+          category: t("Household Donor"),
+        }
+      : {
+          name: activeNgo?.name || "Robin Hood Army (Delhi Chapter)",
+          city: activeNgo?.city || "South & Central Delhi",
+          fssai: activeNgo?.registrationNumber || "NGO DARPAN Verified Partner",
+          code: "NGO-RELIEF-HUB",
+          category: t("Relief NGO Partner"),
+        };
 
-  const kitchenNav: NavItem[] = [
-    { label: t("common.overview"), href: "/kitchen/dashboard", icon: LayoutDashboard },
-    { label: t("nav.demand_prediction"), href: "/kitchen/prediction", icon: BrainCircuit, badge: "AI" },
-    { label: t("nav.waste_tracking"), href: "/kitchen/waste", icon: Trash2 },
-    { label: t("nav.surplus_ngo"), href: "/kitchen/surplus", icon: HeartHandshake, badge: "Action" },
-    { label: t("nav.route_optimization"), href: "/kitchen/routes", icon: Route },
-    { label: t("common.reports"), href: "/kitchen/reports", icon: BarChart3 },
-    { label: t("nav.donor_rankings"), href: "/kitchen/ranking", icon: Trophy, badge: "Live" },
+  // 1. Restaurant Navigation
+  const restaurantNav: NavItem[] = [
+    { label: t("nav.dashboard"), href: "/restaurant/dashboard", icon: LayoutDashboard },
+    { label: t("nav.donate_food"), href: "/restaurant/donate", icon: HeartHandshake, badge: t("nav.post_food"), highlight: true },
+    { label: t("nav.my_donations"), href: "/restaurant/donations", icon: PackageCheck },
+    { label: t("nav.pickup_handover"), href: "/restaurant/pickups", icon: Truck },
+    { label: t("nav.impact"), href: "/dashboard/impact", icon: Sparkles },
+    { label: t("nav.profile"), href: "/restaurant/profile", icon: Users },
   ];
 
-  const factoryNav: NavItem[] = [
-    { label: t("common.overview"), href: "/factory/dashboard", icon: LayoutDashboard },
-    { label: t("nav.raw_material"), href: "/factory/intake", icon: Boxes },
-    { label: t("nav.storage_monitor"), href: "/factory/storage", icon: ThermometerSnowflake },
-    {
-      label: t("nav.predictive_spoilage"),
-      href: "/factory/spoilage",
-      icon: Flame,
-      highlight: true,
-      badge: "Urgent",
-    },
-    { label: t("nav.processing_analytics"), href: "/factory/analytics", icon: Layers },
-    { label: t("nav.machine_health"), href: "/factory/machines", icon: Cpu, badge: "Anomaly" },
-    { label: t("nav.byproduct_recovery"), href: "/factory/byproduct", icon: RefreshCw },
-    { label: t("nav.alerts_status"), href: "/factory/dashboard#factory-notifications", icon: Bell, badge: "Push" },
-    { label: t("common.reports"), href: "/factory/reports", icon: BarChart3 },
+  // 2. Hotel Navigation
+  const hotelNav: NavItem[] = [
+    { label: t("nav.dashboard"), href: "/hotel/dashboard", icon: LayoutDashboard },
+    { label: t("nav.donate_food"), href: "/hotel/donate", icon: HeartHandshake, badge: t("nav.post_meals"), highlight: true },
+    { label: t("nav.my_donations"), href: "/hotel/donations", icon: PackageCheck },
+    { label: t("nav.pickup_handover"), href: "/hotel/pickups", icon: Truck },
+    { label: t("nav.impact"), href: "/dashboard/impact", icon: Sparkles },
+    { label: t("nav.profile"), href: "/hotel/profile", icon: Users },
   ];
 
+  // 3. Household Navigation (Simple & lightweight)
+  const householdNav: NavItem[] = [
+    { label: t("nav.home"), href: "/household/dashboard", icon: LayoutDashboard },
+    { label: t("nav.donate_food"), href: "/household/donate", icon: HeartHandshake, badge: t("nav.share_food"), highlight: true },
+    { label: t("nav.my_donations"), href: "/household/donations", icon: PackageCheck },
+    { label: t("nav.impact"), href: "/dashboard/impact", icon: Sparkles },
+    { label: t("nav.profile"), href: "/household/profile", icon: Users },
+  ];
+
+  // 4. NGO Navigation
   const ngoNav: NavItem[] = [
-    { label: t("common.overview"), href: "/ngo/dashboard", icon: LayoutDashboard },
-    { label: t("nav.live_food_claims"), href: "/ngo/dashboard?tab=claims", icon: PackageCheck, badge: "Live" },
-    { label: t("nav.safe_routing"), href: "/ngo/dashboard?tab=routing", icon: Route },
-    { label: t("nav.scheduled_pickups"), href: "/ngo/dashboard?tab=scheduled", icon: Truck },
-    { label: t("nav.pickup_history"), href: "/ngo/dashboard?tab=history", icon: Clock },
-    { label: t("nav.report_issue"), href: "/ngo/complaints", icon: ShieldAlert, badge: "Admin", highlight: true },
-    { label: t("nav.donor_rankings"), href: "/ngo/feedback", icon: Star, badge: "Rankings" },
-    { label: t("nav.impact_reports"), href: "/ngo/reports", icon: BarChart3 },
+    { label: t("nav.dashboard"), href: "/ngo/dashboard", icon: LayoutDashboard },
+    { label: t("nav.find_food"), href: "/ngo/find", icon: PackageCheck, badge: t("nav.live_feed"), highlight: true },
+    { label: t("nav.requests"), href: "/ngo/requests", icon: Clock },
+    { label: t("nav.accepted_donations"), href: "/ngo/accepted", icon: Truck },
+    { label: t("nav.completed"), href: "/ngo/completed", icon: CheckCircle2 },
+    { label: t("nav.impact"), href: "/dashboard/impact", icon: Sparkles },
+    { label: t("nav.profile"), href: "/ngo/profile", icon: Users },
   ];
 
   const navItems =
-    type === "kitchen" ? kitchenNav : type === "factory" ? factoryNav : ngoNav;
+    role === "restaurant"
+      ? restaurantNav
+      : role === "hotel"
+      ? hotelNav
+      : role === "household"
+      ? householdNav
+      : ngoNav;
+
   const accentColor = "#10B981";
 
-  const getInstitutionCategory = () => {
-    if (type === "kitchen") return t("inst.mess");
-    if (type === "factory") return t("inst.plant");
-    return t("inst.ngo_hub");
-  };
+  const getInstitutionCategory = () => institution.category;
 
   const getUserProfile = () => {
-    if (type === "kitchen") {
-      return { initials: "SR", name: "Dr. S.R. Sharma", role: t("inst.warden") };
+    if (role === "ngo") {
+      return {
+        initials: "PV",
+        name: activeNgo?.lead || "Pooja Verma",
+        role: t("NGO Relief Coordinator"),
+      };
     }
-    if (type === "factory") {
-      return { initials: "AK", name: "Amit Kumar", role: t("inst.plant_manager") };
-    }
-    return { initials: "PV", name: "Pooja Verma", role: t("inst.ngo_lead") };
+    const initials = activeDonor?.name
+      ? activeDonor.name
+          .split(" ")
+          .map((w) => w[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase()
+      : "DN";
+    return {
+      initials,
+      name: activeDonor?.contactPerson || activeDonor?.name || "Donor Manager",
+      role:
+        role === "restaurant"
+          ? t("Restaurant Lead")
+          : role === "hotel"
+          ? t("Banquet Manager")
+          : t("Household Contributor"),
+    };
   };
 
   const profile = getUserProfile();
@@ -206,39 +261,14 @@ function SidebarContent({ type }: SidebarProps) {
               </button>
             </div>
 
-            {/* Role Switcher */}
+            {/* Current Role Identity */}
             <div className="px-3 pt-3 pb-2 shrink-0">
-              <div className="p-1 rounded-xl flex items-center gap-1 border border-emerald-500/20 bg-black/30">
-                <Link
-                  href="/kitchen/dashboard"
-                  onClick={() => setMobileOpen(false)}
-                  className={`flex-1 py-1.5 px-1 rounded-lg text-[10px] font-semibold flex items-center justify-center gap-1 ${
-                    type === "kitchen" ? "bg-[#10B981] text-white shadow-xs" : "text-emerald-300"
-                  }`}
-                >
-                  <Utensils className="w-3 h-3" />
-                  <span>{t("nav.kitchen")}</span>
-                </Link>
-                <Link
-                  href="/factory/dashboard"
-                  onClick={() => setMobileOpen(false)}
-                  className={`flex-1 py-1.5 px-1 rounded-lg text-[10px] font-semibold flex items-center justify-center gap-1 ${
-                    type === "factory" ? "bg-[#10B981] text-white shadow-xs" : "text-emerald-300"
-                  }`}
-                >
-                  <Factory className="w-3 h-3" />
-                  <span>{t("nav.factory")}</span>
-                </Link>
-                <Link
-                  href="/ngo/dashboard"
-                  onClick={() => setMobileOpen(false)}
-                  className={`flex-1 py-1.5 px-1 rounded-lg text-[10px] font-semibold flex items-center justify-center gap-1 ${
-                    type === "ngo" ? "bg-[#10B981] text-white shadow-xs" : "text-emerald-300"
-                  }`}
-                >
-                  <HeartHandshake className="w-3 h-3" />
-                  <span>{t("nav.ngo")}</span>
-                </Link>
+              <div className="p-2 rounded-xl flex items-center gap-2 border border-emerald-500/20 bg-black/30">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-xs font-bold text-white truncate">{institution.name}</span>
+                <span className="text-[10px] uppercase font-bold text-emerald-300 ml-auto tracking-wider">
+                  {institution.category}
+                </span>
               </div>
             </div>
 
@@ -341,102 +371,6 @@ function SidebarContent({ type }: SidebarProps) {
         </Link>
       </div>
 
-      {/* Switcher: Kitchen vs Factory vs NGO */}
-      {!collapsed ? (
-        <div className="px-3 pt-3 pb-1">
-          <div
-            className="p-1 rounded-xl flex items-center gap-1 border"
-            style={{
-              background: "rgba(0, 0, 0, 0.28)",
-              borderColor: "rgba(16, 185, 129, 0.2)",
-            }}
-          >
-            <Link
-              href="/kitchen/dashboard"
-              className={`flex-1 py-1.5 px-1.5 rounded-lg text-[10.5px] font-semibold flex items-center justify-center gap-1 transition-all ${
-                type === "kitchen"
-                  ? "bg-[#10B981] text-white shadow-md shadow-emerald-950/60"
-                  : "hover:text-white"
-              }`}
-              style={{
-                color: type === "kitchen" ? "#FFFFFF" : "#A7F3D0",
-              }}
-              title={t("nav.kitchen")}
-            >
-              <Utensils className="w-3.5 h-3.5" />
-              <span>{t("nav.kitchen")}</span>
-            </Link>
-
-            <Link
-              href="/factory/dashboard"
-              className={`flex-1 py-1.5 px-1.5 rounded-lg text-[10.5px] font-semibold flex items-center justify-center gap-1 transition-all ${
-                type === "factory"
-                  ? "bg-[#10B981] text-white shadow-md shadow-emerald-950/60"
-                  : "hover:text-white"
-              }`}
-              style={{
-                color: type === "factory" ? "#FFFFFF" : "#A7F3D0",
-              }}
-              title={t("nav.factory")}
-            >
-              <Factory className="w-3.5 h-3.5" />
-              <span>{t("nav.factory")}</span>
-            </Link>
-
-            <Link
-              href="/ngo/dashboard"
-              className={`flex-1 py-1.5 px-1.5 rounded-lg text-[10.5px] font-semibold flex items-center justify-center gap-1 transition-all ${
-                type === "ngo"
-                  ? "bg-[#10B981] text-white shadow-md shadow-emerald-950/60"
-                  : "hover:text-white"
-              }`}
-              style={{
-                color: type === "ngo" ? "#FFFFFF" : "#A7F3D0",
-              }}
-              title={t("nav.ngo")}
-            >
-              <HeartHandshake className="w-3.5 h-3.5" />
-              <span>{t("nav.ngo")}</span>
-            </Link>
-          </div>
-        </div>
-      ) : (
-        <div className="flex flex-col items-center gap-1.5 pt-3 pb-1">
-          <Link
-            href="/kitchen/dashboard"
-            title="Kitchen Dashboard"
-            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
-              type === "kitchen"
-                ? "bg-[#10B981] text-white shadow-md"
-                : "text-emerald-300 hover:bg-emerald-500/20"
-            }`}
-          >
-            <Utensils className="w-4 h-4" />
-          </Link>
-          <Link
-            href="/factory/dashboard"
-            title="Factory Dashboard"
-            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
-              type === "factory"
-                ? "bg-[#10B981] text-white shadow-md"
-                : "text-emerald-300 hover:bg-emerald-500/20"
-            }`}
-          >
-            <Factory className="w-4 h-4" />
-          </Link>
-          <Link
-            href="/ngo/dashboard"
-            title="NGO Dashboard"
-            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
-              type === "ngo"
-                ? "bg-[#10B981] text-white shadow-md"
-                : "text-emerald-300 hover:bg-emerald-500/20"
-            }`}
-          >
-            <HeartHandshake className="w-4 h-4" />
-          </Link>
-        </div>
-      )}
 
       {/* Institution Identity */}
       <div
@@ -486,8 +420,6 @@ function SidebarContent({ type }: SidebarProps) {
             >
               {type === "kitchen" ? (
                 <Utensils className="w-4.5 h-4.5" />
-              ) : type === "factory" ? (
-                <Factory className="w-4.5 h-4.5" />
               ) : (
                 <HeartHandshake className="w-4.5 h-4.5" />
               )}
@@ -666,41 +598,43 @@ function SidebarContent({ type }: SidebarProps) {
       >
         {!collapsed ? (
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 min-w-0">
               <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-[12px] font-bold text-white shadow-md shadow-emerald-950/50"
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-[12px] font-bold text-white shadow-md shadow-emerald-950/50 shrink-0"
                 style={{
                   background: "linear-gradient(135deg, #10B981 0%, #059669 100%)",
                 }}
               >
                 {profile.initials}
               </div>
-              <div>
-                <div className="text-[13px] font-semibold text-white leading-tight">
+              <div className="min-w-0">
+                <div className="text-[13px] font-semibold text-white leading-tight truncate">
                   {profile.name}
                 </div>
-                <div className="text-[10px]" style={{ color: "#A7F3D0" }}>
+                <div className="text-[10px] truncate" style={{ color: "#A7F3D0" }}>
                   {profile.role}
                 </div>
               </div>
             </div>
-            <button
-              onClick={() => setCollapsed(!collapsed)}
-              className="p-1.5 rounded-lg transition-colors"
-              style={{ color: "#A7F3D0" }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.background =
-                  "rgba(16, 185, 129, 0.2)";
-                (e.currentTarget as HTMLElement).style.color = "#FFFFFF";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.background = "transparent";
-                (e.currentTarget as HTMLElement).style.color = "#A7F3D0";
-              }}
-              title="Collapse sidebar"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={() => {
+                  logout();
+                  router.push("/login");
+                }}
+                className="p-1.5 rounded-lg text-emerald-300 hover:text-red-300 hover:bg-red-500/20 transition-all cursor-pointer"
+                title="Sign Out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setCollapsed(!collapsed)}
+                className="p-1.5 rounded-lg transition-colors cursor-pointer text-emerald-300 hover:text-white hover:bg-emerald-500/20"
+                title="Collapse sidebar"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2">
@@ -709,22 +643,23 @@ function SidebarContent({ type }: SidebarProps) {
               style={{
                 background: "linear-gradient(135deg, #10B981 0%, #059669 100%)",
               }}
+              title={`${profile.name} (${profile.role})`}
             >
               {profile.initials}
             </div>
             <button
+              onClick={() => {
+                logout();
+                router.push("/login");
+              }}
+              className="p-1.5 rounded-lg text-emerald-300 hover:text-red-300 hover:bg-red-500/20 transition-all cursor-pointer"
+              title="Sign Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+            <button
               onClick={() => setCollapsed(!collapsed)}
-              className="p-1.5 rounded-lg transition-colors"
-              style={{ color: "#A7F3D0" }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.background =
-                  "rgba(16, 185, 129, 0.2)";
-                (e.currentTarget as HTMLElement).style.color = "#FFFFFF";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.background = "transparent";
-                (e.currentTarget as HTMLElement).style.color = "#A7F3D0";
-              }}
+              className="p-1.5 rounded-lg transition-colors cursor-pointer text-emerald-300 hover:text-white hover:bg-emerald-500/20"
               title="Expand sidebar"
             >
               <ChevronRight className="w-4 h-4" />

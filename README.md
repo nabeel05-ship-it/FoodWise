@@ -1,4 +1,31 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FoodWise — Surplus Food Donation Platform
+
+## Problem Statement
+"Develop a platform connecting restaurants, hotels, and households with NGOs to donate surplus food before it is wasted."
+
+**Related Program Outcomes (POs):**
+- PO6: The Engineer and Society
+- PO12: Life-long Learning / Technology
+
+**Related Sustainable Development Goals (SDGs):**
+- SDG 2: Zero Hunger
+- SDG 12: Responsible Consumption and Production
+
+## Overview
+FoodWise is a web application designed for a college Community Project. It connects donors (Restaurants, Hotels, Households) with Relief NGOs. It provides real-time tracking of surplus food, a centralized dashboard for NGOs to claim food batches, and impact metrics.
+
+## Features
+- **Restaurant Portal:** Log kitchen surplus, manage donations, track OTP handovers, Donate Again.
+- **Hotel Portal:** Donate large banquet/buffet meals, coordinate loading dock pickups.
+- **Household Portal:** Lightweight 1-minute food sharing for families and residents.
+- **NGO Relief Portal:** Live surplus discovery feed, 1-click claiming, volunteer driver dispatch, distribution logbook.
+- **Impact Tracking:** Monitor people fed, food donated, and greenhouse gases averted.
+
+## Tech Stack
+- Next.js (App Router)
+- React
+- Tailwind CSS
+- TypeScript
 
 ## Getting Started
 
@@ -15,22 +42,3 @@ bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

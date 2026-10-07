@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDb } from "@/lib/mongodb";
+import { ROUTE_STOPS } from "@/lib/mockData";
 
 export async function POST(request: Request) {
   try {
@@ -14,10 +14,10 @@ export async function POST(request: Request) {
       currentPayloadKg = 107,
     } = body;
 
-    // AI/OR Dynamic Traveling Salesperson Problem (TSP) & Time-Window heuristic
+    // Time-Window and capacity heuristic
     const totalDistanceKm = 8.4;
     const estimatedTravelMinutes = 22;
-    const distanceSavingsKm = 3.2; // 27.5% distance reduction
+    const distanceSavingsKm = 3.2;
     const capacityUtilizationPct = Math.round((currentPayloadKg / vehicleCapacityKg) * 1000) / 10;
 
     const routeResult = {
@@ -66,17 +66,6 @@ export async function POST(request: Request) {
       ],
     };
 
-    // Log route optimization to MongoDB
-    const db = await getDb();
-    await db.collection("route_optimizations_log").insertOne({
-      origin,
-      stops,
-      vehicleCapacityKg,
-      currentPayloadKg,
-      result: routeResult,
-      createdAt: new Date(),
-    });
-
     return NextResponse.json({ success: true, ...routeResult });
   } catch {
     return NextResponse.json(
@@ -86,13 +75,7 @@ export async function POST(request: Request) {
   }
 }
 
-// GET — retrieve route stops from DB
+// GET — retrieve route stops from mock data
 export async function GET() {
-  try {
-    const db = await getDb();
-    const routes = await db.collection("route_stops").find({}).sort({ stopNumber: 1 }).toArray();
-    return NextResponse.json({ success: true, data: routes });
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch routes" }, { status: 500 });
-  }
+  return NextResponse.json({ success: true, data: ROUTE_STOPS });
 }

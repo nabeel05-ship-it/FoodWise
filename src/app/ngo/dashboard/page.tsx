@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, Suspense, useMemo, useEffect } from "react";
+import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
@@ -39,9 +40,11 @@ import confetti from "canvas-confetti";
 interface SurplusFeedItem {
   id: string;
   institution: string;
+  donorType?: string;
   foodType: string;
-  diet: "Vegetarian" | "Egg" | "Jain";
+  diet: "Vegetarian" | "Egg" | "Jain" | "Non-Vegetarian" | "Vegan";
   quantityKg: number;
+  servings?: number;
   location: string;
   distanceKm: number;
   safeUntil: string;
@@ -89,24 +92,24 @@ const DEFAULT_SCHEDULED_PICKUPS: ScheduledPickup[] = [
   {
     id: "sched-1",
     itemId: "feed-1",
-    institution: "IIT Delhi Central Mess (Aravali)",
-    food: "Dal Makhani & Steamed Rice (60 kg)",
+    institution: "Hotel Mayura Grand (Buffet Surplus)",
+    food: "Breakfast Buffet Surplus (25 kg)",
     destination: "Aasha Shelter Home, Malviya Nagar",
     driver: "Ramesh Kumar (Van DL-1L-4492)",
     phone: "+91 98112 34567",
-    otp: "8942",
+    otp: "6482",
     eta: "Arriving at Kitchen in 8 mins",
     status: "En Route to Kitchen",
     lat: 28.5459,
     lng: 77.1926,
-    quantityKg: 60,
+    quantityKg: 25,
     timestamp: Date.now() - 1000 * 60 * 15,
   },
   {
     id: "sched-2",
     itemId: "feed-2",
-    institution: "AIIMS Hospital Staff Cafeteria",
-    food: "Mixed Veg Sabzi & 140 Phulkas (35 kg)",
+    institution: "Green Leaf Restaurant",
+    food: "Vegetable Biryani & Dal (12 kg)",
     destination: "Nizamuddin Rain Basera Center",
     driver: "Satish Pal (E-Loader DL-4E-9021)",
     phone: "+91 98770 12345",
@@ -115,7 +118,7 @@ const DEFAULT_SCHEDULED_PICKUPS: ScheduledPickup[] = [
     status: "Delivering to Shelter",
     lat: 28.5672,
     lng: 77.2100,
-    quantityKg: 35,
+    quantityKg: 12,
     timestamp: Date.now() - 1000 * 60 * 45,
   },
 ];
@@ -135,30 +138,30 @@ const INITIAL_PAST_HISTORY: PastPickupHistoryItem[] = [
   {
     id: "hist-1",
     date: "Yesterday, 3:30 PM",
-    institution: "IIT Delhi Mess",
-    food: "Rajma & Jeera Rice (75 kg)",
-    recipient: "Aasha Shelter (220 meals)",
-    receipt: "FSSAI-RELIEF-9041",
+    institution: "Green Leaf Restaurant",
+    food: "Rice & Dal Tadka (15 kg)",
+    recipient: "Aasha Shelter (45 meals)",
+    receipt: "FW-RELIEF-9041",
     driver: "Ramesh Kumar (Van DL-1L-4492)",
     status: "Delivered & Verified",
   },
   {
     id: "hist-2",
-    date: "Sep 20, 2:15 PM",
-    institution: "AIIMS Cafeteria",
-    food: "Paneer Curry & Rotis (42 kg)",
-    recipient: "Nizamuddin Night Shelter (130 meals)",
-    receipt: "FSSAI-RELIEF-8992",
-    driver: "Satish Pal (E-Rickshaw DL-4E-9021)",
+    date: "Yesterday, 2:15 PM",
+    institution: "Sharma Family Residence",
+    food: "Homemade Pulao & Sabzi (3 kg)",
+    recipient: "Local Community Care (8 meals)",
+    receipt: "FW-RELIEF-8992",
+    driver: "Satish Pal (E-Loader DL-4E-9021)",
     status: "Delivered & Verified",
   },
   {
     id: "hist-3",
-    date: "Sep 19, 4:00 PM",
+    date: "Sep 22, 4:00 PM",
     institution: "The Oberoi Banquets",
-    food: "Assorted Breads & Dal (55 kg)",
+    food: "Banquet Dinner Surplus (55 kg)",
     recipient: "Sarai Kale Khan Center (160 meals)",
-    receipt: "FSSAI-RELIEF-8951",
+    receipt: "FW-RELIEF-8951",
     driver: "Vikram Singh (Van DL-2C-1108)",
     status: "Delivered & Verified",
   },
@@ -167,67 +170,75 @@ const INITIAL_PAST_HISTORY: PastPickupHistoryItem[] = [
 const initialFeed: SurplusFeedItem[] = [
   {
     id: "feed-1",
-    institution: "IIT Delhi Central Mess (Aravali)",
-    foodType: "Dal Makhani & Steamed Rice",
+    institution: "Green Leaf Restaurant",
+    donorType: "Restaurant",
+    foodType: "Vegetable Dum Biryani with Cucumber Raita",
     diet: "Vegetarian",
-    quantityKg: 60,
-    location: "Hauz Khas, New Delhi",
-    distanceKm: 3.2,
-    safeUntil: "5:00 PM Today",
+    quantityKg: 12,
+    servings: 35,
+    location: "Connaught Place, New Delhi",
+    distanceKm: 2.4,
+    safeUntil: "8:30 PM Today",
     hoursLeft: 3.5,
     fssaiVerified: true,
-    lat: 28.5459,
-    lng: 77.1926,
+    lat: 28.6315,
+    lng: 77.2167,
     trafficStatus: "low",
     etaMinutes: 12,
   },
   {
     id: "feed-2",
-    institution: "AIIMS Hospital Staff Cafeteria",
-    foodType: "Mixed Veg Sabzi & 140 Phulkas",
+    institution: "Sharma Family Residence",
+    donorType: "Household",
+    foodType: "Vegetable Pulao & Yellow Dal Tadka",
     diet: "Vegetarian",
-    quantityKg: 35,
-    location: "Ansari Nagar, New Delhi",
-    distanceKm: 4.8,
-    safeUntil: "6:15 PM Today",
-    hoursLeft: 4.8,
+    quantityKg: 2.5,
+    servings: 6,
+    location: "Hauz Khas, New Delhi",
+    distanceKm: 3.8,
+    safeUntil: "8:00 PM Today",
+    hoursLeft: 3.0,
     fssaiVerified: true,
-    lat: 28.5672,
-    lng: 77.2100,
+    lat: 28.5494,
+    lng: 77.2001,
     trafficStatus: "moderate",
-    etaMinutes: 22,
+    etaMinutes: 16,
   },
   {
     id: "feed-3",
-    institution: "The Oberoi Pantry & Banquet",
-    foodType: "Paneer Lababdar & Jeera Rice",
+    institution: "Hotel Mayura Grand",
+    donorType: "Hotel",
+    foodType: "Breakfast Buffet Surplus: Idli, Vada, Sambhar & Poha",
     diet: "Vegetarian",
-    quantityKg: 28,
-    location: "Dr. Zakir Hussain Marg, New Delhi",
-    distanceKm: 6.1,
-    safeUntil: "7:00 PM Today",
-    hoursLeft: 5.5,
+    quantityKg: 25,
+    servings: 75,
+    location: "MG Road Hub, New Delhi",
+    distanceKm: 5.2,
+    safeUntil: "5:30 PM Today",
+    hoursLeft: 2.5,
     fssaiVerified: true,
-    lat: 28.6024,
-    lng: 77.2399,
-    trafficStatus: "heavy",
-    etaMinutes: 38,
+    lat: 28.5700,
+    lng: 77.2200,
+    trafficStatus: "moderate",
+    etaMinutes: 24,
   },
   {
     id: "feed-4",
-    institution: "Bikanervala Central Kitchen",
-    foodType: "Chana Masala & Puri",
+    institution: "Bikanervala Sweets & Dining",
+    donorType: "Restaurant",
+    foodType: "Paneer Butter Masala, Dal & 40 Rotis",
     diet: "Vegetarian",
-    quantityKg: 50,
+    quantityKg: 16,
+    servings: 45,
     location: "Okhla Phase III, New Delhi",
-    distanceKm: 7.4,
-    safeUntil: "4:30 PM Today",
-    hoursLeft: 3.0,
+    distanceKm: 6.8,
+    safeUntil: "9:30 PM Today",
+    hoursLeft: 4.5,
     fssaiVerified: true,
     lat: 28.5305,
     lng: 77.2707,
     trafficStatus: "heavy",
-    etaMinutes: 45,
+    etaMinutes: 35,
   },
 ];
 
@@ -236,12 +247,43 @@ function NgoDashboardContent() {
   const router = useRouter();
   const activeTabFromUrl = searchParams.get("tab") || "overview";
 
-  const { acceptedPickups, acceptNgoPickup } = useApp();
+  const {
+    acceptedPickups,
+    acceptNgoPickup,
+    donations,
+    acceptDonation,
+    completeDonation,
+    activeNgo,
+  } = useApp();
   const { t } = useLang();
   const [filterType, setFilterType] = useState<string>("All");
   const [selectedPickup, setSelectedPickup] = useState<SurplusFeedItem | null>(null);
   const [mapMode, setMapMode] = useState<"google" | "corridor">("google");
   const [historySearch, setHistorySearch] = useState("");
+
+  const dynamicFeed: SurplusFeedItem[] = useMemo(() => {
+    if (!donations || donations.length === 0) {
+      return initialFeed;
+    }
+    return donations.map((d, idx) => ({
+      id: d.id,
+      institution: d.donorName,
+      donorType: d.donorType,
+      foodType: d.foodName,
+      diet: (d.diet as any) || "Vegetarian",
+      quantityKg: d.quantityKg,
+      servings: d.servings,
+      location: d.location || d.city,
+      distanceKm: Number((1.5 + (idx % 6) * 1.2).toFixed(1)),
+      safeUntil: d.pickupDeadline || "8:00 PM Today",
+      hoursLeft: 4.5,
+      fssaiVerified: true,
+      lat: 28.5459 + (idx % 3) * 0.02,
+      lng: 77.1926 + (idx % 3) * 0.02,
+      trafficStatus: idx % 3 === 0 ? "low" : idx % 3 === 1 ? "moderate" : "heavy",
+      etaMinutes: 12 + (idx % 4) * 6,
+    }));
+  }, [donations]);
 
   // Scheduled pickups state (with localStorage persistence)
   const [scheduledPickups, setScheduledPickups] = useState<ScheduledPickup[]>(() => {
@@ -317,6 +359,10 @@ function NgoDashboardContent() {
     } catch {}
 
     acceptNgoPickup(item.id);
+    acceptDonation(item.id, activeNgo?.name || "Robin Hood Army (Delhi Chapter)", {
+      name: driver.name,
+      phone: driver.phone,
+    });
 
     setScheduleModalItem(null);
     setScheduleSuccess({
@@ -354,6 +400,10 @@ function NgoDashboardContent() {
     setPickupHistory(updatedHistory);
     setScheduledPickups(updatedScheduled);
 
+    if (pickup.itemId) {
+      completeDonation(pickup.itemId);
+    }
+
     try {
       localStorage.setItem("foodwise_ngo_pickup_history", JSON.stringify(updatedHistory));
       localStorage.setItem("foodwise_ngo_scheduled_pickups", JSON.stringify(updatedScheduled));
@@ -368,15 +418,18 @@ function NgoDashboardContent() {
   };
 
   const isItemAccepted = (itemId: string) => {
+    const donation = donations.find((d) => d.id === itemId);
+    if (donation && (donation.status === "ACCEPTED" || donation.status === "PICKUP_IN_PROGRESS" || donation.status === "COMPLETED")) return true;
     return acceptedPickups.includes(itemId) || scheduledPickups.some((p) => p.itemId === itemId);
   };
 
-  const filteredFeed = initialFeed.filter((item) => {
+  const filteredFeed = dynamicFeed.filter((item) => {
     if (filterType === "All") return true;
+    if (filterType === "Restaurant") return item.donorType === "Restaurant";
+    if (filterType === "Hotel") return item.donorType === "Hotel";
+    if (filterType === "Household") return item.donorType === "Household";
     if (filterType === "< 5 km") return item.distanceKm < 5;
-    if (filterType === "> 40 kg") return item.quantityKg >= 40;
-    if (filterType === "Urgent (< 4 hrs)") return item.hoursLeft <= 4;
-    if (filterType === "Low Traffic") return item.trafficStatus === "low";
+    if (filterType === "> 20 kg") return item.quantityKg >= 20;
     return true;
   });
 
@@ -447,13 +500,14 @@ function NgoDashboardContent() {
     return s;
   };
 
-  // Filter options with translated labels
+  // Filter options with translated labels & community donor categories
   const filterOptions = [
-    { value: "All", label: t("ngo.dash.filter_all") },
-    { value: "< 5 km", label: t("ngo.dash.filter_5km") },
-    { value: "> 40 kg", label: t("ngo.dash.filter_40kg") },
-    { value: "Urgent (< 4 hrs)", label: t("ngo.dash.filter_urgent") },
-    { value: "Low Traffic", label: t("ngo.dash.filter_low_traffic") },
+    { value: "All", label: "All Donations" },
+    { value: "Restaurant", label: "🍽️ Restaurants" },
+    { value: "Hotel", label: "🏨 Hotels" },
+    { value: "Household", label: "🏠 Households" },
+    { value: "< 5 km", label: "< 5 km Nearby" },
+    { value: "> 20 kg", label: "> 20 kg Bulk" },
   ];
 
   return (
@@ -486,7 +540,15 @@ function NgoDashboardContent() {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-50 border border-emerald-200 text-emerald-700">
+          <Link
+            href="/ngo/find"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-md shadow-emerald-950/20 transition-all hover:brightness-110 active:scale-95 cursor-pointer"
+            style={{ background: "#164A31" }}
+          >
+            <PackageCheck className="w-4 h-4 text-emerald-400" />
+            <span>{t("ngo.find_available_food")}</span>
+          </Link>
+          <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-50 border border-emerald-200 text-emerald-700">
             <span className="w-2 h-2 rounded-full animate-pulse bg-emerald-500" />
             <span>{INSTITUTIONS.ngo.volunteers}</span>
           </div>
@@ -497,7 +559,7 @@ function NgoDashboardContent() {
       <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-gray-200 text-xs font-bold">
         {[
           { id: "overview", label: t("ngo.dash.tab_overview"), icon: Layers },
-          { id: "claims", label: `${t("ngo.dash.tab_live_claims")} (${initialFeed.length})`, icon: PackageCheck, badge: t("ngo.dash.badge_live") },
+          { id: "claims", label: `${t("ngo.dash.tab_live_claims")} (${dynamicFeed.length})`, icon: PackageCheck, badge: t("ngo.dash.badge_live") },
           { id: "routing", label: t("ngo.dash.tab_traffic_routing"), icon: Route },
           { id: "scheduled", label: `${t("ngo.dash.tab_scheduled_pickups")} (${scheduledPickups.length})`, icon: Truck },
           { id: "history", label: `${t("ngo.dash.tab_pickup_history")} (${pickupHistory.length})`, icon: Clock },
@@ -563,8 +625,10 @@ function NgoDashboardContent() {
                 <div className="icon-container icon-container-green"><Utensils className="w-5 h-5" /></div>
               </div>
               <div>
-                <div className="text-[28px] font-extrabold font-mono-data text-gray-900 leading-none mb-1.5">{initialFeed.length} {t("ngo.dash.batches")}</div>
-                <div className="text-[12px] font-medium text-emerald-600">173 {t("ngo.dash.verified_food_desc")}</div>
+                <div className="text-[28px] font-extrabold font-mono-data text-gray-900 leading-none mb-1.5">{dynamicFeed.length} {t("ngo.dash.batches")}</div>
+                <div className="text-[12px] font-medium text-emerald-600">
+                  {dynamicFeed.reduce((acc, i) => acc + i.quantityKg, 0)} {t("ngo.kg")}{t("ngo.dash.verified_food_desc")}
+                </div>
               </div>
             </div>
 
@@ -575,7 +639,7 @@ function NgoDashboardContent() {
               </div>
               <div>
                 <div className="text-[28px] font-extrabold font-mono-data text-gray-900 leading-none mb-1.5">
-                  {initialFeed.filter((i) => i.hoursLeft <= 4).length} {t("ngo.dash.batches")}
+                  {dynamicFeed.filter((i) => i.hoursLeft <= 4).length} {t("ngo.dash.batches")}
                 </div>
                 <div className="text-[12px] font-medium text-amber-600">{t("ngo.dash.rapid_dispatch")}</div>
               </div>
@@ -588,7 +652,7 @@ function NgoDashboardContent() {
               </div>
               <div>
                 <div className="text-[28px] font-extrabold font-mono-data text-gray-900 leading-none mb-1.5">
-                  {initialFeed.filter((i) => i.trafficStatus === "low").length} {t("ngo.dash.routes")}
+                  {dynamicFeed.filter((i) => i.trafficStatus === "low").length} {t("ngo.dash.routes")}
                 </div>
                 <div className="text-[12px] font-medium text-emerald-600">{t("ngo.dash.fast_transit")}</div>
               </div>
@@ -601,7 +665,7 @@ function NgoDashboardContent() {
               </div>
               <div>
                 <div className="text-[28px] font-extrabold font-mono-data text-gray-900 leading-none mb-1.5">
-                  {initialFeed.filter((i) => !canDeliverInTime(i)).length} {t("ngo.dash.high_risk")}
+                  {dynamicFeed.filter((i) => !canDeliverInTime(i)).length} {t("ngo.dash.high_risk")}
                 </div>
                 <div className="text-[12px] font-medium text-rose-600">{t("ngo.dash.heavy_congestion")}</div>
               </div>
@@ -653,7 +717,7 @@ function NgoDashboardContent() {
                       allowFullScreen
                       loading="lazy"
                       referrerPolicy="no-referrer-when-downgrade"
-                      title="Google Maps Live Directions & Traffic"
+                      title={t("ngo.google_maps_live_dir")}
                     />
                     <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-xl border border-gray-200 text-xs font-bold text-gray-900 shadow-sm flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -688,9 +752,9 @@ function NgoDashboardContent() {
                     </div>
 
                     <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm p-2 rounded-xl text-[10px] text-white space-y-1">
-                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-1.5 rounded-full bg-emerald-400" /> Hauz Khas: 12 {t("ngo.dash.mins")} ({t("ngo.dash.clear_label")})</div>
-                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-1.5 rounded-full bg-amber-400" /> AIIMS: 22 {t("ngo.dash.mins")} ({t("ngo.dash.moderate_label")})</div>
-                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-1.5 rounded-full bg-rose-500" /> Oberoi / Okhla: 38-45 {t("ngo.dash.mins")} ({t("ngo.dash.heavy_traffic_label")})</div>
+                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-1.5 rounded-full bg-emerald-400" /> {t("ngo.hauz_khas_12")}{t("ngo.dash.mins")} ({t("ngo.dash.clear_label")})</div>
+                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-1.5 rounded-full bg-amber-400" /> {t("ngo.aiims_22")}{t("ngo.dash.mins")} ({t("ngo.dash.moderate_label")})</div>
+                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-1.5 rounded-full bg-rose-500" /> {t("ngo.oberoi_okhla_38_45")}{t("ngo.dash.mins")} ({t("ngo.dash.heavy_traffic_label")})</div>
                     </div>
                   </div>
                 )}
@@ -702,12 +766,12 @@ function NgoDashboardContent() {
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-sm text-gray-900">{t("ngo.dash.urgent_food_title")}</h3>
                 <button onClick={() => setTab("claims")} className="text-xs font-bold text-emerald-600 hover:underline">
-                  {t("ngo.dash.view_all")} ({initialFeed.length}) →
+                  {t("ngo.dash.view_all")} ({dynamicFeed.length}) →
                 </button>
               </div>
 
               <div className="space-y-2.5">
-                {initialFeed.slice(0, 3).map((item) => {
+                {dynamicFeed.slice(0, 3).map((item) => {
                   const safe = canDeliverInTime(item);
                   const isAccepted = isItemAccepted(item.id);
                   return (
@@ -719,8 +783,7 @@ function NgoDashboardContent() {
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-xs text-gray-900 truncate">{item.institution}</span>
                           <span className="shrink-0 text-[10px] font-black px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-mono-data">
-                            {item.quantityKg} kg
-                          </span>
+                            {item.quantityKg} {t("ngo.kg")}</span>
                         </div>
                         <p className="text-[11px] text-gray-500 truncate mt-0.5">{item.foodType}</p>
                         <div className="flex items-center gap-2 text-[10px] text-gray-400 mt-1 truncate">
@@ -741,7 +804,7 @@ function NgoDashboardContent() {
                             <button
                               onClick={() => setTab("scheduled")}
                               className="text-xs font-bold text-emerald-600 hover:underline cursor-pointer p-1"
-                              title="View scheduled delivery"
+                              title={t("ngo.view_scheduled_deliv")}
                             >
                               {t("ngo.dash.view_arrow")}
                             </button>
@@ -807,8 +870,17 @@ function NgoDashboardContent() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-extrabold text-sm text-gray-900">{item.institution}</h3>
+                        {item.donorType && (
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            item.donorType === "Restaurant" ? "bg-amber-100 text-amber-800" :
+                            item.donorType === "Hotel" ? "bg-purple-100 text-purple-800" :
+                            "bg-blue-100 text-blue-800"
+                          }`}>
+                            {item.donorType === "Restaurant" ? "🍽️ Restaurant" : item.donorType === "Hotel" ? "🏨 Hotel" : "🏠 Household"}
+                          </span>
+                        )}
                         <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
                           {item.diet}
                         </span>
@@ -821,9 +893,10 @@ function NgoDashboardContent() {
 
                     <span className="text-right">
                       <span className="text-xl font-black font-mono-data text-emerald-700 block">
-                        {item.quantityKg} kg
+                        {item.quantityKg} {t("ngo.kg")}</span>
+                      <span className="text-[10px] text-gray-400">
+                        {item.servings ? `Serves ~${item.servings} people` : `~${Math.round(item.quantityKg * 3.2)} meals`}
                       </span>
-                      <span className="text-[10px] text-gray-400">~{Math.round(item.quantityKg * 3.2)} {t("ngo.dash.meals")}</span>
                     </span>
                   </div>
 
@@ -944,7 +1017,7 @@ function NgoDashboardContent() {
                   allowFullScreen
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
-                  title="Google Maps Live Routing"
+                  title={t("ngo.google_maps_live_rou")}
                 />
               </div>
             ) : (
@@ -976,16 +1049,16 @@ function NgoDashboardContent() {
 
                 <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-md p-3 rounded-2xl text-xs text-white space-y-1.5 border border-white/10">
                   <div className="font-bold text-emerald-400 mb-1">{t("ngo.dash.congestion_feed")}</div>
-                  <div className="flex items-center gap-2"><span className="w-3 h-2 rounded-full bg-emerald-400" /> Hauz Khas: 12 {t("ngo.dash.mins")} {t("ngo.dash.margin_prefix")} +150 {t("ngo.dash.min_buffer")}</div>
-                  <div className="flex items-center gap-2"><span className="w-3 h-2 rounded-full bg-amber-400" /> AIIMS Flyover: 22 {t("ngo.dash.mins")} {t("ngo.dash.margin_prefix")} +230 {t("ngo.dash.min_buffer")}</div>
-                  <div className="flex items-center gap-2"><span className="w-3 h-2 rounded-full bg-rose-500" /> Mathura Road / Okhla: 45 {t("ngo.dash.mins")} ({t("ngo.dash.deficit_risk")})</div>
+                  <div className="flex items-center gap-2"><span className="w-3 h-2 rounded-full bg-emerald-400" /> {t("ngo.hauz_khas_12")}{t("ngo.dash.mins")} {t("ngo.dash.margin_prefix")} +150 {t("ngo.dash.min_buffer")}</div>
+                  <div className="flex items-center gap-2"><span className="w-3 h-2 rounded-full bg-amber-400" /> {t("ngo.aiims_flyover_22")}{t("ngo.dash.mins")} {t("ngo.dash.margin_prefix")} +230 {t("ngo.dash.min_buffer")}</div>
+                  <div className="flex items-center gap-2"><span className="w-3 h-2 rounded-full bg-rose-500" /> {t("ngo.mathura_road_okhla_4")}{t("ngo.dash.mins")} ({t("ngo.dash.deficit_risk")})</div>
                 </div>
               </div>
             )}
 
             {/* Corridor Safety Breakdown Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
-              {initialFeed.map((item) => {
+              {dynamicFeed.map((item) => {
                 const safe = canDeliverInTime(item);
                 return (
                   <div
@@ -1225,7 +1298,7 @@ function NgoDashboardContent() {
               <div className="flex items-center justify-between">
                 <span className="font-extrabold text-xs text-gray-900">{scheduleModalItem.institution}</span>
                 <span className="text-xs font-black font-mono-data text-emerald-700 bg-white px-2 py-0.5 rounded-md border border-emerald-200">
-                  {scheduleModalItem.quantityKg} kg (~{Math.round(scheduleModalItem.quantityKg * 3.2)} {t("ngo.dash.meals")})
+                  {scheduleModalItem.quantityKg} {t("ngo.kg")}{Math.round(scheduleModalItem.quantityKg * 3.2)} {t("ngo.dash.meals")})
                 </span>
               </div>
               <p className="text-xs font-semibold text-emerald-950">{scheduleModalItem.foodType}</p>

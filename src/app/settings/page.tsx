@@ -1,487 +1,627 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
 import {
   Settings,
   Bell,
   Building,
-  BrainCircuit,
+  Home,
+  Utensils,
+  Hotel,
+  Users,
   CheckCircle2,
   Save,
   ShieldCheck,
-  Send,
-  Smartphone,
-  Sliders,
-  Sparkles,
-  ArrowRight,
+  MapPin,
+  KeyRound,
+  Globe,
+  LogOut,
+  Truck,
 } from "lucide-react";
-import MobileNotificationPreview, { AlertType } from "@/components/settings/MobileNotificationPreview";
 import LanguageToggle from "@/components/common/LanguageToggle";
 
 export default function SettingsPage() {
-  const { currentRole } = useApp();
+  const router = useRouter();
+  const { userRole, activeDonor, activeNgo, logout } = useApp();
   const { t } = useLang();
-  const [activeTab, setActiveTab] = useState<"alerts" | "profile" | "ai">("alerts");
+  const [activeTab, setActiveTab] = useState<"profile" | "location" | "notifications" | "security">("profile");
 
-  // Form State
-  const [orgName, setOrgName] = useState(
-    currentRole === "KITCHEN_MANAGER"
-      ? "IIT Delhi Central Mess (Aravali)"
-      : currentRole === "FACTORY_MANAGER"
-      ? "AgroPure Foods Ltd. — Plant 4"
-      : "Feeding India Food Relief Hub"
-  );
-  const [fssaiLicense, setFssaiLicense] = useState("10019011006542");
-  const [managerName, setManagerName] = useState(
-    currentRole === "KITCHEN_MANAGER"
-      ? "Dr. S.R. Sharma"
-      : currentRole === "FACTORY_MANAGER"
-      ? "Amit Kumar"
-      : "Pooja Verma"
-  );
-  const [phone, setPhone] = useState("+91 98112 45890");
-  const [email, setEmail] = useState("ops.management@foodwise.org");
+  // Determine role context
+  const isHousehold = userRole === "HOUSEHOLD";
+  const isRestaurant = userRole === "RESTAURANT";
+  const isHotel = userRole === "HOTEL";
+  const isNgo = userRole === "NGO";
 
-  // Notifications & Alerts state
-  const [enableSurplusAlerts, setEnableSurplusAlerts] = useState(true);
-  const [enableSpoilageWarnings, setEnableSpoilageWarnings] = useState(true);
-  const [enableExpiryAlerts, setEnableExpiryAlerts] = useState(true);
-  const [enablePushNotifications, setEnablePushNotifications] = useState(true);
+  // Form State: Profile
+  const [entityName, setEntityName] = useState(
+    isNgo
+      ? activeNgo?.name || "Robin Hood Army (Delhi Chapter)"
+      : activeDonor?.name || (isHousehold ? "Sharma Family Residence" : isHotel ? "Hotel Mayura Grand" : "Green Leaf Restaurant")
+  );
+  const [contactPerson, setContactPerson] = useState(
+    isNgo
+      ? activeNgo?.lead || "Pooja Verma"
+      : activeDonor?.contactPerson || (isHousehold ? "Vikram Sharma" : isHotel ? "Suresh Rao" : "Rajeev Mehra")
+  );
+  const [phone, setPhone] = useState(
+    isNgo
+      ? activeNgo?.phone || "+91 98112 45890"
+      : activeDonor?.phone || (isHousehold ? "+91 98112 34567" : isHotel ? "+91 98450 87654" : "+91 98101 23456")
+  );
+  const [email, setEmail] = useState(
+    isNgo
+      ? activeNgo?.email || "delhi.chapter@robinhoodarmy.com"
+      : activeDonor?.email || (isHousehold ? "sharma.family@gmail.com" : isHotel ? "banquets@mayuragrand.com" : "greenleaf.cp@gmail.com")
+  );
+  const [regNumber, setRegNumber] = useState(
+    isNgo
+      ? activeNgo?.registrationNumber || "DARPAN: DL/2021/029841"
+      : activeDonor?.fssaiNumber || (isHousehold ? "Community Contributor #HH-01" : isHotel ? "FSSAI LIC: 11220005001290" : "FSSAI LIC: 13321008000412")
+  );
+
+  // Form State: Location & Pickup
+  const [address, setAddress] = useState(
+    isNgo
+      ? activeNgo?.address || "Community Center, Sector 4, RK Puram"
+      : activeDonor?.address || (isHousehold ? "Flat 402, Green Avenue, Hauz Khas" : isHotel ? "14/2, Station Main Road, Opp. City Park" : "Block B, Radial Road 3, Connaught Place")
+  );
+  const [city, setCity] = useState(
+    isNgo ? activeNgo?.city || "New Delhi" : activeDonor?.city || "New Delhi"
+  );
+  const [coverageArea, setCoverageArea] = useState(
+    isNgo ? activeNgo?.coverageArea || "South Delhi, Central Delhi, Hauz Khas, Okhla" : ""
+  );
+  const [pickupInstructions, setPickupInstructions] = useState(
+    isHousehold
+      ? "Ring flat bell 402, elevator accessible. Food pre-packed in clean containers."
+      : isHotel
+      ? "Enter via Banquet Service Gate 3. Loading bay 2. Security will guide volunteer vehicle."
+      : isRestaurant
+      ? "Use service entrance behind Block B. Ask for kitchen supervisor."
+      : "Open 9:00 AM to 9:00 PM for food drop-offs and volunteer dispatch."
+  );
+
+  // Form State: Notifications (Practical events only)
+  const [notifyRequests, setNotifyRequests] = useState(true);
+  const [notifyPickups, setNotifyPickups] = useState(true);
+  const [notifyCompleted, setNotifyCompleted] = useState(true);
   const [enableAudioChime, setEnableAudioChime] = useState(true);
-  const [autoDispatchThreshold, setAutoDispatchThreshold] = useState(40);
-  const [previewAlertType, setPreviewAlertType] = useState<AlertType>(
-    currentRole === "FACTORY_MANAGER" ? "factory_spoilage" : "surplus"
-  );
 
-  // AI State
-  const [confidenceCutoff, setConfidenceCutoff] = useState(85);
-  const [modelMode, setModelMode] = useState<"conservative" | "balanced" | "aggressive">("balanced");
+  // Form State: Security
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  // Sync state when active donor/ngo changes
+  useEffect(() => {
+    if (isNgo) {
+      setEntityName(activeNgo?.name || "Robin Hood Army (Delhi Chapter)");
+      setContactPerson(activeNgo?.lead || "Pooja Verma");
+      setPhone(activeNgo?.phone || "+91 98112 45890");
+      setEmail(activeNgo?.email || "delhi.chapter@robinhoodarmy.com");
+      setAddress(activeNgo?.address || "Community Center, Sector 4, RK Puram");
+      setCity(activeNgo?.city || "New Delhi");
+    } else if (activeDonor) {
+      setEntityName(activeDonor.name);
+      setContactPerson(activeDonor.contactPerson || "");
+      setPhone(activeDonor.phone || "");
+      setAddress(activeDonor.address || "");
+      setCity(activeDonor.city || "");
+    }
+  }, [activeDonor, activeNgo, isNgo]);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 2000);
+    setTimeout(() => setSavedSuccess(false), 2500);
+  };
+
+  const handleLogout = () => {
+    logout();
+    router.push("/");
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-4xl mx-auto pb-12">
       {/* ═══ Header ═══ */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-[#E8ECF3]">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[#E8ECF3]">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/25">
-            <Settings className="w-6 h-6" />
+          <div
+            className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md shadow-emerald-950/20"
+            style={{ background: "#164A31" }}
+          >
+            <Settings className="w-6 h-6 text-emerald-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-extrabold text-[#111827] tracking-tight">
-              Settings & Preferences
-            </h1>
-            <p className="text-xs text-[#6B7280]">
-              Configure real-time mobile push notifications, facility profile, and AI automation
-            </p>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                {isHousehold
+                  ? "Household Settings"
+                  : isHotel
+                  ? "Hotel & Banquet Settings"
+                  : isRestaurant
+                  ? "Restaurant Settings"
+                  : "NGO Settings"}
+              </span>
+            </div>
+            <h1 className="text-2xl font-extrabold text-gray-950 tracking-tight mt-0.5">
+              {t("settings_page.account_amp_platform")}</h1>
+            <p className="text-xs text-gray-600">
+              {t("settings_page.manage_your_contact")}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2.5">
           <LanguageToggle
             compact
-            className="bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-50 px-3 py-2 text-xs"
+            className="bg-white text-emerald-900 border-emerald-300 hover:bg-emerald-50 px-3 py-2 text-xs"
           />
           <button
             onClick={handleSave}
-            className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold shadow-md shadow-emerald-500/25 flex items-center gap-2 transition-all cursor-pointer"
+            className="px-4 py-2.5 rounded-xl text-white text-xs font-bold shadow-md shadow-emerald-950/20 flex items-center gap-2 transition-all cursor-pointer hover:brightness-110 active:scale-95"
+            style={{ background: "#164A31" }}
           >
-            <Save className="w-4 h-4" />
-            <span>Save Configuration</span>
+            <Save className="w-4 h-4 text-emerald-400" />
+            <span>{t("settings_page.save_changes")}</span>
           </button>
         </div>
       </div>
 
       {savedSuccess && (
-        <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          <span>Settings saved successfully and synced with cloud database.</span>
+        <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>{t("settings_page.your_settings_and_pr")}</span>
         </div>
       )}
 
-      {/* ═══ Tab Navigation ═══ */}
-      <div className="flex border-b border-[#E8ECF3] gap-3">
-        <button
-          type="button"
-          onClick={() => setActiveTab("alerts")}
-          className={`pb-3 px-4 text-sm font-bold transition-all flex items-center gap-2 border-b-2 cursor-pointer ${
-            activeTab === "alerts"
-              ? "border-emerald-500 text-emerald-600"
-              : "border-transparent text-[#6B7280] hover:text-[#111827]"
-          }`}
-        >
-          <Bell className="w-4 h-4" />
-          <span>Notifications & Alerts</span>
-        </button>
-
+      {/* ═══ Tab Navigation (Only Real Practical Tabs) ═══ */}
+      <div className="flex border-b border-[#E8ECF3] gap-2 overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveTab("profile")}
-          className={`pb-3 px-4 text-sm font-bold transition-all flex items-center gap-2 border-b-2 cursor-pointer ${
+          className={`pb-3 px-4 text-xs font-bold transition-all flex items-center gap-2 border-b-2 cursor-pointer whitespace-nowrap ${
             activeTab === "profile"
-              ? "border-emerald-500 text-emerald-600"
-              : "border-transparent text-[#6B7280] hover:text-[#111827]"
+              ? "border-emerald-700 text-emerald-800"
+              : "border-transparent text-gray-500 hover:text-gray-900"
           }`}
         >
-          <Building className="w-4 h-4" />
-          <span>Facility Profile</span>
+          {isHousehold ? (
+            <Home className="w-4 h-4" />
+          ) : isRestaurant ? (
+            <Utensils className="w-4 h-4" />
+          ) : isHotel ? (
+            <Hotel className="w-4 h-4" />
+          ) : (
+            <Building className="w-4 h-4" />
+          )}
+          <span>
+            {isHousehold
+              ? t("Household Profile")
+              : isRestaurant
+              ? t("Restaurant Profile")
+              : isHotel
+              ? t("Hotel Profile")
+              : t("Organization Profile")}
+          </span>
         </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab("ai")}
-          className={`pb-3 px-4 text-sm font-bold transition-all flex items-center gap-2 border-b-2 cursor-pointer ${
-            activeTab === "ai"
-              ? "border-emerald-500 text-emerald-600"
-              : "border-transparent text-[#6B7280] hover:text-[#111827]"
-          }`}
-        >
-          <BrainCircuit className="w-4 h-4" />
-          <span>AI & Automation</span>
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => setActiveTab("location")}
+            className={`pb-3 px-4 text-xs font-bold transition-all flex items-center gap-2 border-b-2 cursor-pointer whitespace-nowrap ${
+              activeTab === "location"
+                ? "border-emerald-700 text-emerald-800"
+                : "border-transparent text-gray-500 hover:text-gray-900"
+            }`}
+          >
+            <MapPin className="w-4 h-4" />
+            <span>{isNgo ? t("Service Hub & Area") : t("Address & Pickup Notes")}</span>
+          </button>
 
-      {/* ═══ Tab 1: Notifications & Alerts ═══ */}
-      {activeTab === "alerts" && (
-        <div className="space-y-6">
-          {/* Section: Checklist Toggles */}
-          <div className="p-6 rounded-3xl bg-white border border-[#E8ECF3] shadow-xs space-y-5">
+          <button
+            type="button"
+            onClick={() => setActiveTab("notifications")}
+            className={`pb-3 px-4 text-xs font-bold transition-all flex items-center gap-2 border-b-2 cursor-pointer whitespace-nowrap ${
+              activeTab === "notifications"
+                ? "border-emerald-700 text-emerald-800"
+                : "border-transparent text-gray-500 hover:text-gray-900"
+            }`}
+          >
+            <Bell className="w-4 h-4" />
+            <span>{t("settings_page.notification_prefere")}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("security")}
+            className={`pb-3 px-4 text-xs font-bold transition-all flex items-center gap-2 border-b-2 cursor-pointer whitespace-nowrap ${
+              activeTab === "security"
+                ? "border-emerald-700 text-emerald-800"
+                : "border-transparent text-gray-500 hover:text-gray-900"
+            }`}
+          >
+            <KeyRound className="w-4 h-4" />
+            <span>{t("settings_page.security_amp_account")}</span>
+          </button>
+        </div>
+
+        {/* ═══ TAB 1: PROFILE & CONTACT ═══ */}
+        {activeTab === "profile" && (
+          <form onSubmit={handleSave} className="bg-white rounded-2xl border border-[#E8ECF3] p-6 shadow-xs space-y-5">
             <div className="flex items-center justify-between pb-3 border-b border-[#E8ECF3]">
+              <h2 className="text-sm font-bold text-gray-950 flex items-center gap-2">
+                <Users className="w-4 h-4 text-emerald-700" />
+                <span>
+                  {isHousehold
+                    ? t("Family & Contact Details")
+                    : isRestaurant
+                    ? t("Restaurant & Kitchen Contact")
+                    : isHotel
+                    ? t("Hotel & Banquet Management")
+                    : t("Relief Organization Details")}
+                </span>
+              </h2>
+              <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                {t("settings_page.verified_partner")}</span>
+            </div>
+
+            <div className="space-y-4">
               <div>
-                <h2 className="text-base font-bold text-[#111827] flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-emerald-600" />
-                  <span>Notifications & Alerts</span>
-                </h2>
-                <p className="text-xs text-[#6B7280] mt-0.5">
-                  Select which real-time push alerts FoodWise sends to your mobile app and browser.
-                </p>
-              </div>
-              <span className="text-xs font-bold text-emerald-800 bg-emerald-100/70 border border-emerald-200 px-3 py-1 rounded-full">
-                Push Gateway Active
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* ✅ Surplus Alerts */}
-              <div className="p-4 rounded-2xl border border-[#E8ECF3] bg-white hover:border-emerald-300 transition-all flex items-center justify-between shadow-xs">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-sm shrink-0 border border-rose-100">
-                    🚨
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-[#111827] flex items-center gap-1.5">
-                      <span>Surplus Alerts</span>
-                      {enableSurplusAlerts && <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
-                    </div>
-                    <p className="text-xs text-[#6B7280] mt-0.5">
-                      Instant broadcast when kitchens log edible surplus meals
-                    </p>
-                  </div>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={enableSurplusAlerts}
-                    onChange={(e) => {
-                      setEnableSurplusAlerts(e.target.checked);
-                      if (e.target.checked) setPreviewAlertType("surplus");
-                    }}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-[#D1D5DB] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                <label className="block text-xs font-bold text-gray-800 mb-1">
+                  {isHousehold
+                    ? t("Household / Family Name")
+                    : isRestaurant
+                    ? t("Restaurant Name")
+                    : isHotel
+                    ? t("Hotel & Property Name")
+                    : t("NGO / Relief Organization Name")}
                 </label>
-              </div>
-
-              {/* ✅ Spoilage Warnings */}
-              <div className="p-4 rounded-2xl border border-[#E8ECF3] bg-white hover:border-emerald-300 transition-all flex items-center justify-between shadow-xs">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-sm shrink-0 border border-amber-100">
-                    ⚠️
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-[#111827] flex items-center gap-1.5">
-                      <span>Spoilage Warnings</span>
-                      {enableSpoilageWarnings && <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
-                    </div>
-                    <p className="text-xs text-[#6B7280] mt-0.5">
-                      Weibull decay alerts & cold-chain temperature deviations
-                    </p>
-                  </div>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={enableSpoilageWarnings}
-                    onChange={(e) => {
-                      setEnableSpoilageWarnings(e.target.checked);
-                      if (e.target.checked) setPreviewAlertType("spoilage");
-                    }}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-[#D1D5DB] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                </label>
-              </div>
-
-              {/* ✅ Expiry Alerts */}
-              <div className="p-4 rounded-2xl border border-[#E8ECF3] bg-white hover:border-emerald-300 transition-all flex items-center justify-between shadow-xs">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-sm shrink-0 border border-orange-100">
-                    ⏰
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-[#111827] flex items-center gap-1.5">
-                      <span>Expiry Alerts</span>
-                      {enableExpiryAlerts && <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
-                    </div>
-                    <p className="text-xs text-[#6B7280] mt-0.5">
-                      Proactive notice for items approaching consumption cutoff
-                    </p>
-                  </div>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={enableExpiryAlerts}
-                    onChange={(e) => {
-                      setEnableExpiryAlerts(e.target.checked);
-                      if (e.target.checked) setPreviewAlertType("expiry");
-                    }}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-[#D1D5DB] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                </label>
-              </div>
-
-              {/* ✅ Push Notifications */}
-              <div className="p-4 rounded-2xl border border-[#E8ECF3] bg-white hover:border-emerald-300 transition-all flex items-center justify-between shadow-xs">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm shrink-0 border border-emerald-100">
-                    📱
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-[#111827] flex items-center gap-1.5">
-                      <span>Push Notifications</span>
-                      {enablePushNotifications && <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
-                    </div>
-                    <p className="text-xs text-[#6B7280] mt-0.5">
-                      Direct device push notification service (No WhatsApp/SMS)
-                    </p>
-                  </div>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={enablePushNotifications}
-                    onChange={(e) => setEnablePushNotifications(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-[#D1D5DB] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                </label>
-              </div>
-            </div>
-
-            {/* Threshold & Audio */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-[#E8ECF3]">
-              <div className="p-3.5 rounded-2xl bg-[#F8FAFC] border border-[#E8ECF3] flex items-center justify-between">
-                <div>
-                  <div className="text-xs font-bold text-[#111827]">In-Browser Audio Chimes</div>
-                  <p className="text-[11px] text-[#64748B]">Play sound tone on priority notification</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={enableAudioChime}
-                    onChange={(e) => setEnableAudioChime(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-9 h-5 bg-[#D1D5DB] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
-                </label>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-[#F8FAFC] border border-[#E8ECF3]">
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="font-bold text-[#111827]">Surplus Auto-Alert Threshold</span>
-                  <span className="font-extrabold text-emerald-600 font-mono-data">{autoDispatchThreshold} kg</span>
-                </div>
                 <input
-                  type="range"
-                  min="10"
-                  max="100"
-                  step="5"
-                  value={autoDispatchThreshold}
-                  onChange={(e) => setAutoDispatchThreshold(Number(e.target.value))}
-                  className="w-full accent-emerald-500 cursor-pointer h-1.5"
+                  type="text"
+                  required
+                  value={entityName}
+                  onChange={(e) => setEntityName(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm text-gray-950 focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-800 mb-1">
+                    {isHousehold
+                      ? t("Primary Contact Person")
+                      : isRestaurant
+                      ? t("Head Chef / Kitchen Manager")
+                      : isHotel
+                      ? t("Banquet / Operations Manager")
+                      : t("Relief Coordinator / Lead")}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={contactPerson}
+                    onChange={(e) => setContactPerson(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm text-gray-950 focus:outline-none focus:border-emerald-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-800 mb-1">
+                    {isHousehold
+                      ? t("Donor Reference ID")
+                      : isNgo
+                      ? t("NGO Registration / DARPAN ID")
+                      : t("FSSAI License / Registration")}
+                  </label>
+                  <input
+                  type="text"
+                  value={regNumber}
+                  onChange={(e) => setRegNumber(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm font-mono text-gray-950 focus:outline-none focus:border-emerald-600"
                 />
               </div>
             </div>
-          </div>
 
-          {/* ═══ Section: 📱 Notification Preview ═══ */}
-          <div className="p-6 rounded-3xl bg-white border border-[#E8ECF3] shadow-xs space-y-4">
-            <div>
-              <h2 className="text-base font-bold text-[#111827] flex items-center gap-2">
-                <span>📱 Notification Preview</span>
-              </h2>
-              <p className="text-xs text-[#6B7280] mt-0.5">
-                Experience what cafeteria staff, NGO volunteers, and factory technicians see when the FoodWise app sends a push notification.
-              </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-800 mb-1">
+                  {t("settings_page.phone_mobile_number")}</label>
+                <input
+                  type="tel"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm text-gray-950 focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-800 mb-1">
+                  {t("settings_page.official_email_addre")}</label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm text-gray-950 focus:outline-none focus:border-emerald-600"
+                />
+              </div>
             </div>
 
-            <MobileNotificationPreview
-              initialSector={currentRole === "FACTORY_MANAGER" ? "factory" : "all"}
-              selectedAlert={previewAlertType}
-              onSelectAlert={(alert) => setPreviewAlertType(alert)}
-              showSectorToggle={true}
-            />
+            <div className="pt-2">
+              <button
+                type="submit"
+                className="px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110"
+                style={{ background: "#164A31" }}
+              >
+                {t("settings_page.save_profile")}</button>
+            </div>
           </div>
-        </div>
+        </form>
       )}
 
-      {/* ═══ Tab 2: Facility Profile ═══ */}
-      {activeTab === "profile" && (
-        <div className="p-6 rounded-3xl bg-white border border-[#E8ECF3] shadow-xs space-y-5">
-          <h2 className="text-base font-bold text-[#111827] flex items-center gap-2">
-            <Building className="w-5 h-5 text-emerald-600" />
-            <span>Registered Facility Information</span>
-          </h2>
+      {/* ═══ TAB 2: ADDRESS & PICKUP NOTES ═══ */}
+      {activeTab === "location" && (
+        <form onSubmit={handleSave} className="bg-white rounded-2xl border border-[#E8ECF3] p-6 shadow-xs space-y-5">
+          <div className="flex items-center justify-between pb-3 border-b border-[#E8ECF3]">
+            <h2 className="text-sm font-bold text-gray-950 flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-emerald-700" />
+              <span>
+                {isNgo
+                  ? t("Distribution Hub & Service Coverage")
+                  : t("Pickup Address & Access Details")}
+              </span>
+            </h2>
+          </div>
 
-          <div className="space-y-4 max-w-2xl">
+          <div className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-[#374151] mb-1">
-                Facility / Institution Name
+              <label className="block text-xs font-bold text-gray-800 mb-1">
+                {isHousehold
+                  ? t("Home / Residence Address")
+                  : isNgo
+                  ? t("Main Food Distribution Center / Hub")
+                  : t("Property / Kitchen Street Address")}
               </label>
               <input
                 type="text"
-                value={orgName}
-                onChange={(e) => setOrgName(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-[#E5E7EB] text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                required
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm text-gray-950 focus:outline-none focus:border-emerald-600"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-[#374151] mb-1">
-                  FSSAI License / Registration
-                </label>
+                <label className="block text-xs font-bold text-gray-800 mb-1">
+                  {t("settings_page.city_state")}</label>
                 <input
                   type="text"
-                  value={fssaiLicense}
-                  onChange={(e) => setFssaiLicense(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E7EB] text-sm text-[#111827] font-mono-data focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  required
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm text-gray-950 focus:outline-none focus:border-emerald-600"
                 />
               </div>
-              <div>
-                <label className="block text-xs font-bold text-[#374151] mb-1">
-                  Officer In-Charge
-                </label>
-                <input
-                  type="text"
-                  value={managerName}
-                  onChange={(e) => setManagerName(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E7EB] text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                />
-              </div>
+
+              {isNgo && (
+                <div>
+                  <label className="block text-xs font-bold text-gray-800 mb-1">
+                    {t("settings_page.coverage_areas_pinco")}</label>
+                  <input
+                    type="text"
+                    value={coverageArea}
+                    onChange={(e) => setCoverageArea(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm text-gray-950 focus:outline-none focus:border-emerald-600"
+                  />
+                </div>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-[#374151] mb-1">
-                  Phone / SMS Emergency
-                </label>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E7EB] text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-[#374151] mb-1">
-                  Alert Email
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E7EB] text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                />
-              </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-800 mb-1">
+                {isHousehold
+                  ? t("Doorbell & Floor Instructions for Volunteer")
+                  : isHotel
+                  ? t("Loading Dock & Banquet Service Access Notes")
+                  : isRestaurant
+                  ? t("Backdoor / Kitchen Handover Instructions")
+                  : t("Hub Operating Hours & Drop-off Notes")}
+              </label>
+              <textarea
+                rows={3}
+                value={pickupInstructions}
+                onChange={(e) => setPickupInstructions(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-xs text-gray-950 focus:outline-none focus:border-emerald-600"
+              />
             </div>
 
-            <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-100 flex items-start gap-3">
-              <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-              <div>
-                <div className="text-xs font-bold text-emerald-900">Verified FSSAI Compliance Tier 1</div>
-                <p className="text-[11px] text-emerald-700 mt-0.5">
-                  This facility is certified under Indian Surplus Food Recovery Regulations 2019. Audit certificates are generated with digital cryptographic verification.
-                </p>
-              </div>
+            <div className="pt-2">
+              <button
+                type="submit"
+                className="px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110"
+                style={{ background: "#164A31" }}
+              >
+                {t("settings_page.save_location_detail")}</button>
             </div>
           </div>
-        </div>
+        </form>
       )}
 
-      {/* ═══ Tab 3: AI & Automation ═══ */}
-      {activeTab === "ai" && (
-        <div className="p-6 rounded-3xl bg-white border border-[#E8ECF3] shadow-xs space-y-5">
-          <h2 className="text-base font-bold text-[#111827] flex items-center gap-2">
-            <BrainCircuit className="w-5 h-5 text-emerald-600" />
-            <span>AI Demand Model & Telemetry Gates</span>
-          </h2>
-
-          <div className="space-y-4 max-w-2xl">
-            <div className="p-4 rounded-2xl border border-[#E8ECF3] bg-white">
-              <label className="block text-xs font-bold text-[#374151] mb-2">
-                Demand Forecasting Model Rigor
-              </label>
-              <div className="grid grid-cols-3 gap-3">
-                {(["conservative", "balanced", "aggressive"] as const).map((mode) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => setModelMode(mode)}
-                    className={`p-3 rounded-xl border text-xs font-bold capitalize transition-all cursor-pointer ${
-                      modelMode === mode
-                        ? "border-emerald-500 bg-emerald-50 text-emerald-700 shadow-xs"
-                        : "border-[#E5E7EB] text-[#4B5563] hover:bg-[#F9FAFB]"
-                    }`}
-                  >
-                    {mode}
-                  </button>
-                ))}
-              </div>
-              <p className="text-[11px] text-[#6B7280] mt-2">
-                {modelMode === "conservative" && "Prioritizes zero meal shortages with higher safety buffer (6-8%)."}
-                {modelMode === "balanced" && "Balanced waste reduction with dynamic 3-4% safety margin."}
-                {modelMode === "aggressive" && "Ultra-lean production minimizing all waste down to 1-2%."}
-              </p>
+      {/* ═══ TAB 3: NOTIFICATION PREFERENCES (REAL EVENTS ONLY) ═══ */}
+      {activeTab === "notifications" && (
+        <form onSubmit={handleSave} className="bg-white rounded-2xl border border-[#E8ECF3] p-6 shadow-xs space-y-5">
+          <div className="flex items-center justify-between pb-3 border-b border-[#E8ECF3]">
+            <div>
+              <h2 className="text-sm font-bold text-gray-950 flex items-center gap-2">
+                <Bell className="w-4 h-4 text-emerald-700" />
+                <span>{t("settings_page.donation_amp_pickup")}</span>
+              </h2>
+              <p className="text-xs text-gray-600 mt-0.5">
+                {t("settings_page.configure_notificati")}</p>
             </div>
+          </div>
 
-            <div className="p-4 rounded-2xl border border-[#E8ECF3] bg-white">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-bold text-[#111827]">Anomaly Confidence Cutoff</span>
-                <span className="text-sm font-extrabold text-emerald-600 font-mono-data">{confidenceCutoff}%</span>
+          <div className="space-y-3">
+            {/* Toggle 1 */}
+            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex items-center justify-between">
+              <div>
+                <div className="text-xs font-bold text-gray-900">
+                  {isNgo ? t("New Surplus Available Nearby") : t("Donation Requests from NGOs")}
+                </div>
+                <p className="text-[11px] text-gray-600 mt-0.5">
+                  {isNgo
+                    ? t("Notify immediately when a restaurant, hotel, or household posts surplus food.")
+                    : t("Notify when a verified relief organization submits a request to collect your food.")}
+                </p>
               </div>
               <input
-                type="range"
-                min="60"
-                max="95"
-                step="5"
-                value={confidenceCutoff}
-                onChange={(e) => setConfidenceCutoff(Number(e.target.value))}
-                className="w-full accent-emerald-500 cursor-pointer"
+                type="checkbox"
+                checked={notifyRequests}
+                onChange={(e) => setNotifyRequests(e.target.checked)}
+                className="w-4 h-4 accent-emerald-700 cursor-pointer"
               />
-              <p className="text-[11px] text-[#9CA3AF] mt-1">
-                IoT anomaly threshold for optical caliper blade clearance and cold-storage humidity spikes.
+            </div>
+
+            {/* Toggle 2 */}
+            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex items-center justify-between">
+              <div>
+                <div className="text-xs font-bold text-gray-900">
+                  {isNgo ? t("Donor Acceptance & Schedule Updates") : t("Volunteer Pickup Schedules")}
+                </div>
+                <p className="text-[11px] text-gray-600 mt-0.5">
+                  {isNgo
+                    ? t("Alert when a donor approves your pickup request with collection times and instructions.")
+                    : t("Notify when a volunteer driver confirms pickup time and vehicle information.")}
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={notifyPickups}
+                onChange={(e) => setNotifyPickups(e.target.checked)}
+                className="w-4 h-4 accent-emerald-700 cursor-pointer"
+              />
+            </div>
+
+            {/* Toggle 3 */}
+            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex items-center justify-between">
+              <div>
+                <div className="text-xs font-bold text-gray-900">
+                  {t("settings_page.delivery_handover_am")}</div>
+                <p className="text-[11px] text-gray-600 mt-0.5">
+                  {t("settings_page.receive_verified_con")}</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={notifyCompleted}
+                onChange={(e) => setNotifyCompleted(e.target.checked)}
+                className="w-4 h-4 accent-emerald-700 cursor-pointer"
+              />
+            </div>
+
+            {/* Toggle 4: Audio Chimes */}
+            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex items-center justify-between">
+              <div>
+                <div className="text-xs font-bold text-gray-900">
+                  {t("settings_page.in_browser_audio_ale")}</div>
+                <p className="text-[11px] text-gray-600 mt-0.5">
+                  {t("settings_page.play_a_gentle_audio")}</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={enableAudioChime}
+                onChange={(e) => setEnableAudioChime(e.target.checked)}
+                className="w-4 h-4 accent-emerald-700 cursor-pointer"
+              />
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="submit"
+                className="px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110"
+                style={{ background: "#164A31" }}
+              >
+                {t("settings_page.save_preferences")}</button>
+            </div>
+          </div>
+        </form>
+      )}
+
+      {/* ═══ TAB 4: SECURITY & ACCOUNT ═══ */}
+      {activeTab === "security" && (
+        <div className="space-y-6">
+          <form onSubmit={handleSave} className="bg-white rounded-2xl border border-[#E8ECF3] p-6 shadow-xs space-y-4">
+            <h2 className="text-sm font-bold text-gray-950 flex items-center gap-2 pb-3 border-b border-[#E8ECF3]">
+              <KeyRound className="w-4 h-4 text-emerald-700" />
+              <span>{t("settings_page.change_password")}</span>
+            </h2>
+
+            <div className="space-y-3 max-w-md">
+              <div>
+                <label className="block text-xs font-bold text-gray-800 mb-1">{t("settings_page.current_password")}</label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-2 rounded-xl border border-gray-300 text-sm focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-800 mb-1">{t("settings_page.new_password")}</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-2 rounded-xl border border-gray-300 text-sm focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-800 mb-1">{t("settings_page.confirm_new_password")}</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-2 rounded-xl border border-gray-300 text-sm focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110"
+                  style={{ background: "#164A31" }}
+                >
+                  {t("settings_page.update_password")}</button>
+              </div>
+            </div>
+          </form>
+
+          {/* Account Session & Logout */}
+          <div className="bg-white rounded-2xl border border-rose-100 p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div className="text-sm font-bold text-gray-950">{t("settings_page.active_session")}</div>
+              <p className="text-xs text-gray-600 mt-0.5">
+                {t("settings_page.signed_in_as")}<strong>{entityName}</strong> ({userRole})
               </p>
             </div>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2.5 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-bold flex items-center gap-2 cursor-pointer transition-all"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>{t("settings_page.log_out_of_foodwise")}</span>
+            </button>
           </div>
         </div>
       )}

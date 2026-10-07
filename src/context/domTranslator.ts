@@ -1,12 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
-import { useLang } from "./LanguageContext";
+import { useLang, Language } from "./LanguageContext";
 import {
   translateDynamicEnglishToHindi,
   translateHindiToEnglish,
   isDevanagari,
 } from "./dictionary";
+import {
+  translateDynamicEnglishToKannada,
+  translateKannadaToEnglish,
+  isKannada,
+} from "./kannadaDictionary";
 
 // Tracks translated nodes in current session
 let translatedNodes = new WeakSet<Node>();
@@ -17,11 +22,12 @@ export function useDomAutoTranslator() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    translatedNodes = new WeakSet<Node>();
+
     if (lang === "en") {
       // Restore all text nodes to their English original
       const doRestore = () => {
         restoreEnglish(document.body);
-        translatedNodes = new WeakSet<Node>();
       };
 
       doRestore();
@@ -34,25 +40,28 @@ export function useDomAutoTranslator() {
       };
     }
 
-    if (lang === "hi") {
-      // Translate all text nodes in the DOM after React finishes its commit
+    if (lang === "hi" || lang === "kn") {
+      // Step 1: Restore English baseline first to prevent cross-language contamination
+      restoreEnglish(document.body);
+
+      // Step 2: Translate to target language
       const doTranslate = () => {
-        translateTree(document.body);
+        translateTree(document.body, lang);
       };
 
       doTranslate();
       const rafId = requestAnimationFrame(doTranslate);
       const timerId = setTimeout(doTranslate, 80);
 
-      // Observe only childList (for newly opened modals, dropdowns, and tabs)
+      // Observe DOM mutations (for modals, dialogs, drawers, live cards)
       const observer = new MutationObserver((mutations) => {
         for (const mutation of mutations) {
           if (mutation.type === "childList") {
             for (const addedNode of Array.from(mutation.addedNodes)) {
               if (addedNode.nodeType === Node.ELEMENT_NODE) {
-                translateTree(addedNode as HTMLElement);
+                translateTree(addedNode as HTMLElement, lang);
               } else if (addedNode.nodeType === Node.TEXT_NODE) {
-                translateTextNode(addedNode as Text);
+                translateTextNode(addedNode as Text, lang);
               }
             }
           }
@@ -90,30 +99,52 @@ function shouldSkipElement(element: HTMLElement): boolean {
   return false;
 }
 
-function translateTextNode(textNode: Text) {
+function isIndianScript(text: string): boolean {
+  return isDevanagari(text) || isKannada(text);
+}
+
+function getSourceEnglish(raw: string, cachedOrig?: string): string {
+  if (cachedOrig && !isIndianScript(cachedOrig)) {
+    return cachedOrig;
+  }
+  if (!isIndianScript(raw)) {
+    return raw;
+  }
+  if (isDevanagari(raw)) {
+    return translateHindiToEnglish(raw);
+  }
+  if (isKannada(raw)) {
+    return translateKannadaToEnglish(raw);
+  }
+  return raw;
+}
+
+function translateTextNode(textNode: Text, targetLang: Language) {
   if (translatedNodes.has(textNode)) return;
 
   const raw = textNode.nodeValue;
   if (!raw || !raw.trim()) return;
 
   // Don't translate pure numbers or short symbols
-  if (/^[0-9\s.,:%°/\\()\-–—+]+$/.test(raw)) return;
+  if (/^[0-9\s.,:%°/\\()\-–—+*#@]+$/.test(raw)) return;
 
   // Check parent
   const parent = textNode.parentElement;
   if (parent && shouldSkipElement(parent)) return;
 
-  // CRITICAL: Only store as English original if it doesn't contain Devanagari/Hindi characters!
-  if ((textNode as any).__fw_orig === undefined && !isDevanagari(raw)) {
+  // Cache original English if clean
+  if ((textNode as any).__fw_orig === undefined && !isIndianScript(raw)) {
     (textNode as any).__fw_orig = raw;
   }
 
-  // If already Hindi and we don't have English original, reverse-translate to get English base
-  const sourceText =
-    (textNode as any).__fw_orig ||
-    (!isDevanagari(raw) ? raw : translateHindiToEnglish(raw));
+  const sourceText = getSourceEnglish(raw, (textNode as any).__fw_orig);
 
-  const translated = translateDynamicEnglishToHindi(sourceText);
+  let translated = "";
+  if (targetLang === "hi") {
+    translated = translateDynamicEnglishToHindi(sourceText);
+  } else if (targetLang === "kn") {
+    translated = translateDynamicEnglishToKannada(sourceText);
+  }
 
   if (translated && translated !== raw) {
     translatedNodes.add(textNode);
@@ -121,7 +152,7 @@ function translateTextNode(textNode: Text) {
   }
 }
 
-function translateTree(root: HTMLElement | Node) {
+function translateTree(root: HTMLElement | Node, targetLang: Language) {
   if (!root) return;
 
   if (root.nodeType === Node.ELEMENT_NODE && shouldSkipElement(root as HTMLElement)) {
@@ -134,26 +165,31 @@ function translateTree(root: HTMLElement | Node) {
     if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
       const input = el as HTMLInputElement;
       if (input.placeholder && input.placeholder.trim()) {
-        if (!input.dataset.fwOrigPlaceholder && !isDevanagari(input.placeholder)) {
+        if (!input.dataset.fwOrigPlaceholder && !isIndianScript(input.placeholder)) {
           input.dataset.fwOrigPlaceholder = input.placeholder;
         }
-        const sourcePlaceholder =
-          input.dataset.fwOrigPlaceholder ||
-          (!isDevanagari(input.placeholder)
-            ? input.placeholder
-            : translateHindiToEnglish(input.placeholder));
-        input.placeholder = translateDynamicEnglishToHindi(sourcePlaceholder);
+        const sourcePlaceholder = getSourceEnglish(
+          input.placeholder,
+          input.dataset.fwOrigPlaceholder
+        );
+        if (targetLang === "hi") {
+          input.placeholder = translateDynamicEnglishToHindi(sourcePlaceholder);
+        } else if (targetLang === "kn") {
+          input.placeholder = translateDynamicEnglishToKannada(sourcePlaceholder);
+        }
       }
     }
 
     if (el.title && el.title.trim()) {
-      if (!el.dataset.fwOrigTitle && !isDevanagari(el.title)) {
+      if (!el.dataset.fwOrigTitle && !isIndianScript(el.title)) {
         el.dataset.fwOrigTitle = el.title;
       }
-      const sourceTitle =
-        el.dataset.fwOrigTitle ||
-        (!isDevanagari(el.title) ? el.title : translateHindiToEnglish(el.title));
-      el.title = translateDynamicEnglishToHindi(sourceTitle);
+      const sourceTitle = getSourceEnglish(el.title, el.dataset.fwOrigTitle);
+      if (targetLang === "hi") {
+        el.title = translateDynamicEnglishToHindi(sourceTitle);
+      } else if (targetLang === "kn") {
+        el.title = translateDynamicEnglishToKannada(sourceTitle);
+      }
     }
   }
 
@@ -170,7 +206,7 @@ function translateTree(root: HTMLElement | Node) {
 
   let currentNode: Node | null = walker.nextNode();
   while (currentNode) {
-    translateTextNode(currentNode as Text);
+    translateTextNode(currentNode as Text, targetLang);
     currentNode = walker.nextNode();
   }
 }
@@ -184,14 +220,18 @@ function restoreEnglish(root: HTMLElement) {
     const currentVal = currentNode.nodeValue || "";
     const orig = (currentNode as any).__fw_orig;
 
-    // 1. If we have a verified English original, restore it
-    if (orig && typeof orig === "string" && !isDevanagari(orig)) {
+    if (orig && typeof orig === "string" && !isIndianScript(orig)) {
       if (currentVal !== orig) {
         currentNode.nodeValue = orig;
       }
     } else if (isDevanagari(currentVal)) {
-      // 2. If the current text is in Hindi/Devanagari, reverse-translate it to English!
       const englishRestored = translateHindiToEnglish(currentVal);
+      if (englishRestored && englishRestored !== currentVal) {
+        currentNode.nodeValue = englishRestored;
+        (currentNode as any).__fw_orig = englishRestored;
+      }
+    } else if (isKannada(currentVal)) {
+      const englishRestored = translateKannadaToEnglish(currentVal);
       if (englishRestored && englishRestored !== currentVal) {
         currentNode.nodeValue = englishRestored;
         (currentNode as any).__fw_orig = englishRestored;
@@ -201,24 +241,26 @@ function restoreEnglish(root: HTMLElement) {
   }
 
   // Restore placeholders
-  const inputs = root.querySelectorAll<HTMLInputElement>(
-    "input, textarea"
-  );
+  const inputs = root.querySelectorAll<HTMLInputElement>("input, textarea");
   inputs.forEach((input) => {
-    if (input.dataset.fwOrigPlaceholder && !isDevanagari(input.dataset.fwOrigPlaceholder)) {
+    if (input.dataset.fwOrigPlaceholder && !isIndianScript(input.dataset.fwOrigPlaceholder)) {
       input.placeholder = input.dataset.fwOrigPlaceholder;
     } else if (isDevanagari(input.placeholder)) {
       input.placeholder = translateHindiToEnglish(input.placeholder);
+    } else if (isKannada(input.placeholder)) {
+      input.placeholder = translateKannadaToEnglish(input.placeholder);
     }
   });
 
   // Restore titles
   const elementsWithTitle = root.querySelectorAll<HTMLElement>("[title]");
   elementsWithTitle.forEach((el) => {
-    if (el.dataset.fwOrigTitle && !isDevanagari(el.dataset.fwOrigTitle)) {
+    if (el.dataset.fwOrigTitle && !isIndianScript(el.dataset.fwOrigTitle)) {
       el.title = el.dataset.fwOrigTitle;
     } else if (isDevanagari(el.title)) {
       el.title = translateHindiToEnglish(el.title);
+    } else if (isKannada(el.title)) {
+      el.title = translateKannadaToEnglish(el.title);
     }
   });
 }

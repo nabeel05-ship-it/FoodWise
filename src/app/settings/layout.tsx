@@ -9,13 +9,15 @@ export default function SettingsLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { currentRole } = useApp();
+  const { userRole, activeDonor } = useApp();
   const sidebarType =
-    currentRole === "FACTORY_MANAGER"
-      ? "factory"
-      : currentRole === "NGO_PARTNER"
+    userRole === "HOTEL" || activeDonor?.type === "Hotel"
+      ? "hotel"
+      : userRole === "HOUSEHOLD" || activeDonor?.type === "Household"
+      ? "household"
+      : userRole === "NGO"
       ? "ngo"
-      : "kitchen";
+      : "restaurant";
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "#F4F6FA" }}>

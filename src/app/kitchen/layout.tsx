@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import Sidebar from "@/components/layout/Sidebar";
+import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 
 export default function KitchenLayout({
@@ -9,20 +9,27 @@ export default function KitchenLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { setCurrentRole } = useApp();
+  const router = useRouter();
+  const { userRole, activeDonor } = useApp();
 
   useEffect(() => {
-    setCurrentRole("KITCHEN_MANAGER");
-  }, [setCurrentRole]);
+    if (userRole === "HOTEL" || activeDonor?.type === "Hotel") {
+      router.replace("/hotel/dashboard");
+    } else if (userRole === "HOUSEHOLD" || activeDonor?.type === "Household") {
+      router.replace("/household/dashboard");
+    } else if (userRole === "NGO") {
+      router.replace("/ngo/dashboard");
+    } else {
+      router.replace("/restaurant/dashboard");
+    }
+  }, [userRole, activeDonor, router]);
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "#F4F6FA" }}>
-      <Sidebar type="kitchen" />
-      <main id="main-content" className="flex-1 min-w-0">
-        <div className="p-3.5 sm:p-6 lg:p-8 max-w-[1400px] mx-auto w-full pb-24">
-          {children}
-        </div>
-      </main>
+    <div className="min-h-screen flex items-center justify-center bg-[#F4F6FA]">
+      <div className="text-center space-y-2">
+        <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-xs text-gray-500 font-medium">Redirecting to your portal...</p>
+      </div>
     </div>
   );
 }

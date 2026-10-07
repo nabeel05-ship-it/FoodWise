@@ -9,65 +9,87 @@ import {
   Settings,
   Bell,
   Building,
-  BrainCircuit,
+  Home,
+  Utensils,
+  Hotel,
+  Users,
   CheckCircle2,
   Save,
   ShieldCheck,
-  Smartphone,
-  Sliders,
-  Sparkles,
-  RefreshCw,
+  MapPin,
+  KeyRound,
   LogOut,
 } from "lucide-react";
-import MobileNotificationPreview, { AlertType } from "@/components/settings/MobileNotificationPreview";
 import LanguageToggle from "@/components/common/LanguageToggle";
 
 export default function SettingsModal() {
   const router = useRouter();
-  const { isSettingsOpen, setIsSettingsOpen, currentRole } = useApp();
+  const { isSettingsOpen, setIsSettingsOpen, userRole, activeDonor, activeNgo, logout } = useApp();
   const { t } = useLang();
-  const [activeTab, setActiveTab] = useState<"profile" | "alerts" | "ai">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "location" | "notifications" | "security">("profile");
 
-  const handleLogout = () => {
-    setIsSettingsOpen(false);
-    router.push("/");
-  };
+  const isHousehold = userRole === "HOUSEHOLD";
+  const isRestaurant = userRole === "RESTAURANT";
+  const isHotel = userRole === "HOTEL";
+  const isNgo = userRole === "NGO";
 
-  // Form State
-  const [orgName, setOrgName] = useState(
-    currentRole === "KITCHEN_MANAGER"
-      ? "IIT Delhi Central Mess (Aravali)"
-      : currentRole === "FACTORY_MANAGER"
-      ? "AgroPure Foods Ltd. — Plant 4"
-      : "Feeding India Food Relief Hub"
+  // Form State: Profile
+  const [entityName, setEntityName] = useState(
+    isNgo
+      ? activeNgo?.name || "Robin Hood Army (Delhi Chapter)"
+      : activeDonor?.name || (isHousehold ? "Sharma Family Residence" : isHotel ? "Hotel Mayura Grand" : "Green Leaf Restaurant")
   );
-  const [fssaiLicense, setFssaiLicense] = useState("10019011006542");
-  const [managerName, setManagerName] = useState(
-    currentRole === "KITCHEN_MANAGER"
-      ? "Dr. S.R. Sharma"
-      : currentRole === "FACTORY_MANAGER"
-      ? "Amit Kumar"
-      : "Pooja Verma"
+  const [contactPerson, setContactPerson] = useState(
+    isNgo
+      ? activeNgo?.lead || "Pooja Verma"
+      : activeDonor?.contactPerson || (isHousehold ? "Vikram Sharma" : isHotel ? "Suresh Rao" : "Rajeev Mehra")
   );
-  const [phone, setPhone] = useState("+91 98112 45890");
-  const [email, setEmail] = useState("ops.management@foodwise.org");
+  const [phone, setPhone] = useState(
+    isNgo
+      ? activeNgo?.phone || "+91 98112 45890"
+      : activeDonor?.phone || (isHousehold ? "+91 98112 34567" : isHotel ? "+91 98450 87654" : "+91 98101 23456")
+  );
+  const [email, setEmail] = useState(
+    isNgo
+      ? activeNgo?.email || "delhi.chapter@robinhoodarmy.com"
+      : activeDonor?.email || (isHousehold ? "sharma.family@gmail.com" : isHotel ? "banquets@mayuragrand.com" : "greenleaf.cp@gmail.com")
+  );
+  const [regNumber, setRegNumber] = useState(
+    isNgo
+      ? activeNgo?.registrationNumber || "DARPAN: DL/2021/029841"
+      : activeDonor?.fssaiNumber || (isHousehold ? "Community Contributor #HH-01" : isHotel ? "FSSAI LIC: 11220005001290" : "FSSAI LIC: 13321008000412")
+  );
 
-  // Alert State
-  const [enableSurplusAlerts, setEnableSurplusAlerts] = useState(true);
-  const [enableSpoilageWarnings, setEnableSpoilageWarnings] = useState(true);
-  const [enableExpiryAlerts, setEnableExpiryAlerts] = useState(true);
-  const [enablePushNotifications, setEnablePushNotifications] = useState(true);
-  const [enableSms, setEnableSms] = useState(false);
+  // Form State: Location & Pickup
+  const [address, setAddress] = useState(
+    isNgo
+      ? activeNgo?.address || "Community Center, Sector 4, RK Puram"
+      : activeDonor?.address || (isHousehold ? "Flat 402, Green Avenue, Hauz Khas" : isHotel ? "14/2, Station Main Road, Opp. City Park" : "Block B, Radial Road 3, Connaught Place")
+  );
+  const [city, setCity] = useState(isNgo ? activeNgo?.city || "New Delhi" : activeDonor?.city || "New Delhi");
+  const [coverageArea, setCoverageArea] = useState(
+    isNgo ? activeNgo?.coverageArea || "South Delhi, Central Delhi, Hauz Khas, Okhla" : ""
+  );
+  const [pickupInstructions, setPickupInstructions] = useState(
+    isHousehold
+      ? "Ring flat bell 402, elevator accessible. Food pre-packed in clean containers."
+      : isHotel
+      ? "Enter via Banquet Service Gate 3. Loading bay 2. Security will guide volunteer vehicle."
+      : isRestaurant
+      ? "Use service entrance behind Block B. Ask for kitchen supervisor."
+      : "Open 9:00 AM to 9:00 PM for food drop-offs and volunteer dispatch."
+  );
+
+  // Form State: Notifications
+  const [notifyRequests, setNotifyRequests] = useState(true);
+  const [notifyPickups, setNotifyPickups] = useState(true);
+  const [notifyCompleted, setNotifyCompleted] = useState(true);
   const [enableAudioChime, setEnableAudioChime] = useState(true);
-  const [enableDailyDigest, setEnableDailyDigest] = useState(true);
-  const [autoDispatchThreshold, setAutoDispatchThreshold] = useState(40);
-  const [previewAlertType, setPreviewAlertType] = useState<AlertType>(
-    currentRole === "FACTORY_MANAGER" ? "factory_spoilage" : "surplus"
-  );
 
-  // AI State
-  const [confidenceCutoff, setConfidenceCutoff] = useState(85);
-  const [modelMode, setModelMode] = useState<"conservative" | "balanced" | "aggressive">("balanced");
+  // Form State: Security
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const [savedSuccess, setSavedSuccess] = useState(false);
 
@@ -80,468 +102,414 @@ export default function SettingsModal() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isSettingsOpen, setIsSettingsOpen]);
 
+  // Sync with active donor / NGO
+  useEffect(() => {
+    if (isNgo) {
+      setEntityName(activeNgo?.name || "Robin Hood Army (Delhi Chapter)");
+      setContactPerson(activeNgo?.lead || "Pooja Verma");
+      setPhone(activeNgo?.phone || "+91 98112 45890");
+      setEmail(activeNgo?.email || "delhi.chapter@robinhoodarmy.com");
+      setAddress(activeNgo?.address || "Community Center, Sector 4, RK Puram");
+      setCity(activeNgo?.city || "New Delhi");
+    } else if (activeDonor) {
+      setEntityName(activeDonor.name);
+      setContactPerson(activeDonor.contactPerson || "");
+      setPhone(activeDonor.phone || "");
+      setAddress(activeDonor.address || "");
+      setCity(activeDonor.city || "");
+    }
+  }, [activeDonor, activeNgo, isNgo]);
+
   if (!isSettingsOpen) return null;
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setSavedSuccess(true);
-    setTimeout(() => {
-      setSavedSuccess(false);
-      setIsSettingsOpen(false);
-    }, 1200);
+    setTimeout(() => setSavedSuccess(false), 2500);
+  };
+
+  const handleLogout = () => {
+    setIsSettingsOpen(false);
+    logout();
+    router.push("/");
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
-      onClick={() => setIsSettingsOpen(false)}
-      role="dialog"
-      aria-modal="true"
-      aria-label="System Settings"
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
       <div
-        className={`w-full ${
-          activeTab === "alerts" ? "max-w-4xl" : "max-w-2xl"
-        } bg-white rounded-3xl shadow-2xl border border-[#E8ECF3] overflow-hidden flex flex-col max-h-[92vh] transition-all duration-300`}
+        className="bg-white rounded-3xl border border-[#E8ECF3] shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-5 border-b border-[#E8ECF3] flex items-center justify-between bg-gradient-to-r from-emerald-50/50 via-white to-white">
+        <div className="p-5 sm:p-6 border-b border-[#E8ECF3] flex items-center justify-between bg-white shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/25">
-              <Settings className="w-5 h-5" />
+            <div
+              className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-md shadow-emerald-950/20"
+              style={{ background: "#164A31" }}
+            >
+              <Settings className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-[#111827]">{t("settings.title")}</h2>
-              <p className="text-xs text-[#6B7280]">{t("settings.subtitle")}</p>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  {isHousehold
+                    ? t("Household Settings")
+                    : isHotel
+                    ? t("Hotel & Banquet Settings")
+                    : isRestaurant
+                    ? t("Restaurant Settings")
+                    : t("NGO Settings")}
+                </span>
+              </div>
+              <h2 className="text-lg font-black text-gray-950">{t("Settings & Preferences")}</h2>
             </div>
           </div>
+
           <div className="flex items-center gap-2">
-            <LanguageToggle
-              compact
-              className="bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100"
-            />
+            <LanguageToggle compact className="text-xs px-2.5 py-1.5" />
             <button
               onClick={() => setIsSettingsOpen(false)}
-              aria-label="Close settings"
-              className="p-2 rounded-xl text-[#9CA3AF] hover:text-[#111827] hover:bg-[#F3F4F6] transition-colors"
+              className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors cursor-pointer"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
+        {/* Success Alert */}
+        {savedSuccess && (
+          <div className="mx-6 mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-semibold flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{t("Settings updated successfully.")}</span>
+          </div>
+        )}
+
         {/* Tab Navigation */}
-        <div className="flex border-b border-[#E8ECF3] px-6 bg-[#FAFBFC] gap-2 pt-2">
+        <div className="px-6 border-b border-[#E8ECF3] flex gap-2 overflow-x-auto shrink-0 bg-[#F9FAFB]">
           <button
+            type="button"
             onClick={() => setActiveTab("profile")}
-            className={`pb-3 px-3 text-xs font-bold transition-all flex items-center gap-2 border-b-2 ${
+            className={`py-3 px-3 text-xs font-bold transition-all flex items-center gap-1.5 border-b-2 cursor-pointer whitespace-nowrap ${
               activeTab === "profile"
-                ? "border-emerald-500 text-emerald-600"
-                : "border-transparent text-[#6B7280] hover:text-[#111827]"
+                ? "border-emerald-700 text-emerald-800"
+                : "border-transparent text-gray-500 hover:text-gray-900"
             }`}
           >
-            <Building className="w-3.5 h-3.5" />
-            {t("settings.facility_profile")}
+            {isHousehold ? <Home className="w-3.5 h-3.5" /> : isRestaurant ? <Utensils className="w-3.5 h-3.5" /> : isHotel ? <Hotel className="w-3.5 h-3.5" /> : <Building className="w-3.5 h-3.5" />}
+            <span>{t("Profile")}</span>
           </button>
+
           <button
-            onClick={() => setActiveTab("alerts")}
-            className={`pb-3 px-3 text-xs font-bold transition-all flex items-center gap-2 border-b-2 ${
-              activeTab === "alerts"
-                ? "border-emerald-500 text-emerald-600"
-                : "border-transparent text-[#6B7280] hover:text-[#111827]"
+            type="button"
+            onClick={() => setActiveTab("location")}
+            className={`py-3 px-3 text-xs font-bold transition-all flex items-center gap-1.5 border-b-2 cursor-pointer whitespace-nowrap ${
+              activeTab === "location"
+                ? "border-emerald-700 text-emerald-800"
+                : "border-transparent text-gray-500 hover:text-gray-900"
+            }`}
+          >
+            <MapPin className="w-3.5 h-3.5" />
+            <span>{isNgo ? t("Service Hub") : t("Pickup Location")}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("notifications")}
+            className={`py-3 px-3 text-xs font-bold transition-all flex items-center gap-1.5 border-b-2 cursor-pointer whitespace-nowrap ${
+              activeTab === "notifications"
+                ? "border-emerald-700 text-emerald-800"
+                : "border-transparent text-gray-500 hover:text-gray-900"
             }`}
           >
             <Bell className="w-3.5 h-3.5" />
-            {t("settings.alerts")}
+            <span>{t("Alerts")}</span>
           </button>
+
           <button
-            onClick={() => setActiveTab("ai")}
-            className={`pb-3 px-3 text-xs font-bold transition-all flex items-center gap-2 border-b-2 ${
-              activeTab === "ai"
-                ? "border-emerald-500 text-emerald-600"
-                : "border-transparent text-[#6B7280] hover:text-[#111827]"
+            type="button"
+            onClick={() => setActiveTab("security")}
+            className={`py-3 px-3 text-xs font-bold transition-all flex items-center gap-1.5 border-b-2 cursor-pointer whitespace-nowrap ${
+              activeTab === "security"
+                ? "border-emerald-700 text-emerald-800"
+                : "border-transparent text-gray-500 hover:text-gray-900"
             }`}
           >
-            <BrainCircuit className="w-3.5 h-3.5" />
-            {t("settings.ai_automation")}
+            <KeyRound className="w-3.5 h-3.5" />
+            <span>{t("Security & Logout")}</span>
           </button>
         </div>
 
         {/* Content Body */}
-        <form onSubmit={handleSave} className="p-6 overflow-y-auto space-y-5 flex-1">
+        <div className="p-6 overflow-y-auto flex-1 space-y-4">
           {activeTab === "profile" && (
-            <div className="space-y-4">
+            <form onSubmit={handleSave} className="space-y-4 text-xs">
               <div>
-                <label className="block text-xs font-bold text-[#374151] mb-1">
-                  {t("settings.facility_name")}
+                <label className="block font-bold text-gray-800 mb-1">
+                  {isHousehold ? t("Household / Family Name") : isRestaurant ? t("Restaurant Name") : isHotel ? t("Hotel Property Name") : t("Organization Name")}
                 </label>
                 <input
                   type="text"
-                  value={orgName}
-                  onChange={(e) => setOrgName(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E7EB] text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  required
+                  value={entityName}
+                  onChange={(e) => setEntityName(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-gray-950 focus:outline-none focus:border-emerald-600"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-[#374151] mb-1">
-                    {t("settings.fssai_license")}
+                  <label className="block font-bold text-gray-800 mb-1">
+                    {isHousehold ? t("Contact Person") : isRestaurant ? t("Head Chef / Manager") : isHotel ? t("Banquet Manager") : t("Relief Lead")}
                   </label>
                   <input
                     type="text"
-                    value={fssaiLicense}
-                    onChange={(e) => setFssaiLicense(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#E5E7EB] text-sm text-[#111827] font-mono-data focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    required
+                    value={contactPerson}
+                    onChange={(e) => setContactPerson(e.target.value)}
+                    className="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-gray-950 focus:outline-none focus:border-emerald-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[#374151] mb-1">
-                    {t("settings.officer")}
+                  <label className="block font-bold text-gray-800 mb-1">
+                    {isHousehold ? t("Donor Reference ID") : isNgo ? t("DARPAN Registration") : t("FSSAI License")}
                   </label>
                   <input
                     type="text"
-                    value={managerName}
-                    onChange={(e) => setManagerName(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#E5E7EB] text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    value={regNumber}
+                    onChange={(e) => setRegNumber(e.target.value)}
+                    className="w-full px-3.5 py-2 rounded-xl border border-gray-300 font-mono text-gray-950 focus:outline-none focus:border-emerald-600"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-[#374151] mb-1">
-                    {t("settings.phone")}
-                  </label>
+                  <label className="block font-bold text-gray-800 mb-1">{t("Phone Number")}</label>
                   <input
                     type="tel"
+                    required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#E5E7EB] text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    className="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-gray-950 focus:outline-none focus:border-emerald-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[#374151] mb-1">
-                    {t("settings.email")}
-                  </label>
+                  <label className="block font-bold text-gray-800 mb-1">{t("Email Address")}</label>
                   <input
                     type="email"
+                    required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#E5E7EB] text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    className="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-gray-950 focus:outline-none focus:border-emerald-600"
                   />
                 </div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100 flex items-start gap-3">
-                <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                <div>
-                  <div className="text-xs font-bold text-emerald-900">{t("settings.fssai_verified")}</div>
-                  <p className="text-[11px] text-emerald-700 mt-0.5">
-                    {t("settings.fssai_verified_desc")}
-                  </p>
-                </div>
+              <div className="pt-2 flex justify-end">
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl text-white font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110"
+                  style={{ background: "#164A31" }}
+                >
+                  {t("Save Profile")}
+                </button>
               </div>
-            </div>
+            </form>
           )}
 
-          {activeTab === "alerts" && (
-            <div className="space-y-6">
-              {/* Header and Core Alert Toggles */}
+          {activeTab === "location" && (
+            <form onSubmit={handleSave} className="space-y-4 text-xs">
               <div>
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h3 className="text-sm font-bold text-[#111827] flex items-center gap-2">
-                      <Bell className="w-4 h-4 text-emerald-600" />
-                      <span>Notifications & Alerts</span>
-                    </h3>
-                    <p className="text-xs text-[#6B7280]">
-                      Configure which real-time push alerts FoodWise dispatches to your device.
-                    </p>
-                  </div>
-                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                    4 Active Channels
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {/* Surplus Alerts */}
-                  <div className="flex items-center justify-between p-3.5 rounded-2xl border border-[#E8ECF3] bg-white hover:border-emerald-300 transition-colors">
-                    <div className="flex items-start gap-2.5">
-                      <div className="mt-0.5 w-6 h-6 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-xs shrink-0">
-                        🚨
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold text-[#111827] flex items-center gap-1.5">
-                          <span>Surplus Alerts</span>
-                          {enableSurplusAlerts && (
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                          )}
-                        </div>
-                        <p className="text-[11px] text-[#6B7280]">
-                          Instant notices when kitchens log surplus food
-                        </p>
-                      </div>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                      <input
-                        type="checkbox"
-                        checked={enableSurplusAlerts}
-                        onChange={(e) => {
-                          setEnableSurplusAlerts(e.target.checked);
-                          if (e.target.checked) setPreviewAlertType("surplus");
-                        }}
-                        className="sr-only peer"
-                      />
-                      <div className="w-10 h-5 bg-[#D1D5DB] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
-                    </label>
-                  </div>
-
-                  {/* Spoilage Warnings */}
-                  <div className="flex items-center justify-between p-3.5 rounded-2xl border border-[#E8ECF3] bg-white hover:border-emerald-300 transition-colors">
-                    <div className="flex items-start gap-2.5">
-                      <div className="mt-0.5 w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-xs shrink-0">
-                        ⚠️
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold text-[#111827] flex items-center gap-1.5">
-                          <span>Spoilage Warnings</span>
-                          {enableSpoilageWarnings && (
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                          )}
-                        </div>
-                        <p className="text-[11px] text-[#6B7280]">
-                          Weibull decay alerts & cold-chain deviations
-                        </p>
-                      </div>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                      <input
-                        type="checkbox"
-                        checked={enableSpoilageWarnings}
-                        onChange={(e) => {
-                          setEnableSpoilageWarnings(e.target.checked);
-                          if (e.target.checked) setPreviewAlertType("spoilage");
-                        }}
-                        className="sr-only peer"
-                      />
-                      <div className="w-10 h-5 bg-[#D1D5DB] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
-                    </label>
-                  </div>
-
-                  {/* Expiry Alerts */}
-                  <div className="flex items-center justify-between p-3.5 rounded-2xl border border-[#E8ECF3] bg-white hover:border-emerald-300 transition-colors">
-                    <div className="flex items-start gap-2.5">
-                      <div className="mt-0.5 w-6 h-6 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-xs shrink-0">
-                        ⏰
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold text-[#111827] flex items-center gap-1.5">
-                          <span>Expiry Alerts</span>
-                          {enableExpiryAlerts && (
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                          )}
-                        </div>
-                        <p className="text-[11px] text-[#6B7280]">
-                          Stock approaching shelf-life cutoff date
-                        </p>
-                      </div>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                      <input
-                        type="checkbox"
-                        checked={enableExpiryAlerts}
-                        onChange={(e) => {
-                          setEnableExpiryAlerts(e.target.checked);
-                          if (e.target.checked) setPreviewAlertType("expiry");
-                        }}
-                        className="sr-only peer"
-                      />
-                      <div className="w-10 h-5 bg-[#D1D5DB] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
-                    </label>
-                  </div>
-
-                  {/* Push Notifications */}
-                  <div className="flex items-center justify-between p-3.5 rounded-2xl border border-[#E8ECF3] bg-white hover:border-emerald-300 transition-colors">
-                    <div className="flex items-start gap-2.5">
-                      <div className="mt-0.5 w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs shrink-0">
-                        📱
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold text-[#111827] flex items-center gap-1.5">
-                          <span>Push Notifications</span>
-                          {enablePushNotifications && (
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                          )}
-                        </div>
-                        <p className="text-[11px] text-[#6B7280]">
-                          Real-time delivery to mobile & browser
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                        <input
-                          type="checkbox"
-                          checked={enablePushNotifications}
-                          onChange={(e) => setEnablePushNotifications(e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-10 h-5 bg-[#D1D5DB] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Secondary Options (Threshold & Audio Chime) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-[#F8FAFC] border border-[#E8ECF3]">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-xs font-bold text-[#111827]">Audio Chimes</div>
-                    <p className="text-[10.5px] text-[#64748B]">Audible ring for urgent dispatch</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={enableAudioChime}
-                      onChange={(e) => setEnableAudioChime(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-9 h-5 bg-[#D1D5DB] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
-                  </label>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="font-bold text-[#111827]">Auto-Alert Threshold</span>
-                    <span className="font-extrabold text-emerald-600 font-mono-data">{autoDispatchThreshold} kg</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="10"
-                    max="100"
-                    step="5"
-                    value={autoDispatchThreshold}
-                    onChange={(e) => setAutoDispatchThreshold(Number(e.target.value))}
-                    className="w-full accent-emerald-500 cursor-pointer h-1.5"
-                  />
-                </div>
-              </div>
-
-              {/* ─── NOTIFICATION PREVIEW SECTION ─── */}
-              <div className="pt-2 border-t border-[#E8ECF3]">
-                <div className="mb-3">
-                  <h3 className="text-sm font-bold text-[#111827] flex items-center gap-2">
-                    <span>📱 Notification Preview</span>
-                  </h3>
-                  <p className="text-xs text-[#6B7280]">
-                    Interactive demonstration of FoodWise mobile push notifications as seen by cafeteria managers, NGO drivers, and plant operators. (Native app push; no WhatsApp or SMS styling).
-                  </p>
-                </div>
-
-                <MobileNotificationPreview
-                  initialSector={currentRole === "FACTORY_MANAGER" ? "factory" : "all"}
-                  selectedAlert={previewAlertType}
-                  onSelectAlert={(alert) => setPreviewAlertType(alert)}
-                  showSectorToggle={true}
+                <label className="block font-bold text-gray-800 mb-1">
+                  {isHousehold ? t("Residence Address") : isNgo ? t("Main Food Hub Address") : t("Address & Entrance")}
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-gray-950 focus:outline-none focus:border-emerald-600"
                 />
               </div>
-            </div>
-          )}
 
-          {activeTab === "ai" && (
-            <div className="space-y-4">
-              <div className="p-4 rounded-2xl border border-[#E8ECF3] bg-white">
-                <label className="block text-xs font-bold text-[#374151] mb-2">
-                  {t("settings.model_mode")}
-                </label>
-                <div className="grid grid-cols-3 gap-3">
-                  {(["conservative", "balanced", "aggressive"] as const).map((mode) => (
-                    <button
-                      key={mode}
-                      type="button"
-                      onClick={() => setModelMode(mode)}
-                      className={`p-3 rounded-xl border text-xs font-bold capitalize transition-all ${
-                        modelMode === mode
-                          ? "border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm"
-                          : "border-[#E5E7EB] text-[#4B5563] hover:bg-[#F9FAFB]"
-                      }`}
-                    >
-                      {mode}
-                    </button>
-                  ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-gray-800 mb-1">{t("City")}</label>
+                  <input
+                    type="text"
+                    required
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    className="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-gray-950 focus:outline-none focus:border-emerald-600"
+                  />
                 </div>
-                <p className="text-[11px] text-[#6B7280] mt-2">
-                  {modelMode === "conservative" && t("settings.conservative_desc")}
-                  {modelMode === "balanced" && t("settings.balanced_desc")}
-                  {modelMode === "aggressive" && t("settings.aggressive_desc")}
-                </p>
+                {isNgo && (
+                  <div>
+                    <label className="block font-bold text-gray-800 mb-1">{t("Coverage Areas")}</label>
+                    <input
+                      type="text"
+                      value={coverageArea}
+                      onChange={(e) => setCoverageArea(e.target.value)}
+                      className="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-gray-950 focus:outline-none focus:border-emerald-600"
+                    />
+                  </div>
+                )}
               </div>
 
-              <div className="p-4 rounded-2xl border border-[#E8ECF3] bg-white">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-bold text-[#111827]">{t("settings.confidence_cutoff")}</span>
-                  <span className="text-sm font-extrabold text-emerald-600 font-mono-data">{confidenceCutoff}%</span>
+              <div>
+                <label className="block font-bold text-gray-800 mb-1">{t("Pickup Coordination Notes")}</label>
+                <textarea
+                  rows={3}
+                  value={pickupInstructions}
+                  onChange={(e) => setPickupInstructions(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-gray-950 focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl text-white font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110"
+                  style={{ background: "#164A31" }}
+                >
+                  {t("Save Location")}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {activeTab === "notifications" && (
+            <form onSubmit={handleSave} className="space-y-3 text-xs">
+              <div className="p-3.5 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-gray-900">
+                    {isNgo ? t("New Surplus Available Nearby") : t("Donation Requests from NGOs")}
+                  </div>
+                  <p className="text-[11px] text-gray-600 mt-0.5">
+                    {isNgo
+                      ? t("Notify immediately when a restaurant, hotel, or household posts surplus food.")
+                      : t("Notify when a verified relief organization submits a request to collect your food.")}
+                  </p>
                 </div>
                 <input
-                  type="range"
-                  min="60"
-                  max="95"
-                  step="5"
-                  value={confidenceCutoff}
-                  onChange={(e) => setConfidenceCutoff(Number(e.target.value))}
-                  className="w-full accent-emerald-500 cursor-pointer"
+                  type="checkbox"
+                  checked={notifyRequests}
+                  onChange={(e) => setNotifyRequests(e.target.checked)}
+                  className="w-4 h-4 accent-emerald-700 cursor-pointer"
                 />
-                <p className="text-[11px] text-[#9CA3AF] mt-1">
-                  {t("settings.confidence_desc")}
-                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-gray-900">
+                    {isNgo ? t("Donor Acceptance & Schedule Updates") : t("Volunteer Pickup Schedules")}
+                  </div>
+                  <p className="text-[11px] text-gray-600 mt-0.5">
+                    {isNgo
+                      ? t("Alert when a donor approves your pickup request with collection times and instructions.")
+                      : t("Notify when a volunteer driver confirms pickup time and vehicle information.")}
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={notifyPickups}
+                  onChange={(e) => setNotifyPickups(e.target.checked)}
+                  className="w-4 h-4 accent-emerald-700 cursor-pointer"
+                />
+              </div>
+
+              <div className="p-3.5 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-gray-900">{t("Delivery & Handover Confirmation")}</div>
+                  <p className="text-[11px] text-gray-600 mt-0.5">
+                    {t("Receive verified OTP receipt when food is delivered.")}
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={notifyCompleted}
+                  onChange={(e) => setNotifyCompleted(e.target.checked)}
+                  className="w-4 h-4 accent-emerald-700 cursor-pointer"
+                />
+              </div>
+
+              <div className="p-3.5 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-gray-900">{t("In-Browser Audio Tone")}</div>
+                  <p className="text-[11px] text-gray-600 mt-0.5">
+                    {t("Play gentle chime on priority donation notifications.")}
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={enableAudioChime}
+                  onChange={(e) => setEnableAudioChime(e.target.checked)}
+                  className="w-4 h-4 accent-emerald-700 cursor-pointer"
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl text-white font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110"
+                  style={{ background: "#164A31" }}
+                >
+                  {t("Save Notification Preferences")}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {activeTab === "security" && (
+            <div className="space-y-4 text-xs">
+              <form onSubmit={handleSave} className="space-y-3">
+                <div className="font-bold text-gray-900">{t("Change Password")}</div>
+                <div>
+                  <label className="block text-gray-700 mb-1">{t("Current Password")}</label>
+                  <input
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full px-3.5 py-2 rounded-xl border border-gray-300 focus:outline-none focus:border-emerald-600"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">{t("New Password")}</label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full px-3.5 py-2 rounded-xl border border-gray-300 focus:outline-none focus:border-emerald-600"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl text-white font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110"
+                  style={{ background: "#164A31" }}
+                >
+                  {t("Update Password")}
+                </button>
+              </form>
+
+              <div className="pt-3 border-t border-gray-200 flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-gray-900">{t("Sign Out")}</div>
+                  <div className="text-[11px] text-gray-500">{t("End your current session")}</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="px-3.5 py-2 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 font-bold flex items-center gap-1.5 cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>{t("common.logout")}</span>
+                </button>
               </div>
             </div>
           )}
-
-          {/* Footer Actions */}
-          <div className="pt-4 border-t border-[#E8ECF3] flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
-                title="End current session and return to Login page"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>{t("common.logout")}</span>
-              </button>
-
-              {savedSuccess ? (
-                <div className="flex items-center gap-2 text-emerald-600 text-xs font-bold animate-in fade-in">
-                  <CheckCircle2 className="w-4 h-4" />
-                  {t("settings.saved")}
-                </div>
-              ) : (
-                <span className="text-[11px] text-[#9CA3AF] hidden sm:inline">{t("settings.settings_apply")}</span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-              <button
-                type="button"
-                onClick={() => setIsSettingsOpen(false)}
-                className="px-4 py-2 rounded-xl border border-[#E5E7EB] text-xs font-bold text-[#6B7280] hover:bg-[#F3F4F6] transition-colors cursor-pointer"
-              >
-                {t("common.cancel")}
-              </button>
-              <button
-                type="submit"
-                className="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold shadow-md shadow-emerald-500/25 flex items-center gap-1.5 transition-all cursor-pointer"
-              >
-                <Save className="w-3.5 h-3.5" />
-                {t("common.save")}
-              </button>
-            </div>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   );

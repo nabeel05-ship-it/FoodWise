@@ -5,12 +5,57 @@ export type InstitutionRole =
   | "FACTORY_MANAGER" 
   | "NGO_PARTNER" 
   | "LOGISTICS" 
-  | "ADMIN";
+  | "ADMIN"
+  | "DONOR"
+  | "NGO";
+
+export type DonorType = "Restaurant" | "Hotel" | "Household";
+
+export type DonationStatus = 
+  | "AVAILABLE" 
+  | "REQUESTED" 
+  | "ACCEPTED" 
+  | "PICKUP" 
+  | "PICKUP_IN_PROGRESS"
+  | "COMPLETED" 
+  | "CANCELLED";
+
+export interface DonationItem {
+  id: string;
+  donorId: string;
+  donorName: string;
+  donorType: DonorType;
+  foodName: string;
+  foodCategory: string;
+  diet: "Vegetarian" | "Non-Vegetarian" | "Vegan" | "Egg" | "Jain";
+  quantity: string;
+  quantityKg: number;
+  servings: number;
+  description: string;
+  preparationTime: string;
+  pickupDeadline: string;
+  location: string;
+  city: string;
+  phone: string;
+  foodCondition: string;
+  status: DonationStatus;
+  imageUrl?: string;
+  createdAt: string | number;
+  acceptedBy?: string;
+  acceptedAt?: string;
+  completedAt?: string;
+  otp?: string;
+  driverName?: string;
+  driverPhone?: string;
+  reason?: string;
+  source?: string;
+  serviceShift?: string;
+}
 
 export interface Institution {
   id: string;
   name: string;
-  type: "KITCHEN" | "FACTORY" | "NGO";
+  type: "KITCHEN" | "FACTORY" | "NGO" | "RESTAURANT" | "HOTEL" | "HOUSEHOLD";
   location: string;
   fssaiNumber: string;
   badge: string;
@@ -114,11 +159,13 @@ export interface MachineHealthRecord {
 export interface NotificationAlert {
   id: string;
   title: string;
+  titleParams?: Record<string, string | number>;
   message: string;
+  messageParams?: Record<string, string | number>;
   time: string;
   createdAt?: number | string;
   severity: "urgent" | "warning" | "info" | "success";
-  category: "Kitchen" | "Factory" | "Redistribution" | "IoT";
+  category: "Kitchen" | "Factory" | "Redistribution" | "IoT" | "Donation" | "Logistics";
   actionLabel?: string;
   actionUrl?: string;
   read: boolean;

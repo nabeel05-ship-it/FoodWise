@@ -2,11 +2,10 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
 import LanguageToggle from "@/components/common/LanguageToggle";
-import { InstitutionRole } from "@/lib/types";
+import { DonorType } from "@/lib/types";
 import {
   Mail,
   Lock,
@@ -14,188 +13,287 @@ import {
   EyeOff,
   ArrowRight,
   Sparkles,
-  ShieldCheck,
   CheckCircle2,
-  BrainCircuit,
-  TrendingDown,
-  Layers,
   HeartHandshake,
+  Utensils,
+  Hotel,
+  Home,
+  Truck,
+  Globe2,
+  ShieldCheck,
+  Building2,
+  User,
+  Phone,
+  MapPin,
 } from "lucide-react";
 
-export default function LandingPage() {
+type AuthType = "DONOR" | "NGO";
+type DonorCategory = "RESTAURANT" | "HOTEL" | "HOUSEHOLD";
+
+export default function LoginPage() {
   const router = useRouter();
-  const { setCurrentRole } = useApp();
+  const { login, registerDonor, registerNgo } = useApp();
   const { t } = useLang();
 
-  const [selectedRole, setSelectedRole] = useState<InstitutionRole>("KITCHEN_MANAGER");
-  const [email, setEmail] = useState("warden.mess@iitd.ac.in");
+  // Auth flow states
+  const [authType, setAuthType] = useState<AuthType>("DONOR");
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [donorCategory, setDonorCategory] = useState<DonorCategory>("RESTAURANT");
+
+  // Sign In inputs
+  const [email, setEmail] = useState("chef@greenleaf.com");
   const [password, setPassword] = useState("••••••••••••");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const roles = [
-    {
-      id: "KITCHEN_MANAGER" as InstitutionRole,
-      label: "As Kitchen / Mess",
-      badge: "IIT Delhi Warden",
-      defaultEmail: "warden.mess@iitd.ac.in",
-      destination: "/kitchen/dashboard",
-      facility: "Institutional Mess & Commercial Kitchens",
-      tagline: "Autonomous Demand Forecasting & Zero Surplus Waste",
-      features: [
-        "AI Meal Demand & Headcount Forecaster (±4% error margin)",
-        "Automated First-In-First-Out (FIFO) Spoilage Watchdog",
-        "1-Click NGO Surplus Matching & Safe Transit Dispatch",
-      ],
-      metrics: [
-        { label: "Meals Rescued", val: "38,400+" },
-        { label: "Prediction Accuracy", val: "94.2%" },
-        { label: "Cost Rescued", val: "₹14.8L" },
-      ],
-    },
-    {
-      id: "FACTORY_MANAGER" as InstitutionRole,
-      label: "As Factory Plant",
-      badge: "Haldirams Unit 3",
-      defaultEmail: "ops.head@haldirams.com",
-      destination: "/factory/dashboard",
-      facility: "Agro-Processing & Industrial Production Plant",
-      tagline: "Adaptive Quality Monitoring & Machine Health Analytics",
-      features: [
-        "Produce-Specific AI Adaptive Storage (Ethylene, Temp, RH)",
-        "Early Machine Anomaly Detection via Telemetry & Acoustics",
-        "Industrial Byproduct Valorization & Circular Mass Balance",
-      ],
-      metrics: [
-        { label: "Line Yield", val: "+18.5%" },
-        { label: "Downtime Prevented", val: "142 hrs" },
-        { label: "Spoilage Risk", val: "-62%" },
-      ],
-    },
-    {
-      id: "NGO_PARTNER" as InstitutionRole,
-      label: "As Relief NGO",
-      badge: "Robin Hood Army",
-      defaultEmail: "relief@robinhoodarmy.com",
-      destination: "/ngo/dashboard",
-      facility: "Community Relief Hub & Cold-Chain Logistics",
-      tagline: "Rapid Food Claiming, Traffic-Aware Routing & Verification",
-      features: [
-        "Real-Time Push Alerts for Verified Edible Food Donations",
-        "Traffic & Heat-Aware Safe Routing with Dynamic Buffer Times",
-        "Digital FSSAI Golden-Hour Temperature & Safety Audit Logs",
-      ],
-      metrics: [
-        { label: "Avg Delivery", val: "19 mins" },
-        { label: "Shelters Fed", val: "48+" },
-        { label: "Food Quality", val: "100% Safe" },
-      ],
-    },
-  ];
+  // Donor Registration inputs
+  const [regName, setRegName] = useState("");
+  const [regContact, setRegContact] = useState("");
+  const [regPhone, setRegPhone] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regAddress, setRegAddress] = useState("");
+  const [regCity, setRegCity] = useState("New Delhi");
+  const [regFssai, setRegFssai] = useState("");
 
-  const currentRoleConfig = roles.find((r) => r.id === selectedRole) || roles[0];
+  // NGO Registration inputs
+  const [ngoName, setNgoName] = useState("");
+  const [ngoLead, setNgoLead] = useState("");
+  const [ngoPhone, setNgoPhone] = useState("");
+  const [ngoEmail, setNgoEmail] = useState("");
+  const [ngoAddress, setNgoAddress] = useState("");
+  const [ngoCity, setNgoCity] = useState("New Delhi");
+  const [ngoCoverage, setNgoCoverage] = useState("Central & South District");
+  const [ngoRegNo, setNgoRegNo] = useState("");
 
-  const handleRoleChange = (roleId: InstitutionRole) => {
-    setSelectedRole(roleId);
-    const target = roles.find((r) => r.id === roleId);
-    if (target) {
-      setEmail(target.defaultEmail);
+  // Switch between Donor types
+  const handleDonorCategorySelect = (cat: DonorCategory) => {
+    setDonorCategory(cat);
+    if (cat === "RESTAURANT") {
+      setEmail("chef@greenleaf.com");
+    } else if (cat === "HOTEL") {
+      setEmail("banquets@mayuragrand.com");
+    } else {
+      setEmail("sharma.family@gmail.com");
     }
   };
 
+  // Switch between Donor and NGO
+  const handleAuthTypeChange = (type: AuthType) => {
+    setAuthType(type);
+    setIsRegistering(false);
+    if (type === "NGO") {
+      setEmail("relief@robinhoodarmy.com");
+    } else {
+      handleDonorCategorySelect(donorCategory);
+    }
+  };
+
+  // Handle Login submission
   const handleSignIn = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setCurrentRole(selectedRole);
+
+    if (authType === "NGO") {
+      login("NGO", email);
+      setTimeout(() => {
+        router.push("/ngo/dashboard");
+      }, 350);
+    } else {
+      login(donorCategory, email);
+      setTimeout(() => {
+        if (donorCategory === "RESTAURANT") {
+          router.push("/restaurant/dashboard");
+        } else if (donorCategory === "HOTEL") {
+          router.push("/hotel/dashboard");
+        } else {
+          router.push("/household/dashboard");
+        }
+      }, 350);
+    }
+  };
+
+  // Handle Donor Registration submission
+  const handleDonorRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!regName || !regPhone || !regAddress) {
+      alert("Please provide the required fields.");
+      return;
+    }
+    setIsLoading(true);
+
+    const typeMap: Record<DonorCategory, DonorType> = {
+      RESTAURANT: "Restaurant",
+      HOTEL: "Hotel",
+      HOUSEHOLD: "Household",
+    };
+
+    registerDonor({
+      type: typeMap[donorCategory],
+      name: regName,
+      contactPerson: regContact || regName,
+      phone: regPhone,
+      email: regEmail || `${regName.toLowerCase().replace(/\s+/g, "")}@foodwise.org`,
+      address: regAddress,
+      city: regCity || "New Delhi",
+      fssaiNumber: regFssai || undefined,
+    });
 
     setTimeout(() => {
-      router.push(currentRoleConfig.destination);
-    }, 450);
+      if (donorCategory === "RESTAURANT") {
+        router.push("/restaurant/dashboard");
+      } else if (donorCategory === "HOTEL") {
+        router.push("/hotel/dashboard");
+      } else {
+        router.push("/household/dashboard");
+      }
+    }, 400);
+  };
+
+  // Handle NGO Registration submission
+  const handleNgoRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ngoName || !ngoLead || !ngoPhone || !ngoAddress) {
+      alert("Please provide the required fields.");
+      return;
+    }
+    setIsLoading(true);
+
+    registerNgo({
+      name: ngoName,
+      lead: ngoLead,
+      phone: ngoPhone,
+      email: ngoEmail || `${ngoName.toLowerCase().replace(/\s+/g, "")}@relief.org`,
+      address: ngoAddress,
+      city: ngoCity || "New Delhi",
+      coverageArea: ngoCoverage || "City-wide",
+      registrationNumber: ngoRegNo || undefined,
+    });
+
+    setTimeout(() => {
+      router.push("/ngo/dashboard");
+    }, 400);
   };
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center p-3 sm:p-6 lg:p-10 relative overflow-hidden"
+      className="min-h-screen flex flex-col items-center justify-start p-3 sm:p-6 lg:p-10 relative overflow-x-hidden"
       style={{
         background: "radial-gradient(ellipse at center, #18422A 0%, #0F2A1C 60%, #091D13 100%)",
       }}
     >
-      {/* Subtle organic decorative glow */}
+      {/* Decorative organic glows */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Main Centered Floating Card */}
-      <div className="w-full max-w-[1040px] bg-[#FBF9F4] rounded-[32px] shadow-2xl overflow-hidden border border-emerald-800/30 relative z-10 grid grid-cols-1 lg:grid-cols-12 animate-in fade-in zoom-in-95 duration-200">
-        {/* LEFT COLUMN: Sign In Form (7 cols) */}
-        <div className="lg:col-span-7 p-6 sm:p-10 lg:p-12 flex flex-col justify-between bg-[#FBF9F4]">
+      {/* Main Centered Authentication Card */}
+      <div className="w-full max-w-[1060px] bg-[#FBF9F4] rounded-[32px] shadow-2xl overflow-hidden border border-emerald-800/30 relative z-10 grid grid-cols-1 lg:grid-cols-12 animate-in fade-in zoom-in-95 duration-200 mt-4 sm:mt-8">
+        {/* LEFT COLUMN: Clean Authentication (7 cols) */}
+        <div className="lg:col-span-7 p-6 sm:p-8 lg:p-10 flex flex-col justify-between bg-[#FBF9F4]">
           {/* Top Logo & Brand */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img
                 src="/logo.png"
-                alt="FoodWise Logo"
+                alt={t("landing.foodwise_logo")}
                 className="w-10 h-10 sm:w-11 sm:h-11 object-contain shrink-0"
               />
               <div>
                 <span className="font-extrabold text-xl text-[#143826] tracking-tight block leading-tight">
-                  FoodWise
-                </span>
+                  {t("landing.foodwise")}</span>
                 <span className="text-[11px] font-semibold text-emerald-800 tracking-wide block">
-                  {t("app.slogan")}
-                </span>
+                  {t("landing.food_waste_reduction")}</span>
               </div>
             </div>
             <LanguageToggle compact className="bg-emerald-50 text-emerald-800 border-emerald-300/60 hover:bg-emerald-100" />
           </div>
 
-          {/* Form Content */}
-          <div className="my-6 space-y-5">
-            <div className="text-center">
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-                {t("login.sign_in")}
-              </h1>
-              <p className="text-xs sm:text-sm font-semibold text-emerald-800 mt-1 italic tracking-wide">
-                &ldquo;{t("app.slogan")}&rdquo;
-              </p>
-              <p className="text-xs text-gray-500 mt-0.5">
-                {t("login.subtitle")}
-              </p>
-            </div>
+          {/* Header Message */}
+          <div className="my-5">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[11px] font-bold mb-2">
+              <Sparkles className="w-3 h-3 text-emerald-700" />
+              {t("landing.community_project_po")}</div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight leading-tight">
+              {isRegistering
+                ? authType === "DONOR"
+                  ? `Register as a ${donorCategory === "RESTAURANT" ? "Restaurant" : donorCategory === "HOTEL" ? "Hotel" : "Household"} Donor`
+                  : "Register Relief NGO Organization"
+                : "Sign In to FoodWise"}
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1 leading-relaxed">
+              {isRegistering
+                ? "Join our verified surplus food rescue network and prevent edible food waste."
+                : "Connecting restaurants, hotels, and households with NGOs to donate surplus food before it is wasted."}
+            </p>
+          </div>
 
-            {/* Role Radio Pill Selectors (Reference design style) */}
-            <div className="flex items-center justify-center gap-2 sm:gap-4 flex-wrap pt-1">
-              {roles.map((r) => {
-                const isSelected = selectedRole === r.id;
-                return (
-                  <button
-                    key={r.id}
-                    type="button"
-                    onClick={() => handleRoleChange(r.id)}
-                    className="flex items-center gap-2 text-xs font-semibold cursor-pointer py-1 px-2 rounded-lg transition-colors hover:bg-gray-100"
-                  >
-                    <span
-                      className={`w-4 h-4 rounded-full flex items-center justify-center border transition-all ${
-                        isSelected ? "border-emerald-700 bg-white" : "border-gray-300 bg-white"
+          {/* PRIMARY AUTH TABS: DONOR LOGIN vs NGO / RELIEF LOGIN */}
+          <div className="p-1 rounded-2xl bg-gray-200/80 border border-gray-300/70 grid grid-cols-2 gap-1 mb-4">
+            <button
+              type="button"
+              onClick={() => handleAuthTypeChange("DONOR")}
+              className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                authType === "DONOR"
+                  ? "bg-white text-emerald-950 shadow-xs"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              <Utensils className="w-3.5 h-3.5 text-emerald-700" />
+              <span>{t("landing.donor")}{isRegistering ? "PORTAL" : "LOGIN"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleAuthTypeChange("NGO")}
+              className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                authType === "NGO"
+                  ? "bg-white text-emerald-950 shadow-xs"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              <HeartHandshake className="w-3.5 h-3.5 text-emerald-700" />
+              <span>{t("landing.ngo_relief")}{isRegistering ? "PORTAL" : "LOGIN"}</span>
+            </button>
+          </div>
+
+          {/* IF DONOR: Choose Donor Type Pills */}
+          {authType === "DONOR" && (
+            <div className="mb-4">
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+                {t("landing.donor_type")}</label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: "RESTAURANT" as const, label: "Restaurant", icon: Utensils, hint: "Cafés & Diners" },
+                  { id: "HOTEL" as const, label: "Hotel", icon: Hotel, hint: "Banquets & Buffets" },
+                  { id: "HOUSEHOLD" as const, label: "Household", icon: Home, hint: "Home Cooking" },
+                ].map((item) => {
+                  const isSelected = donorCategory === item.id;
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleDonorCategorySelect(item.id)}
+                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                        isSelected
+                          ? "border-emerald-700 bg-emerald-50/80 text-emerald-950 shadow-xs"
+                          : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
                       }`}
                     >
-                      {isSelected && <span className="w-2 h-2 rounded-full bg-[#164A31]" />}
-                    </span>
-                    <span className={isSelected ? "text-gray-900 font-bold" : "text-gray-600"}>
-                      {r.label}
-                    </span>
-                  </button>
-                );
-              })}
+                      <Icon className={`w-4 h-4 mb-1 ${isSelected ? "text-emerald-700" : "text-gray-400"}`} />
+                      <div className="font-bold text-xs">{item.label}</div>
+                      <div className="text-[10px] text-gray-500 leading-tight">{item.hint}</div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
+          )}
 
-
-
-            {/* Email & Password Form */}
-            <form onSubmit={handleSignIn} className="space-y-3">
+          {/* ════ VIEW A: SIGN IN FORM ════ */}
+          {!isRegistering ? (
+            <form onSubmit={handleSignIn} className="space-y-3.5">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  {t("login.email")} *
-                </label>
+                  {t("landing.email_address")}</label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
@@ -203,8 +301,8 @@ export default function LandingPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@organization.com"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-full border border-gray-200 bg-white text-xs sm:text-sm font-medium text-gray-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 transition-all shadow-2xs"
+                    placeholder={t("landing.name_organization_co")}
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-xs sm:text-sm font-medium text-gray-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 shadow-2xs"
                   />
                 </div>
               </div>
@@ -212,15 +310,9 @@ export default function LandingPage() {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-xs font-semibold text-gray-700">
-                    {t("login.password")} *
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => alert("Pre-configured Demo Mode: Direct sign-in is enabled for testing all modules.")}
-                    className="text-[11px] font-semibold text-emerald-800 hover:text-emerald-900 hover:underline cursor-pointer"
-                  >
-                    {t("login.forgot_password")}
-                  </button>
+                    {t("landing.password")}</label>
+                  <span className="text-[11px] font-semibold text-emerald-800">
+                    {t("landing.pre_filled_for_demo")}</span>
                 </div>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -229,7 +321,7 @@ export default function LandingPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-10 py-2.5 rounded-full border border-gray-200 bg-white text-xs sm:text-sm font-medium text-gray-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 transition-all shadow-2xs"
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-200 bg-white text-xs sm:text-sm font-medium text-gray-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 shadow-2xs"
                   />
                   <button
                     type="button"
@@ -245,73 +337,321 @@ export default function LandingPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 mt-1 rounded-full font-bold text-sm text-white shadow-lg shadow-emerald-950/20 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98] hover:brightness-110"
-                style={{
-                  background: "#164A31",
-                }}
+                className="w-full py-3 mt-2 rounded-xl font-bold text-xs sm:text-sm text-white shadow-md shadow-emerald-950/20 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98] hover:brightness-110"
+                style={{ background: "#164A31" }}
               >
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
-                    <span>{t("login.sign_in")}</span>
+                    <span>
+                      {authType === "NGO"
+                        ? "Enter NGO Dashboard"
+                        : `Enter ${donorCategory === "RESTAURANT" ? "Restaurant" : donorCategory === "HOTEL" ? "Hotel" : "Household"} Dashboard`}
+                    </span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </button>
+
+              {/* Registration toggle prompt */}
+              <div className="pt-2 text-center text-xs text-gray-600">
+                {authType === "DONOR" ? (
+                  <span>
+                    {t("landing.need_a_new_donor_pro")}{" "}
+                    <button
+                      type="button"
+                      onClick={() => setIsRegistering(true)}
+                      className="font-bold text-emerald-800 hover:underline cursor-pointer"
+                    >
+                      {t("landing.register_as_a_donor")}</button>
+                  </span>
+                ) : (
+                  <span>
+                    {t("landing.new_relief_organizat")}{" "}
+                    <button
+                      type="button"
+                      onClick={() => setIsRegistering(true)}
+                      className="font-bold text-emerald-800 hover:underline cursor-pointer"
+                    >
+                      {t("landing.register_your_ngo")}</button>
+                  </span>
+                )}
+              </div>
             </form>
+          ) : (
+            /* ════ VIEW B: REGISTRATION FLOW ════ */
+            <div>
+              {authType === "DONOR" ? (
+                /* Donor Registration Form */
+                <form onSubmit={handleDonorRegister} className="space-y-3 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div className="sm:col-span-2">
+                      <label className="block font-bold text-gray-700 mb-1">
+                        {donorCategory === "RESTAURANT"
+                          ? "Restaurant Name *"
+                          : donorCategory === "HOTEL"
+                          ? "Hotel Name *"
+                          : "Household / Family Name *"}
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={regName}
+                        onChange={(e) => setRegName(e.target.value)}
+                        placeholder={
+                          donorCategory === "RESTAURANT"
+                            ? "e.g. Punjabi Tadka Restaurant"
+                            : donorCategory === "HOTEL"
+                            ? "e.g. Grand Palace Hotel"
+                            : "e.g. Kumar Residence"
+                        }
+                        className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600"
+                      />
+                    </div>
 
-            <div className="text-center pt-1">
-              <span className="text-xs text-gray-500">
-                Don&apos;t have an account?{" "}
-                <button
-                  type="button"
-                  onClick={() => alert("Demo Access: All 3 roles (Kitchen, Factory, NGO) are pre-unlocked. Select any role above to enter.")}
-                  className="font-bold text-emerald-800 hover:underline cursor-pointer"
-                >
-                  {t("login.sign_up")}
-                </button>
-              </span>
-            </div>
-          </div>
+                    <div>
+                      <label className="block font-bold text-gray-700 mb-1">
+                        {t("landing.contact_person")}</label>
+                      <input
+                        type="text"
+                        required
+                        value={regContact}
+                        onChange={(e) => setRegContact(e.target.value)}
+                        placeholder={t("landing.e_g_ramesh_kumar")}
+                        className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600"
+                      />
+                    </div>
 
-          {/* Quick Demo Access Bar */}
-          <div className="pt-3 border-t border-gray-200/80 flex items-center justify-between flex-wrap gap-2 text-[11px] text-gray-400">
-            <span>{t("login.demo_credentials")}</span>
-            <div className="flex items-center gap-2 font-semibold">
-              <Link href="/kitchen/dashboard" className="text-emerald-700 hover:underline">Kitchen</Link>
-              <span>•</span>
-              <Link href="/factory/dashboard" className="text-amber-700 hover:underline">Factory</Link>
-              <span>•</span>
-              <Link href="/ngo/dashboard" className="text-blue-700 hover:underline">NGO</Link>
+                    <div>
+                      <label className="block font-bold text-gray-700 mb-1">{t("landing.phone_number")}</label>
+                      <input
+                        type="tel"
+                        required
+                        value={regPhone}
+                        onChange={(e) => setRegPhone(e.target.value)}
+                        placeholder="+91 98765 43210"
+                        className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block font-bold text-gray-700 mb-1">{t("landing.pickup_address_amp_l")}</label>
+                      <input
+                        type="text"
+                        required
+                        value={regAddress}
+                        onChange={(e) => setRegAddress(e.target.value)}
+                        placeholder={t("landing.e_g_12_4_market_stre")}
+                        className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-gray-700 mb-1">{t("landing.city")}</label>
+                      <input
+                        type="text"
+                        value={regCity}
+                        onChange={(e) => setRegCity(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600"
+                      />
+                    </div>
+
+                    {donorCategory !== "HOUSEHOLD" && (
+                      <div>
+                        <label className="block font-bold text-gray-700 mb-1">{t("landing.fssai_number_optiona")}</label>
+                        <input
+                          type="text"
+                          value={regFssai}
+                          onChange={(e) => setRegFssai(e.target.value)}
+                          placeholder={t("landing.e_g_10019011006542")}
+                          className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-2 flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsRegistering(false)}
+                      className="px-4 py-2 font-semibold text-gray-600 hover:underline cursor-pointer"
+                    >
+                      {t("landing.back_to_login")}</button>
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="px-6 py-2.5 rounded-xl font-bold text-white shadow-md hover:brightness-110 active:scale-95 cursor-pointer"
+                      style={{ background: "#164A31" }}
+                    >
+                      {isLoading ? "Creating Account..." : "Register & Open Portal"}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                /* NGO Registration Form */
+                <form onSubmit={handleNgoRegister} className="space-y-3 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div className="sm:col-span-2">
+                      <label className="block font-bold text-gray-700 mb-1">
+                        {t("landing.ngo_relief_organizat")}</label>
+                      <input
+                        type="text"
+                        required
+                        value={ngoName}
+                        onChange={(e) => setNgoName(e.target.value)}
+                        placeholder={t("landing.e_g_feeding_hope_fou")}
+                        className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-gray-700 mb-1">
+                        {t("landing.coordinator_lead_nam")}</label>
+                      <input
+                        type="text"
+                        required
+                        value={ngoLead}
+                        onChange={(e) => setNgoLead(e.target.value)}
+                        placeholder={t("landing.e_g_priya_sundaram")}
+                        className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-gray-700 mb-1">{t("landing.phone_number")}</label>
+                      <input
+                        type="tel"
+                        required
+                        value={ngoPhone}
+                        onChange={(e) => setNgoPhone(e.target.value)}
+                        placeholder="+91 98112 34567"
+                        className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block font-bold text-gray-700 mb-1">{t("landing.distribution_center")}</label>
+                      <input
+                        type="text"
+                        required
+                        value={ngoAddress}
+                        onChange={(e) => setNgoAddress(e.target.value)}
+                        placeholder={t("landing.e_g_sector_4_communi")}
+                        className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-gray-700 mb-1">{t("landing.coverage_service_are")}</label>
+                      <input
+                        type="text"
+                        value={ngoCoverage}
+                        onChange={(e) => setNgoCoverage(e.target.value)}
+                        placeholder={t("landing.e_g_north_west_delhi")}
+                        className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-gray-700 mb-1">{t("landing.ngo_darpan_registrat")}</label>
+                      <input
+                        type="text"
+                        value={ngoRegNo}
+                        onChange={(e) => setNgoRegNo(e.target.value)}
+                        placeholder={t("landing.e_g_dl_2021_0291823")}
+                        className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsRegistering(false)}
+                      className="px-4 py-2 font-semibold text-gray-600 hover:underline cursor-pointer"
+                    >
+                      {t("landing.back_to_login")}</button>
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="px-6 py-2.5 rounded-xl font-bold text-white shadow-md hover:brightness-110 active:scale-95 cursor-pointer"
+                      style={{ background: "#164A31" }}
+                    >
+                      {isLoading ? "Registering..." : "Register & Open NGO Portal"}
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
-          </div>
+          )}
         </div>
 
-        {/* RIGHT COLUMN: Real-Time Intelligence & Capabilities (5 cols) */}
+        {/* RIGHT COLUMN: Role Details & Impact (5 cols) */}
         <div className="lg:col-span-5 bg-[#F5F2EB] p-6 sm:p-8 lg:p-10 flex flex-col justify-between relative overflow-hidden border-t lg:border-t-0 lg:border-l border-gray-200">
           <div className="space-y-4 relative z-10">
             {/* Top capability badge */}
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100/90 text-emerald-900 border border-emerald-300/80 text-[11px] font-bold">
-                <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
-                AI Circular Infrastructure
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
+                {authType === "NGO"
+                  ? "NGO Food Relief Network"
+                  : donorCategory === "RESTAURANT"
+                  ? "Restaurant Surplus Portal"
+                  : donorCategory === "HOTEL"
+                  ? "Hotel & Banquet Surplus"
+                  : "Household Food Sharing"}
               </span>
             </div>
 
-            {/* Role Facility Title & Tagline */}
+            {/* Role Title & Tagline */}
             <div>
               <h2 className="text-base sm:text-lg font-extrabold text-gray-900 leading-snug">
-                {currentRoleConfig.facility}
+                {authType === "NGO"
+                  ? "Food Relief Organizations"
+                  : donorCategory === "RESTAURANT"
+                  ? "Commercial Kitchens & Restaurants"
+                  : donorCategory === "HOTEL"
+                  ? "Hotels, Resorts & Banquets"
+                  : "Everyday Households & Families"}
               </h2>
               <p className="text-xs font-semibold text-emerald-800 mt-1">
-                {currentRoleConfig.tagline}
+                {authType === "NGO"
+                  ? "Discover nearby available surplus food and coordinate volunteer vehicle collections."
+                  : donorCategory === "RESTAURANT"
+                  ? "Donate surplus prepared meals with 1-click posting and dietary tags."
+                  : donorCategory === "HOTEL"
+                  ? "Coordinate large-scale buffet and event surplus with scheduled pickup windows."
+                  : "Easily share extra home-cooked food with local community shelters."}
               </p>
             </div>
 
-            {/* Feature Highlights */}
+            {/* Role-specific Feature Highlights */}
             <div className="space-y-2 pt-1">
-              {currentRoleConfig.features.map((feat, i) => (
+              {(authType === "NGO"
+                ? [
+                    "Live catalog of available surplus filtered by location and servings",
+                    "Claim donations with assigned driver and volunteer vehicle",
+                    "Secure 4-digit OTP handover handshake ensuring food safety",
+                  ]
+                : donorCategory === "RESTAURANT"
+                ? [
+                    "Fast surplus food posting with quantity, servings, and pickup deadline",
+                    "Clear dietary classification (Vegetarian, Non-Veg, Vegan)",
+                    "Quick 'Donate Again' feature for regular service donations",
+                  ]
+                : donorCategory === "HOTEL"
+                ? [
+                    "Large-scale buffet & banquet meal tracking in insulated containers",
+                    "Scheduled vehicle collection with driver coordination",
+                    "Special loading dock / bay instructions for smooth logistics",
+                  ]
+                : [
+                    "Super simple 1-minute donation form for home cooking",
+                    "Friendly status updates when a local NGO claims your food",
+                    "Help nearby shelters and orphanages in your neighbourhood",
+                  ]
+              ).map((feat, i) => (
                 <div key={i} className="flex items-start gap-2.5 text-xs text-gray-700 font-medium">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                   <span className="leading-relaxed">{feat}</span>
@@ -319,9 +659,13 @@ export default function LandingPage() {
               ))}
             </div>
 
-            {/* 3 Metric Pills */}
+            {/* 3 Metrics */}
             <div className="grid grid-cols-3 gap-2 pt-2">
-              {currentRoleConfig.metrics.map((m, i) => (
+              {[
+                { val: "2,200+", label: "Meals Rescued" },
+                { val: "680 kg", label: "Surplus Donated" },
+                { val: "100%", label: "Landfill Free" },
+              ].map((m, i) => (
                 <div key={i} className="bg-white/85 border border-emerald-200/80 rounded-xl p-2.5 text-center shadow-xs">
                   <div className="text-xs sm:text-sm font-extrabold text-emerald-900">{m.val}</div>
                   <div className="text-[10px] text-gray-500 font-medium leading-tight mt-0.5">{m.label}</div>
@@ -330,20 +674,131 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Project Illustration */}
+          {/* Sustainable Food Logistics Illustration */}
           <div className="mt-4 -mx-6 -mb-6 sm:-mx-8 sm:-mb-8 lg:-mx-10 lg:-mb-10 relative flex justify-end">
             <img
               src="/login-illustration.png"
-              alt="FoodWise Sustainable Kitchen & Food Logistics"
-              className="w-full max-h-[250px] object-cover object-bottom opacity-95 hover:opacity-100 transition-opacity"
+              alt={t("landing.foodwise_sustainable")}
+              className="w-full max-h-[240px] object-cover object-bottom opacity-95 hover:opacity-100 transition-opacity"
             />
           </div>
         </div>
       </div>
 
+      {/* 6-STEP CIRCULAR SURPLUS JOURNEY */}
+      <div className="w-full max-w-[1060px] mt-8 bg-white/95 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-emerald-900/20 shadow-xl">
+        <div className="text-center max-w-2xl mx-auto mb-6">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+            {t("landing.how_foodwise_works")}</span>
+          <h2 className="text-xl sm:text-2xl font-black text-gray-900 mt-2">
+            {t("landing.the_circular_surplus")}</h2>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">
+            {t("landing.simple_transparent_a")}</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          {[
+            {
+              step: "1",
+              title: "Surplus Food",
+              desc: "Restaurant, hotel, or household prepares excess edible food.",
+              icon: Utensils,
+            },
+            {
+              step: "2",
+              title: "Post Donation",
+              desc: "Donor lists food name, servings, pickup deadline, and address.",
+              icon: Sparkles,
+            },
+            {
+              step: "3",
+              title: "NGO Discovery",
+              desc: "Nearby verified relief NGOs view the real-time food feed.",
+              icon: Globe2,
+            },
+            {
+              step: "4",
+              title: "Food Claimed",
+              desc: "NGO accepts donation and assigns a volunteer pickup vehicle.",
+              icon: CheckCircle2,
+            },
+            {
+              step: "5",
+              title: "Hygienic Pickup",
+              desc: "Verification OTP handshake confirms trusted handover.",
+              icon: Truck,
+            },
+            {
+              step: "6",
+              title: "Hunger Relieved",
+              desc: "Surplus reaches people in need; landfill waste is avoided.",
+              icon: HeartHandshake,
+            },
+          ].map((item) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.step}
+                className="bg-[#FBF9F4] rounded-2xl p-4 border border-emerald-100 flex flex-col justify-between hover:border-emerald-300 transition-all shadow-2xs"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="w-6 h-6 rounded-full bg-emerald-700 text-white text-[11px] font-extrabold flex items-center justify-center">
+                      {item.step}
+                    </span>
+                    <Icon className="w-4 h-4 text-emerald-700" />
+                  </div>
+                  <h3 className="font-bold text-xs text-gray-900 leading-snug">{item.title}</h3>
+                  <p className="text-[11px] text-gray-500 mt-1 leading-normal">{item.desc}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* SDG & PO Alignment Banner */}
+        <div className="mt-6 pt-5 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2.5">
+            <span className="text-xl">🍲</span>
+            <div>
+              <div className="font-extrabold text-amber-900">{t("landing.sdg_2_zero_hunger")}</div>
+              <div className="text-[11px] text-amber-800 leading-tight mt-0.5">
+                {t("landing.target_2_1_universal")}</div>
+            </div>
+          </div>
+
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-start gap-2.5">
+            <span className="text-xl">♻️</span>
+            <div>
+              <div className="font-extrabold text-emerald-900">{t("landing.sdg_12_responsible_c")}</div>
+              <div className="text-[11px] text-emerald-800 leading-tight mt-0.5">
+                {t("landing.target_12_3_halving")}</div>
+            </div>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-start gap-2.5">
+            <span className="text-xl">👥</span>
+            <div>
+              <div className="font-extrabold text-blue-900">{t("landing.po6_engineer_amp_soc")}</div>
+              <div className="text-[11px] text-blue-800 leading-tight mt-0.5">
+                {t("landing.applying_technology")}</div>
+            </div>
+          </div>
+
+          <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 flex items-start gap-2.5">
+            <span className="text-xl">💡</span>
+            <div>
+              <div className="font-extrabold text-purple-900">{t("landing.po12_continuous_lear")}</div>
+              <div className="text-[11px] text-purple-800 leading-tight mt-0.5">
+                {t("landing.practical_real_world")}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Footer Branding */}
-      <div className="mt-6 text-center text-xs text-emerald-300/70 font-medium">
-        FoodWise • Food Waste Prevention & Redistribution • <span className="italic font-semibold text-emerald-200">&ldquo;Making every meal count&rdquo;</span>
+      <div className="mt-8 text-center text-xs text-emerald-300/80 font-medium">
+        {t("landing.foodwise_community_p")}<span className="italic font-semibold text-emerald-200">{t("landing.ldquo_don_apos_t_le")}</span>
       </div>
     </div>
   );

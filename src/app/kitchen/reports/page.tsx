@@ -253,7 +253,7 @@ export default function KitchenReportsPage() {
         <div className="stat-card stat-card-indigo p-5">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[13px] font-medium text-[#6B7280]">
-              {t("kitchen.report.aiForecastAccuracy")}
+              Planning Accuracy
             </span>
             <div className="icon-container icon-container-indigo">
               <Sparkles className="w-5 h-5" />
@@ -450,7 +450,7 @@ export default function KitchenReportsPage() {
               <tr>
                 <th>{t("kitchen.report.serviceDatetime")}</th>
                 <th>{t("kitchen.report.dinersServed")}</th>
-                <th>{t("kitchen.report.aiPlanned")}</th>
+                <th>Planned Meals</th>
                 <th>{t("kitchen.report.variance")}</th>
                 <th>{t("kitchen.report.prepWaste")}</th>
                 <th>{t("kitchen.report.plateWaste")}</th>

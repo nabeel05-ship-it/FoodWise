@@ -45,6 +45,18 @@ export default function LanguageToggle({
         >
           🇮🇳 हिं
         </button>
+        <button
+          type="button"
+          onClick={() => setLang("kn")}
+          className={`px-2 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+            lang === "kn"
+              ? "bg-emerald-500 text-white shadow-sm font-extrabold"
+              : "text-emerald-200/80 hover:text-white hover:bg-white/10"
+          }`}
+          title="ಕನ್ನಡಕ್ಕೆ ಬದಲಾಯಿಸಿ (Switch to Kannada)"
+        >
+          🇮🇳 ಕನ್
+        </button>
       </div>
     );
   }
@@ -78,6 +90,17 @@ export default function LanguageToggle({
         }`}
       >
         🇮🇳 हिंदी
+      </button>
+      <button
+        type="button"
+        onClick={() => setLang("kn")}
+        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          lang === "kn"
+            ? "bg-emerald-500 text-white shadow-sm font-extrabold"
+            : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+        }`}
+      >
+        🇮🇳 ಕನ್ನಡ
       </button>
     </div>
   );

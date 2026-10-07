@@ -1,8 +1,16 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
-import { InstitutionRole, NotificationAlert, SurplusItem } from "@/lib/types";
-import { INITIAL_NOTIFICATIONS, SURPLUS_ITEMS } from "@/lib/mockData";
+import { InstitutionRole, NotificationAlert, SurplusItem, DonationItem, DonorType } from "@/lib/types";
+import {
+  INITIAL_NOTIFICATIONS,
+  SURPLUS_ITEMS,
+  INITIAL_COMMUNITY_DONATIONS,
+  COMMUNITY_DONORS,
+  COMMUNITY_NGOS,
+  CommunityDonor,
+  CommunityNgo,
+} from "@/lib/mockData";
 
 export interface DonorHotel {
   id: string;
@@ -200,6 +208,52 @@ interface AppContextType {
   getHotelRank: (hotelId: string) => number;
   // Database connection status
   dbConnected: boolean;
+
+  // ─── ROLE-BASED AUTHENTICATION & ACCESS ───
+  userRole: "RESTAURANT" | "HOTEL" | "HOUSEHOLD" | "NGO";
+  setUserRole: (role: "RESTAURANT" | "HOTEL" | "HOUSEHOLD" | "NGO") => void;
+  login: (role: "RESTAURANT" | "HOTEL" | "HOUSEHOLD" | "NGO", email: string) => void;
+  logout: () => void;
+  registerDonor: (data: {
+    type: DonorType;
+    name: string;
+    contactPerson: string;
+    phone: string;
+    email: string;
+    address: string;
+    city: string;
+    fssaiNumber?: string;
+  }) => CommunityDonor;
+  registerNgo: (data: {
+    name: string;
+    lead: string;
+    phone: string;
+    email: string;
+    address: string;
+    city: string;
+    coverageArea: string;
+    registrationNumber?: string;
+  }) => CommunityNgo;
+
+  // ─── COMMUNITY PROJECT: FOOD DONATION PLATFORM ───
+  donations: DonationItem[];
+  addDonation: (item: Omit<DonationItem, "id" | "status" | "createdAt">) => DonationItem;
+  acceptDonation: (donationId: string, ngoName: string, driver?: { name: string; phone: string }) => void;
+  completeDonation: (donationId: string) => void;
+  cancelDonation: (donationId: string) => void;
+  allDonors: CommunityDonor[];
+  activeDonor: CommunityDonor;
+  setActiveDonorId: (id: string) => void;
+  allNgos: CommunityNgo[];
+  activeNgo: CommunityNgo;
+  setActiveNgoId: (id: string) => void;
+  communityMetrics: {
+    totalKg: number;
+    totalServings: number;
+    completedCount: number;
+    activeCount: number;
+    co2SavedKg: number;
+  };
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -210,7 +264,13 @@ function apiCall(url: string, options?: RequestInit) {
 }
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [currentRole, setCurrentRole] = useState<InstitutionRole>("KITCHEN_MANAGER");
+  const [currentRole, setCurrentRole] = useState<InstitutionRole>("DONOR");
+  const [userRole, setUserRoleState] = useState<"RESTAURANT" | "HOTEL" | "HOUSEHOLD" | "NGO">("RESTAURANT");
+  const [donorsList, setDonorsList] = useState<CommunityDonor[]>(COMMUNITY_DONORS);
+  const [ngosList, setNgosList] = useState<CommunityNgo[]>(COMMUNITY_NGOS);
+  const [donations, setDonations] = useState<DonationItem[]>(INITIAL_COMMUNITY_DONATIONS);
+  const [activeDonorId, setActiveDonorId] = useState<string>("donor-res-1");
+  const [activeNgoId, setActiveNgoId] = useState<string>("ngo-1");
   const [notifications, setNotifications] = useState<NotificationAlert[]>(INITIAL_NOTIFICATIONS);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -226,7 +286,43 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [donorFeedback, setDonorFeedback] = useState<FeedbackEntry[]>(INITIAL_FEEDBACK);
   const [dbConnected, setDbConnected] = useState(false);
 
-  // ─── Load data from MongoDB on mount ───────────────────────────────
+  const setUserRole = useCallback(
+    (role: "RESTAURANT" | "HOTEL" | "HOUSEHOLD" | "NGO") => {
+      setUserRoleState(role);
+      try {
+        localStorage.setItem("foodwise_user_role", role);
+      } catch {}
+
+      if (role === "NGO") {
+        setCurrentRole("NGO_PARTNER");
+      } else {
+        setCurrentRole("DONOR");
+        const donorTypeMap: Record<string, DonorType> = {
+          RESTAURANT: "Restaurant",
+          HOTEL: "Hotel",
+          HOUSEHOLD: "Household",
+        };
+        const targetType = donorTypeMap[role];
+        setActiveDonorId((prevId) => {
+          const current = donorsList.find((d) => d.id === prevId);
+          if (current && current.type === targetType) {
+            return prevId;
+          }
+          const matched = donorsList.find((d) => d.type === targetType);
+          if (matched) {
+            try {
+              localStorage.setItem("foodwise_active_donor_id", matched.id);
+            } catch {}
+            return matched.id;
+          }
+          return prevId;
+        });
+      }
+    },
+    [donorsList]
+  );
+
+  // ─── Load data on mount (Local Prototype Layer) ───────────────────────────────
   useEffect(() => {
     async function loadFromDb() {
       try {
@@ -241,7 +337,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           if (d.notifications?.length > 0) {
             setNotifications(
               d.notifications.map((n: Record<string, unknown>) => ({
-                id: (n.notifId as string) || (n._id as string),
+                id: (n.id as string) || (n.notifId as string) || (n._id as string) || crypto.randomUUID(),
                 title: n.title as string,
                 message: n.message as string,
                 time: n.time as string,
@@ -340,10 +436,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             }
           }
 
-          console.log("✅ FoodWise: Data loaded from MongoDB");
+          console.log("✅ FoodWise: Initialized with local prototype data layer");
         }
       } catch (err) {
-        console.warn("⚠️ FoodWise: Could not load from MongoDB, using local mock data.", err);
+        console.warn("⚠️ FoodWise: Initializing with local mock data fallback.", err);
       }
     }
 
@@ -361,6 +457,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       // ignore
     }
 
+    // Hydrate community donations from localStorage
+    try {
+      const storedDonations = localStorage.getItem("foodwise_community_donations");
+      if (storedDonations) {
+        const parsed = JSON.parse(storedDonations);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setDonations(parsed);
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    // Hydrate user role & IDs from localStorage
+    try {
+      const storedRole = localStorage.getItem("foodwise_user_role") as "RESTAURANT" | "HOTEL" | "HOUSEHOLD" | "NGO" | null;
+      if (storedRole) {
+        setUserRole(storedRole);
+        if (storedRole === "NGO") {
+          setCurrentRole("NGO_PARTNER");
+        } else {
+          setCurrentRole("DONOR");
+        }
+      }
+      const storedDonorId = localStorage.getItem("foodwise_active_donor_id");
+      if (storedDonorId) setActiveDonorId(storedDonorId);
+      const storedNgoId = localStorage.getItem("foodwise_active_ngo_id");
+      if (storedNgoId) setActiveNgoId(storedNgoId);
+    } catch {}
+
     loadFromDb();
   }, []);
 
@@ -370,7 +496,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
-    // Persist to MongoDB
+    // Persist to local data service
     apiCall("/api/notifications", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -380,7 +506,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const markAllNotificationsAsRead = useCallback(() => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    // Persist to MongoDB
+    // Persist to local data service
     apiCall("/api/notifications", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -402,7 +528,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       time: notif.time && notif.time !== "Just now" ? notif.time : `Just now • ${exactTime}`,
     };
     setNotifications((prev) => [enrichedNotif, ...prev]);
-    // Persist to MongoDB
+    // Persist to local data service
     apiCall("/api/notifications", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -445,20 +571,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       )
     );
 
-    // Persist to MongoDB
+    // Persist to local data service
     apiCall("/api/surplus", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ surplusId, matchedNgo: ngoName, status: "SAFE" }),
     });
 
-    // Add notification (this also persists to MongoDB)
+    // Add notification (this also dispatches to local data service)
     const newNotif: NotificationAlert = {
-      id: `notif-${Date.now()}`,
-      title: "Redistribution Pickup Dispatched",
-      message: `Pickup scheduled with ${ngoName} for ${
-        surplusList.find((s) => s.id === surplusId)?.item || "Surplus"
-      }. Driver dispatched.`,
+      id: `notif-${crypto.randomUUID()}`,
+      title: "notif.pickup_dispatched_title",
+      message: "notif.pickup_dispatched_msg",
+      messageParams: { ngo: ngoName, food: surplusList.find((s) => s.id === surplusId)?.item || "Surplus" },
       time: "Just now",
       severity: "success",
       category: "Redistribution",
@@ -470,7 +595,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const prioritizeBatch = useCallback(() => {
     setIsBatchPrioritized(true);
 
-    // Persist to MongoDB
+    // Persist to local data service
     apiCall("/api/spoilage", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -478,9 +603,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
 
     const newNotif: NotificationAlert = {
-      id: `notif-${Date.now()}`,
-      title: "Batch TOM-2024-0234 Prioritized",
-      message: "Batch moved to Front of Line for Ketchup Processing Unit 2. Production rerouted to salvage 2,800 kg.",
+      id: `notif-${crypto.randomUUID()}`,
+      title: "notif.batch_prioritized_title",
+      message: "notif.batch_prioritized_msg",
       time: "Just now",
       severity: "success",
       category: "Factory",
@@ -492,7 +617,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const assignTechnician = useCallback(() => {
     setIsTechnicianAssigned(true);
 
-    // Persist to MongoDB
+    // Persist to local data service
     apiCall("/api/machines", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -503,9 +628,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
 
     const newNotif: NotificationAlert = {
-      id: `notif-${Date.now()}`,
-      title: "Technician Dispatched for PM-03",
-      message: "Work Order #WO-891 assigned to Rajesh Kumar. Abrasive drum & blade alignment scheduled at 3:00 PM shift change.",
+      id: `notif-${crypto.randomUUID()}`,
+      title: "notif.technician_dispatched_title",
+      message: "notif.technician_dispatched_msg",
       time: "Just now",
       severity: "info",
       category: "IoT",
@@ -525,7 +650,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       // ignore
     }
 
-    // Persist to MongoDB
+    // Persist to local data service
     apiCall("/api/overrides", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -533,9 +658,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
 
     const newNotif: NotificationAlert = {
-      id: `notif-${Date.now()}`,
-      title: "Prediction Human Override Applied",
-      message: `Manager adjusted target to ${numMeals} meals (Reason: ${reason}). Model feedback recorded for continuous learning.`,
+      id: `notif-${crypto.randomUUID()}`,
+      title: "notif.meal_target_adjusted_title",
+      message: "notif.meal_target_adjusted_msg",
+      messageParams: { meals: numMeals, reason: reason },
       time: "Just now",
       severity: "info",
       category: "Kitchen",
@@ -554,15 +680,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       // ignore
     }
 
-    // Deactivate in MongoDB
+    // Deactivate override
     apiCall("/api/overrides", {
       method: "DELETE",
     });
 
     const newNotif: NotificationAlert = {
-      id: `notif-${Date.now()}`,
-      title: "Autonomous AI Prediction Restored",
-      message: "Manager manual override disabled. Deep Learning Demand Model v4.2 autonomous forecast reinstated.",
+      id: `notif-${crypto.randomUUID()}`,
+      title: "notif.schedule_restored_title",
+      message: "notif.schedule_restored_msg",
       time: "Just now",
       severity: "info",
       category: "Kitchen",
@@ -585,9 +711,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const acceptNgoPickup = useCallback((itemId: string) => {
     setAcceptedPickups((prev) => [...prev, itemId]);
     const newNotif: NotificationAlert = {
-      id: `notif-${Date.now()}`,
-      title: "Pickup Confirmed by NGO",
-      message: "Your volunteer driver assigned. Verification OTP generated. Thank you for preventing waste!",
+      id: `notif-${crypto.randomUUID()}`,
+      title: "notif.pickup_confirmed_title",
+      message: "notif.pickup_confirmed_msg",
       time: "Just now",
       severity: "success",
       category: "Redistribution",
@@ -650,7 +776,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
     setDonorFeedback((prev) => [newFeedback, ...prev]);
 
-    // Persist feedback to MongoDB (this also updates hotel points in DB)
+    // Persist feedback to local data service (this also updates hotel points)
     apiCall("/api/feedback", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -666,9 +792,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     // Add notification
     const newNotif: NotificationAlert = {
-      id: `notif-${Date.now()}`,
-      title: `+${points} Points Awarded to ${hotel.name}`,
-      message: `NGO feedback submitted: ${avg.toFixed(1)}/5 avg rating. ${points} points added to donor leaderboard.`,
+      id: `notif-${crypto.randomUUID()}`,
+      title: "notif.points_awarded_title",
+      titleParams: { points: points, donor: hotel.name },
+      message: "notif.points_awarded_msg",
+      messageParams: { rating: avg.toFixed(1), points: points },
       time: "Just now",
       severity: "success",
       category: "Redistribution",
@@ -689,6 +817,274 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const idx = rankedHotels.findIndex((h) => h.id === hotelId);
     return idx >= 0 ? idx + 1 : -1;
   }, [rankedHotels]);
+
+  // ─── Role-Based Authentication & Session ───
+  const activeDonor = useMemo(
+    () => donorsList.find((d) => d.id === activeDonorId) || donorsList[0],
+    [donorsList, activeDonorId]
+  );
+
+  const activeNgo = useMemo(
+    () => ngosList.find((n) => n.id === activeNgoId) || ngosList[0],
+    [ngosList, activeNgoId]
+  );
+
+  const login = useCallback(
+    (role: "RESTAURANT" | "HOTEL" | "HOUSEHOLD" | "NGO", email: string) => {
+      setUserRole(role);
+      try {
+        localStorage.setItem("foodwise_user_role", role);
+      } catch {}
+
+      if (role === "NGO") {
+        setCurrentRole("NGO_PARTNER");
+        const matched = ngosList.find((n) => n.lead.toLowerCase().includes(email.toLowerCase()) || n.phone.includes(email)) || ngosList[0];
+        setActiveNgoId(matched.id);
+        try {
+          localStorage.setItem("foodwise_active_ngo_id", matched.id);
+        } catch {}
+      } else {
+        setCurrentRole("DONOR");
+        const donorTypeMap: Record<string, DonorType> = {
+          RESTAURANT: "Restaurant",
+          HOTEL: "Hotel",
+          HOUSEHOLD: "Household",
+        };
+        const targetType = donorTypeMap[role];
+        const matched = donorsList.find((d) => d.type === targetType) || donorsList[0];
+        setActiveDonorId(matched.id);
+        try {
+          localStorage.setItem("foodwise_active_donor_id", matched.id);
+        } catch {}
+      }
+    },
+    [donorsList, ngosList]
+  );
+
+  const logout = useCallback(() => {
+    try {
+      localStorage.removeItem("foodwise_user_role");
+    } catch {}
+  }, []);
+
+  const registerDonor = useCallback((data: {
+    type: DonorType;
+    name: string;
+    contactPerson: string;
+    phone: string;
+    email: string;
+    address: string;
+    city: string;
+    fssaiNumber?: string;
+  }): CommunityDonor => {
+    const newDonor: CommunityDonor = {
+      ...data,
+      id: `donor-${data.type.toLowerCase().slice(0, 3)}-${Date.now()}`,
+      verified: true,
+      totalDonations: 0,
+      totalKgDonated: 0,
+      peopleServed: 0,
+    };
+    setDonorsList((prev) => [newDonor, ...prev]);
+    setActiveDonorId(newDonor.id);
+    const roleKey = data.type.toUpperCase() as "RESTAURANT" | "HOTEL" | "HOUSEHOLD";
+    setUserRole(roleKey);
+    setCurrentRole("DONOR");
+    try {
+      localStorage.setItem("foodwise_user_role", roleKey);
+      localStorage.setItem("foodwise_active_donor_id", newDonor.id);
+    } catch {}
+    return newDonor;
+  }, []);
+
+  const registerNgo = useCallback((data: {
+    name: string;
+    lead: string;
+    phone: string;
+    email: string;
+    address: string;
+    city: string;
+    coverageArea: string;
+    registrationNumber?: string;
+  }): CommunityNgo => {
+    const newNgo: CommunityNgo = {
+      ...data,
+      id: `ngo-${Date.now()}`,
+      volunteers: 15,
+      sheltersServed: 4,
+      rating: 5.0,
+      verified: true,
+      registrationNumber: data.registrationNumber || "DARPAN-REG-" + Math.floor(100000 + Math.random() * 900000),
+    };
+    setNgosList((prev) => [newNgo, ...prev]);
+    setActiveNgoId(newNgo.id);
+    setUserRole("NGO");
+    setCurrentRole("NGO_PARTNER");
+    try {
+      localStorage.setItem("foodwise_user_role", "NGO");
+      localStorage.setItem("foodwise_active_ngo_id", newNgo.id);
+    } catch {}
+    return newNgo;
+  }, []);
+
+  const addDonation = useCallback((itemData: Omit<DonationItem, "id" | "status" | "createdAt">): DonationItem => {
+    const newDonation: DonationItem = {
+      ...itemData,
+      id: `don-${Date.now()}`,
+      status: "AVAILABLE",
+      createdAt: Date.now(),
+    };
+
+    setDonations((prev) => {
+      const updated = [newDonation, ...prev];
+      try {
+        localStorage.setItem("foodwise_community_donations", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    const newNotif: NotificationAlert = {
+      id: `notif-${crypto.randomUUID()}`,
+      title: "notif.new_surplus_posted_title",
+      message: "notif.new_surplus_posted_msg",
+      messageParams: { donor: newDonation.donorName, type: newDonation.donorType, quantity: newDonation.quantityKg, food: newDonation.foodName, servings: newDonation.servings, city: newDonation.city },
+      time: "Just now",
+      severity: "success",
+      category: "Redistribution",
+      actionLabel: "View in NGO Portal",
+      actionUrl: "/ngo/dashboard",
+      read: false,
+    };
+    addNotification(newNotif);
+
+    // Also persist to local surplus store
+    apiCall("/api/surplus", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        item: newDonation.foodName,
+        quantityKg: newDonation.quantityKg,
+        preparedAt: newDonation.preparationTime,
+        safeUntil: newDonation.pickupDeadline,
+        hoursRemaining: 6,
+        status: "SAFE",
+      }),
+    });
+
+    return newDonation;
+  }, [addNotification]);
+
+  const acceptDonation = useCallback((donationId: string, ngoName: string, driver?: { name: string; phone: string }) => {
+    const generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+    const nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
+
+    setDonations((prev) => {
+      const updated = prev.map((d) => {
+        if (d.id === donationId) {
+          return {
+            ...d,
+            status: "ACCEPTED" as const,
+            acceptedBy: ngoName,
+            acceptedAt: `Today, ${nowTime}`,
+            otp: generatedOtp,
+            driverName: driver?.name || "Ramesh Kumar (Volunteer)",
+            driverPhone: driver?.phone || "+91 98112 34567",
+          };
+        }
+        return d;
+      });
+      try {
+        localStorage.setItem("foodwise_community_donations", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    const target = donations.find((d) => d.id === donationId);
+    const newNotif: NotificationAlert = {
+      id: `notif-${crypto.randomUUID()}`,
+      title: "notif.donation_claimed_title",
+      message: "notif.donation_claimed_msg",
+      messageParams: { ngo: ngoName, food: target?.foodName || "Surplus Food", donor: target?.donorName || "Donor", otp: generatedOtp },
+      time: "Just now",
+      severity: "success",
+      category: "Redistribution",
+      read: false,
+    };
+    addNotification(newNotif);
+  }, [donations, addNotification]);
+
+  const completeDonation = useCallback((donationId: string) => {
+    const nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
+
+    setDonations((prev) => {
+      const updated = prev.map((d) => {
+        if (d.id === donationId) {
+          return {
+            ...d,
+            status: "COMPLETED" as const,
+            completedAt: `Today, ${nowTime}`,
+          };
+        }
+        return d;
+      });
+      try {
+        localStorage.setItem("foodwise_community_donations", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    const target = donations.find((d) => d.id === donationId);
+    const newNotif: NotificationAlert = {
+      id: `notif-${crypto.randomUUID()}`,
+      title: "notif.food_delivered_title",
+      message: "notif.food_delivered_msg",
+      messageParams: { people: target?.servings || 40, weight: target?.quantityKg || 10 },
+      time: "Just now",
+      severity: "success",
+      category: "Redistribution",
+      read: false,
+    };
+    addNotification(newNotif);
+  }, [donations, addNotification]);
+
+  const cancelDonation = useCallback((donationId: string) => {
+    setDonations((prev) => {
+      const updated = prev.map((d) => (d.id === donationId ? { ...d, status: "CANCELLED" as const } : d));
+      try {
+        localStorage.setItem("foodwise_community_donations", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  }, []);
+
+  const communityMetrics = useMemo(() => {
+    let totalKg = 0;
+    let totalServings = 0;
+    let completedCount = 0;
+    let activeCount = 0;
+
+    donations.forEach((d) => {
+      const kg = Number(d.quantityKg) || 0;
+      const serves = Number(d.servings) || 0;
+      totalKg += kg;
+      totalServings += serves;
+      if (d.status === "COMPLETED") {
+        completedCount++;
+      } else if (d.status === "AVAILABLE" || d.status === "ACCEPTED" || d.status === "PICKUP") {
+        activeCount++;
+      }
+    });
+
+    const co2SavedKg = Math.round(totalKg * 2.5);
+
+    return {
+      totalKg,
+      totalServings,
+      completedCount,
+      activeCount,
+      co2SavedKg,
+    };
+  }, [donations]);
 
   return (
     <AppContext.Provider
@@ -726,6 +1122,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         submitDonorFeedback,
         getHotelRank,
         dbConnected,
+        // Role-Based Auth
+        userRole,
+        setUserRole,
+        login,
+        logout,
+        registerDonor,
+        registerNgo,
+        // Community Project
+        donations,
+        addDonation,
+        acceptDonation,
+        completeDonation,
+        cancelDonation,
+        allDonors: donorsList,
+        activeDonor,
+        setActiveDonorId,
+        allNgos: ngosList,
+        activeNgo,
+        setActiveNgoId,
+        communityMetrics,
       }}
     >
       {children}

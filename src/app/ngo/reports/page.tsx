@@ -1,7 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { downloadNgoImpactCertificatePdf } from "@/lib/pdfGenerator";
+import { 
+  downloadFoodDonationCertificatePdf, 
+  downloadDonationImpactReportPdf 
+} from "@/lib/pdfGenerator";
 import { useLang } from "@/context/LanguageContext";
 import {
   HeartHandshake,
@@ -79,12 +82,24 @@ export default function NgoReportsPage() {
 
   const handleExport = (type: string) => {
     setDownloading(true);
-    if (type.includes("Certificate") || type.includes("PDF")) {
-      downloadNgoImpactCertificatePdf({
-        ngoName: "Robin Hood Army & Feeding India Coalition",
-        certificateType: type,
-        mealsServed: 24800,
-        co2SavedKg: 12400,
+    if (type.includes("Certificate")) {
+      downloadFoodDonationCertificatePdf({
+        recipientName: "Robin Hood Army (Delhi Chapter)",
+        certificateType: "Donor Appreciation Certificate",
+        foodWeightKg: 950,
+        servings: 3800,
+        peopleServed: 1200,
+        wastePreventedKg: 950,
+      });
+    } else if (type.includes("PDF") || type.includes("Report")) {
+      downloadDonationImpactReportPdf({
+        period: "October 2026",
+        organizationName: "Robin Hood Army (Delhi Chapter)",
+        role: "NGO",
+        totalKg: 950,
+        totalServings: 3800,
+        completedCount: 42,
+        wastePreventedKg: 950,
       });
     } else {
       const csvContent = "data:text/csv;charset=utf-8," +
@@ -122,7 +137,7 @@ export default function NgoReportsPage() {
             <span className="text-xs font-bold text-amber-600 uppercase tracking-wider bg-amber-50 px-2.5 py-0.5 rounded-md border border-amber-100">
               {t("ngo.report.community_relief")}
             </span>
-            <span className="text-gray-300">&bull;</span>
+            <span className="text-gray-300">{t("ngo_report.bull")}</span>
             <span className="text-xs text-gray-500 font-medium">
               {t("ngo.report.chapter_info")}
             </span>
@@ -154,7 +169,7 @@ export default function NgoReportsPage() {
           </div>
 
           <button
-            onClick={() => handleExport("80G CSR Social Impact Certificate (PDF)")}
+            onClick={() => handleExport("Donor Appreciation Certificate (PDF)")}
             disabled={downloading}
             className="px-3.5 py-2 rounded-xl bg-white hover:bg-gray-50 text-[#111827] text-xs font-semibold border border-[#E5E7EB] shadow-sm transition-all flex items-center gap-1.5"
           >
@@ -192,7 +207,7 @@ export default function NgoReportsPage() {
               <ArrowUpRight className="w-3.5 h-3.5" />
               {t("ngo.report.vs_last_month")}
             </span>
-            <span className="text-gray-400">&bull; {t("ngo.report.shelter_hubs")}</span>
+            <span className="text-gray-400">{t("ngo_report.bull")}{t("ngo.report.shelter_hubs")}</span>
           </div>
         </div>
 
@@ -233,7 +248,7 @@ export default function NgoReportsPage() {
             <span className="text-emerald-700 font-semibold">
               {t("ngo.report.safe_window")}
             </span>
-            <span className="text-gray-400">&bull; {t("ngo.report.zero_spoil")}</span>
+            <span className="text-gray-400">{t("ngo_report.bull")}{t("ngo.report.zero_spoil")}</span>
           </div>
         </div>
 
@@ -400,13 +415,12 @@ export default function NgoReportsPage() {
                   <td>
                     <div className="flex items-center gap-1 text-xs font-bold text-amber-600">
                       <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                      {hotel.avgRating.toFixed(1)} / 5.0
+                      {(hotel.avgRating != null ? hotel.avgRating : 4.5).toFixed(1)} / 5.0
                     </div>
                   </td>
                   <td>
                     <span className="badge badge-indigo font-mono-data">
-                      {hotel.totalPoints} pts
-                    </span>
+                      {hotel.totalPoints} {t("ngo_report.pts")}</span>
                   </td>
                   <td>
                     {hotel.fssaiVerified ? (
@@ -430,7 +444,7 @@ export default function NgoReportsPage() {
             {t("ngo.report.regulations_text")}
           </div>
           <button
-            onClick={() => handleExport("Donor ESG Impact Certificate (PDF)")}
+            onClick={() => handleExport("Donor Appreciation Certificate (PDF)")}
             className="text-emerald-700 hover:text-emerald-800 font-semibold underline underline-offset-2"
           >
             {t("ngo.report.download_certificates")}

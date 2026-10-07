@@ -4,10 +4,9 @@ import "./globals.css";
 import ClientProvider from "@/components/providers/ClientProvider";
 
 import NotificationDrawer from "@/components/common/NotificationDrawer";
-import OnboardingModal from "@/components/common/OnboardingModal";
-import ApiInspectorModal from "@/components/common/ApiInspectorModal";
 import SettingsModal from "@/components/common/SettingsModal";
 import PushNotificationPrompt from "@/components/common/PushNotificationPrompt";
+
 
 const inter = Inter({
   subsets: ["latin"],
@@ -22,17 +21,17 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FoodWise — Predict Less Waste. Feed More Lives.",
+  title: "FoodWise — Food Waste Reduction and Food Donation Platform",
   description:
-    "AI-powered Smart Food Waste Management and Redistribution Platform for Institutional Kitchens and Food Processing Factories.",
+    "Connecting restaurants, hotels, and households with NGOs to donate surplus food before it is wasted. Supporting SDG 2 (Zero Hunger) & SDG 12 (Responsible Consumption).",
   keywords: [
-    "food waste management",
-    "AI demand prediction",
-    "predictive spoilage",
+    "food waste reduction",
+    "surplus food donation",
     "NGO food redistribution",
-    "smart kitchen",
-    "FSSAI compliance",
-    "Making every meal count",
+    "restaurant food donation",
+    "hotel banquet donation",
+    "zero hunger SDG 2",
+    "responsible consumption SDG 12",
   ],
 };
 
@@ -51,11 +50,8 @@ export default function RootLayout({
         <ClientProvider>
           {children}
           <NotificationDrawer />
-          <OnboardingModal />
-          <ApiInspectorModal />
           <SettingsModal />
           <PushNotificationPrompt />
-
         </ClientProvider>
       </body>
     </html>
