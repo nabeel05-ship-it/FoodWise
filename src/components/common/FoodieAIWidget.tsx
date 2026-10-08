@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useApp } from "@/context/AppContext";
 import { usePathname } from "next/navigation";
 import { Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 
 interface Message {
   role: "user" | "assistant";
@@ -92,22 +93,36 @@ export default function FoodieAIWidget() {
 
   return (
     <>
+      <AnimatePresence>
       {!isOpen && (
-        <button
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={toggleDrawer}
           aria-label="Open Foodie AI"
-          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-white border border-gray-200 shadow-lg hover:shadow-xl rounded-full p-2 pr-4 text-sm font-semibold text-gray-700 flex items-center gap-2.5 transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 z-50 group"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-white border border-gray-200 shadow-lg hover:shadow-xl rounded-full p-2 pr-4 text-sm font-semibold text-gray-700 flex items-center gap-2.5 transition-all duration-300 hover:border-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 z-50 group"
         >
           <div className="relative flex items-center justify-center bg-emerald-50 group-hover:bg-emerald-100 text-emerald-600 p-2 rounded-full transition-colors">
             <Sparkles className="w-4 h-4" />
             <span className="absolute top-0 right-0 w-2 h-2 bg-emerald-500 rounded-full border-2 border-white" />
           </div>
           <span className="tracking-wide">Foodie AI</span>
-        </button>
+        </motion.button>
       )}
+      </AnimatePresence>
 
+      <AnimatePresence>
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-[350px] bg-white border border-gray-200 rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 animate-in slide-in-from-bottom-5">
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.95 }}
+          transition={{ type: "spring", bounce: 0, duration: 0.3 }}
+          className="fixed bottom-6 right-6 w-[350px] bg-white border border-gray-200 rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50"
+        >
           {/* Header */}
           <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-5 text-white flex justify-between items-center shrink-0 shadow-md z-10 relative">
             <div>
@@ -129,7 +144,13 @@ export default function FoodieAIWidget() {
           {/* Chat Area */}
           <div className="flex-1 p-4 overflow-y-auto bg-gray-50 flex flex-col space-y-4 max-h-[400px] min-h-[300px]">
             {messages.map((msg, index) => (
-              <div key={index} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: msg.role === "user" ? 10 : -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ type: "spring", bounce: 0, duration: 0.3 }}
+                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              >
                 <div
                   className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm ${
                     msg.role === "user"
@@ -139,11 +160,16 @@ export default function FoodieAIWidget() {
                 >
                   <p className="whitespace-pre-wrap">{msg.content}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
             
             {messages.length === 1 && (
-              <div className="flex flex-col space-y-2 mt-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="flex flex-col space-y-2 mt-4"
+              >
                 <p className="text-xs text-gray-500 font-medium px-2">Suggested questions:</p>
                 {getSuggestions().map((suggestion, i) => (
                   <button
@@ -154,17 +180,17 @@ export default function FoodieAIWidget() {
                     {suggestion}
                   </button>
                 ))}
-              </div>
+              </motion.div>
             )}
             
             {isLoading && (
-              <div className="flex justify-start">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
                 <div className="bg-white border border-gray-200 shadow-sm rounded-2xl rounded-bl-none px-4 py-3 flex space-x-1">
                   <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce" />
                   <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: "0.15s" }} />
                   <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: "0.3s" }} />
                 </div>
-              </div>
+              </motion.div>
             )}
             
             {errorMsg && (
@@ -206,8 +232,9 @@ export default function FoodieAIWidget() {
                </span>
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </>
   );
 }

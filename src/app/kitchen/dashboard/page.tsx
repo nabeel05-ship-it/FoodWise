@@ -279,7 +279,7 @@ export default function KitchenDashboardPage() {
 
           <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
             <span>Peak donation day: <strong>Saturday (Banquets/Buffet)</strong></span>
-            <Link href="/dashboard/impact" className="text-emerald-700 font-bold hover:underline">
+            <Link href="/kitchen/impact" className="text-emerald-700 font-bold hover:underline">
               View Multi-Facility SDG Report →
             </Link>
           </div>

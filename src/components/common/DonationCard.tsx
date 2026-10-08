@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useLang } from "@/context/LanguageContext";
+import * as motion from "motion/react-client";
 import { DonationItem, DonorType } from "@/lib/types";
 import {
   Clock,
@@ -50,9 +51,11 @@ export default function DonationCard({
   const handleRequest = onRequestFood || onRequestClaim;
 
   return (
-    <div
+    <motion.div
       onClick={() => onViewDetails(donation)}
-      className={`bg-white rounded-2xl p-5 border transition-all cursor-pointer hover:shadow-md flex flex-col justify-between ${
+      whileHover={{ y: -4, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)" }}
+      whileTap={{ scale: 0.98 }}
+      className={`bg-white rounded-2xl p-5 border transition-all cursor-pointer flex flex-col justify-between ${
         isFlagged
           ? "border-amber-300 hover:border-amber-400 bg-amber-50/20"
           : isAvailable
@@ -228,6 +231,6 @@ export default function DonationCard({
           </button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

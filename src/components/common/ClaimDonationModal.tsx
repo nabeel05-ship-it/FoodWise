@@ -6,6 +6,7 @@ import { useApp } from "@/context/AppContext";
 import { HeartHandshake, X, Truck, User, Phone, ShieldCheck } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useLang } from "@/context/LanguageContext";
+import * as motion from "motion/react-client";
 
 export interface ClaimDonationModalProps {
   donation: DonationItem | null;
@@ -71,8 +72,19 @@ export default function ClaimDonationModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-white rounded-3xl border border-gray-200 shadow-2xl max-w-lg w-full overflow-hidden p-6 sm:p-7 space-y-5">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0, y: 10 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.95, opacity: 0, y: 10 }}
+        transition={{ type: "spring", bounce: 0.3, duration: 0.4 }}
+        className="bg-white rounded-3xl border border-gray-200 shadow-2xl max-w-lg w-full overflow-hidden p-6 sm:p-7 space-y-5"
+      >
         {/* Header */}
         <div className="flex items-start justify-between gap-4 pb-3 border-b border-gray-100">
           <div className="flex items-center gap-3">
@@ -163,7 +175,7 @@ export default function ClaimDonationModal({
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

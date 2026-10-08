@@ -79,13 +79,13 @@ export default function NgoFindFoodPage() {
 
         <div className="flex items-center gap-2">
           <Link
-            href="/ngo/requests"
+            href="/ngo/dashboard?tab=claims"
             className="px-3.5 py-2 rounded-xl text-xs font-bold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-all cursor-pointer"
           >
             {t("My Active Requests")}
           </Link>
           <Link
-            href="/ngo/accepted"
+            href="/ngo/dashboard?tab=scheduled"
             className="px-3.5 py-2 rounded-xl text-xs font-bold text-white transition-all hover:brightness-110 cursor-pointer"
             style={{ background: "#164A31" }}
           >
@@ -110,7 +110,7 @@ export default function NgoFindFoodPage() {
               OTP: {successClaim.otp}
             </span>
             <Link
-              href="/ngo/accepted"
+              href="/ngo/dashboard?tab=scheduled"
               className="px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-bold text-[11px]"
             >
               {t("Track Pickup →")}

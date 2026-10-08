@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { downloadFoodDonationCertificatePdf } from "@/lib/pdfGenerator";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
+import * as motion from "motion/react-client";
 import {
   HeartHandshake,
   Users,
@@ -99,7 +100,12 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
     donations.reduce((acc, curr) => acc + (curr.servings || 0), 0) || communityMetrics.totalServings;
 
   return (
-    <div className="space-y-8 animate-fadeIn pb-12">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+      className="space-y-8 pb-12"
+    >
       {/* ═══ HEADER ═══ */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[#E8ECF3]">
         <div>
@@ -126,7 +132,8 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
 
         <div className="flex items-center gap-2.5">
           <div className="bg-white border border-gray-200 rounded-xl p-1 flex items-center shadow-2xs">
-            <button
+            <motion.button
+              whileTap={{ scale: 0.95 }}
               onClick={() => setViewMode("role")}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 viewMode === "role"
@@ -135,8 +142,9 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
               }`}
             >
               My Impact
-            </button>
-            <button
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
               onClick={() => setViewMode("community")}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 viewMode === "community"
@@ -145,10 +153,12 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
               }`}
             >
               Community Overview
-            </button>
+            </motion.button>
           </div>
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() =>
               downloadFoodDonationCertificatePdf({
                 recipientName: isNgo
@@ -172,7 +182,7 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
           >
             <Download className="w-3.5 h-3.5 text-emerald-400" />
             <span>{t("impact.download_certificate")}</span>
-          </button>
+          </motion.button>
         </div>
       </div>
 
@@ -181,7 +191,7 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
         <div className="space-y-6">
           {/* 4 Realistic Metrics */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <div className="p-5 rounded-2xl bg-white border border-emerald-100 shadow-xs">
+            <motion.div whileHover={{ y: -4 }} className="p-5 rounded-2xl bg-white border border-emerald-100 shadow-xs">
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 {isNgo ? t("impact.food_received") : t("impact.food_donated")}
               </span>
@@ -197,9 +207,9 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
                   ? t("impact.banquet_rescued")
                   : t("impact.collected_distributed")}
               </span>
-            </div>
+            </motion.div>
 
-            <div className="p-5 rounded-2xl bg-white border border-emerald-100 shadow-xs">
+            <motion.div whileHover={{ y: -4 }} className="p-5 rounded-2xl bg-white border border-emerald-100 shadow-xs">
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 {isNgo ? t("impact.completed_pickups") : t("impact.completed_donations")}
               </span>
@@ -209,9 +219,9 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
               <span className="text-[11px] text-gray-500 mt-1 block">
                 {isNgo ? t("impact.safe_handovers") : t("impact.delivered_verified")}
               </span>
-            </div>
+            </motion.div>
 
-            <div className="p-5 rounded-2xl bg-white border border-emerald-100 shadow-xs">
+            <motion.div whileHover={{ y: -4 }} className="p-5 rounded-2xl bg-white border border-emerald-100 shadow-xs">
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 {isHousehold ? t("impact.people_helped") : isNgo ? t("impact.people_served") : t("impact.people_served")}
               </span>
@@ -221,9 +231,9 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
               <span className="text-[11px] text-emerald-700 mt-1 block">
                 Nutritious portions provided
               </span>
-            </div>
+            </motion.div>
 
-            <div className="p-5 rounded-2xl bg-white border border-emerald-100 shadow-xs">
+            <motion.div whileHover={{ y: -4 }} className="p-5 rounded-2xl bg-white border border-emerald-100 shadow-xs">
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 {isNgo ? t("impact.active_donors") : t("impact.food_waste_prevented")}
               </span>
@@ -233,7 +243,7 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
               <span className="text-[11px] text-gray-500 mt-1 block">
                 {isNgo ? t("impact.restaurants_hotels") : t("impact.kept_out_waste")}
               </span>
-            </div>
+            </motion.div>
           </div>
 
           {/* ═══ CONTEXTUALIZED SDG 2 & SDG 12 ALIGNMENT ═══ */}
@@ -322,7 +332,7 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
         <div className="space-y-6">
           {/* Aggregate 4 Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <div className="p-5 rounded-2xl bg-white border border-emerald-100 shadow-xs">
+            <motion.div whileHover={{ y: -4 }} className="p-5 rounded-2xl bg-white border border-emerald-100 shadow-xs">
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 Total Food Donated
               </span>
@@ -330,9 +340,9 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
                 {totalCommunityKg} <span className="text-xs font-semibold text-gray-500">kg</span>
               </div>
               <span className="text-[11px] text-gray-500 mt-1 block">{t("impact.across_donors")}</span>
-            </div>
+            </motion.div>
 
-            <div className="p-5 rounded-2xl bg-white border border-rose-100 shadow-xs">
+            <motion.div whileHover={{ y: -4 }} className="p-5 rounded-2xl bg-white border border-rose-100 shadow-xs">
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 People Fed / Servings
               </span>
@@ -340,9 +350,9 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
                 ~{totalCommunityServings}
               </div>
               <span className="text-[11px] text-gray-500 mt-1 block">{t("impact.meals_distributed")}</span>
-            </div>
+            </motion.div>
 
-            <div className="p-5 rounded-2xl bg-white border border-amber-100 shadow-xs">
+            <motion.div whileHover={{ y: -4 }} className="p-5 rounded-2xl bg-white border border-amber-100 shadow-xs">
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 {t("impact.food_waste_prevented")}
               </span>
@@ -350,9 +360,9 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
                 {totalCommunityKg} <span className="text-xs font-semibold text-gray-500">kg</span>
               </div>
               <span className="text-[11px] text-gray-500 mt-1 block">{t("impact.diverted_landfills")}</span>
-            </div>
+            </motion.div>
 
-            <div className="p-5 rounded-2xl bg-white border border-blue-100 shadow-xs">
+            <motion.div whileHover={{ y: -4 }} className="p-5 rounded-2xl bg-white border border-blue-100 shadow-xs">
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 {t("impact.emissions_averted")}
               </span>
@@ -360,7 +370,7 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
                 {Math.round(totalCommunityKg * 2.5)} <span className="text-xs font-semibold text-gray-500">kg CO₂e</span>
               </div>
               <span className="text-[11px] text-gray-500 mt-1 block">{t("impact.co2_saved")}</span>
-            </div>
+            </motion.div>
           </div>
 
           {/* Growth Chart */}
@@ -419,6 +429,6 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

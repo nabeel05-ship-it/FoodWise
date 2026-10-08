@@ -686,12 +686,12 @@ function NgoDashboardContent() {
                   </p>
                 </div>
               </div>
-              <Link
-                href="/ngo/completed"
-                className="px-3 py-1.5 rounded-xl bg-amber-200/70 hover:bg-amber-200 text-amber-950 font-bold text-xs transition-colors shrink-0 text-center"
+              <button
+                onClick={() => setTab("history")}
+                className="px-3 py-1.5 rounded-xl bg-amber-200/70 hover:bg-amber-200 text-amber-950 font-bold text-xs transition-colors shrink-0 text-center cursor-pointer"
               >
                 View Quality Audit Log →
-              </Link>
+              </button>
             </div>
           )}
 

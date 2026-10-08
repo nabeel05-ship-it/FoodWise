@@ -132,9 +132,9 @@ function SidebarContent({ type }: SidebarProps) {
   const ngoNav: NavItem[] = [
     { label: t("nav.dashboard"), href: "/ngo/dashboard", icon: LayoutDashboard },
     { label: t("nav.find_food"), href: "/ngo/find", icon: PackageCheck, badge: t("nav.live_feed"), highlight: true },
-    { label: t("nav.requests"), href: "/ngo/requests", icon: Clock },
-    { label: t("nav.accepted_donations"), href: "/ngo/accepted", icon: Truck },
-    { label: t("nav.completed"), href: "/ngo/completed", icon: CheckCircle2 },
+    { label: t("nav.requests"), href: "/ngo/dashboard?tab=claims", icon: Clock },
+    { label: t("nav.accepted_donations"), href: "/ngo/dashboard?tab=scheduled", icon: Truck },
+    { label: t("nav.completed"), href: "/ngo/dashboard?tab=history", icon: CheckCircle2 },
     { label: "Food Issues", href: "/ngo/food-issues", icon: ShieldCheck, highlight: true },
     { label: t("nav.impact"), href: "/ngo/impact", icon: Sparkles },
     { label: t("nav.profile"), href: "/ngo/profile", icon: Users },
@@ -302,16 +302,6 @@ function SidebarContent({ type }: SidebarProps) {
 
             {/* Bottom Actions */}
             <div className="p-3 border-t border-emerald-500/20 bg-black/25 space-y-2 shrink-0">
-              <button
-                onClick={() => {
-                  setMobileOpen(false);
-                  setIsSettingsOpen(true);
-                }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-emerald-200 hover:bg-emerald-500/20 hover:text-white transition-colors cursor-pointer"
-              >
-                <Settings className="w-4 h-4 text-emerald-400" />
-                <span>{t("common.settings")}</span>
-              </button>
               <Link
                 href="/"
                 onClick={() => setMobileOpen(false)}
