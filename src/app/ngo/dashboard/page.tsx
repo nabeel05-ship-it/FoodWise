@@ -534,7 +534,7 @@ function NgoDashboardContent() {
 
         <div className="flex items-center gap-3">
           <Link
-            href="/ngo/find"
+            href="/ngo/dashboard?tab=claims"
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-md shadow-emerald-950/20 transition-all hover:brightness-110 active:scale-95 cursor-pointer"
             style={{ background: "#164A31" }}
           >

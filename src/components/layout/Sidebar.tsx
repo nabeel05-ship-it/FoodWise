@@ -131,8 +131,7 @@ function SidebarContent({ type }: SidebarProps) {
   // 4. NGO Navigation
   const ngoNav: NavItem[] = [
     { label: t("nav.dashboard"), href: "/ngo/dashboard", icon: LayoutDashboard },
-    { label: t("nav.find_food"), href: "/ngo/find", icon: PackageCheck, badge: t("nav.live_feed"), highlight: true },
-    { label: t("nav.requests"), href: "/ngo/dashboard?tab=claims", icon: Clock },
+    { label: t("nav.find_food"), href: "/ngo/dashboard?tab=claims", icon: PackageCheck, badge: t("nav.live_feed"), highlight: true },
     { label: t("nav.accepted_donations"), href: "/ngo/dashboard?tab=scheduled", icon: Truck },
     { label: t("nav.completed"), href: "/ngo/dashboard?tab=history", icon: CheckCircle2 },
     { label: "Food Issues", href: "/ngo/food-issues", icon: ShieldCheck, highlight: true },

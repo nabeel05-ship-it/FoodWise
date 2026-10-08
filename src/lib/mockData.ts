@@ -520,7 +520,7 @@ export const INITIAL_NOTIFICATIONS: NotificationAlert[] = [
     severity: "info",
     category: "Donation",
     actionLabel: "nav.find_food",
-    actionUrl: "/ngo/find",
+    actionUrl: "/ngo/dashboard?tab=claims",
     read: false,
   },
   {
