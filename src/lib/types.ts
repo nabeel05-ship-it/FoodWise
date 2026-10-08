@@ -212,3 +212,32 @@ export interface NotificationAlert {
   actionUrl?: string;
   read: boolean;
 }
+
+export interface ScheduledPickup {
+  id: string;
+  itemId?: string;
+  institution: string;
+  food: string;
+  destination: string;
+  driver: string;
+  phone: string;
+  otp: string;
+  eta: string;
+  status: string;
+  lat?: number;
+  lng?: number;
+  quantityKg?: number;
+  timestamp?: number;
+}
+
+export interface PastPickupHistoryItem {
+  id: string;
+  date: string;
+  institution: string;
+  food: string;
+  recipient: string;
+  receipt: string;
+  driver: string;
+  status: string;
+  completedAt?: string | number;
+}

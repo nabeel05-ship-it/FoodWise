@@ -409,7 +409,7 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
                       border: "1px solid #E2E8F0",
                       fontSize: "12px",
                     }}
-                    formatter={(value: any, name: any) => [
+                    formatter={(value: number | string | readonly (string | number)[] | undefined, name: string | number | undefined) => [
                       name === "foodKg" ? `${value} ` + t('impact.kg_surplus') : `${value} ` + t('impact.portions'),
                       name === "foodKg" ? t("impact.food_rescued") : t("impact.meals_provided"),
                     ]}

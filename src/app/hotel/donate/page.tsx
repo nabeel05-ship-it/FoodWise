@@ -21,12 +21,12 @@ function HotelDonateForm() {
   const { addDonation, activeDonor } = useApp();
   const { t } = useLang();
 
-  const [mealType, setMealType] = useState("Buffet");
+  const [mealType, setMealType] = useState(searchParams.get("repeatCategory") || "Buffet");
   const [source, setSource] = useState("Buffet");
-  const [foodName, setFoodName] = useState("Corporate Banquet Buffet: Dal Makhani, Paneer & 150 Rotis");
-  const [quantityKg, setQuantityKg] = useState("25");
-  const [servings, setServings] = useState("75");
-  const [diet, setDiet] = useState<"Vegetarian" | "Non-Vegetarian" | "Vegan">("Vegetarian");
+  const [foodName, setFoodName] = useState(searchParams.get("repeatFood") || "Corporate Banquet Buffet: Dal Makhani, Paneer & 150 Rotis");
+  const [quantityKg, setQuantityKg] = useState(searchParams.get("repeatKg") || "25");
+  const [servings, setServings] = useState(searchParams.get("repeatServings") || "75");
+  const [diet, setDiet] = useState<"Vegetarian" | "Non-Vegetarian" | "Vegan">((searchParams.get("repeatDiet") as "Vegetarian" | "Non-Vegetarian" | "Vegan") || "Vegetarian");
   const [banquetEndTime, setBanquetEndTime] = useState("Dinner Service Ended (10:15 PM)");
   const [pickupDeadline, setPickupDeadline] = useState("Tonight, 11:30 PM");
   const [location, setLocation] = useState(
@@ -38,20 +38,6 @@ function HotelDonateForm() {
     "Report to Service Gate / Loading Bay 2. Security will guide driver to service elevator with pre-packed thermal containers."
   );
   const [safetyConfirmed, setSafetyConfirmed] = useState(true);
-
-  // Check URL params for repeat donation
-  useEffect(() => {
-    const repeatFood = searchParams.get("repeatFood");
-    if (repeatFood) setFoodName(repeatFood);
-    const repeatCat = searchParams.get("repeatCategory");
-    if (repeatCat) setMealType(repeatCat);
-    const repeatKg = searchParams.get("repeatKg");
-    if (repeatKg) setQuantityKg(repeatKg);
-    const repeatServings = searchParams.get("repeatServings");
-    if (repeatServings) setServings(repeatServings);
-    const repeatDiet = searchParams.get("repeatDiet");
-    if (repeatDiet) setDiet(repeatDiet as typeof diet);
-  }, [searchParams]);
 
   const handlePreFill = (type: "buffet" | "breakfast" | "bakery") => {
     if (type === "buffet") {

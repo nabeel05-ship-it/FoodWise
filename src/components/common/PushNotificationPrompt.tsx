@@ -54,20 +54,20 @@ export default function PushNotificationPrompt() {
 
   useEffect(() => {
     if (!("serviceWorker" in navigator) || !("PushManager" in window) || typeof Notification === "undefined") {
-      setStatus("unsupported");
+      setTimeout(() => setStatus("unsupported"), 0);
       return;
     }
 
     if (Notification.permission === "granted" || Notification.permission === "denied") {
       if (Notification.permission === "granted") registerServiceWorker();
-      setStatus("hidden");
+      setTimeout(() => setStatus("hidden"), 0);
       return;
     }
 
     // Check if dismissed in this session
     try {
       if (sessionStorage.getItem("foodwise_push_prompt_dismissed") === "true") {
-        setStatus("hidden");
+        setTimeout(() => setStatus("hidden"), 0);
         return;
       }
     } catch {}

@@ -69,8 +69,8 @@ export async function POST(req: Request) {
       message: completion.choices[0]?.message?.content || 'I have no response.',
     });
 
-  } catch (error: any) {
-    console.error('Foodie AI API Error:', error?.message || error);
+  } catch (error: unknown) {
+    console.error('Foodie AI API Error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Foodie AI is temporarily unavailable. Please try again.' },
       { status: 500 }

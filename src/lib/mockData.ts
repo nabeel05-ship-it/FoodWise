@@ -10,6 +10,8 @@ import {
   DonationItem,
   DonorType,
   FoodQualityReport,
+  ScheduledPickup,
+  PastPickupHistoryItem,
 } from "./types";
 
 export const INSTITUTIONS = {
@@ -952,6 +954,74 @@ export const INITIAL_QUALITY_REPORTS: FoodQualityReport[] = [
     createdAt: Date.now() - 1000 * 60 * 60 * 20,
     dateStr: "08 Oct 2026",
     status: "UNDER REVIEW",
+  },
+];
+
+export const DEFAULT_SCHEDULED_PICKUPS: ScheduledPickup[] = [
+  {
+    id: "sched-1",
+    itemId: "don-02",
+    institution: "Hotel Mayura Grand (Buffet Surplus)",
+    food: "Breakfast Buffet Surplus (25 kg)",
+    destination: "Aasha Shelter Home, Malviya Nagar",
+    driver: "Ramesh Kumar (Van DL-1L-4492)",
+    phone: "+91 98112 34567",
+    otp: "6482",
+    eta: "Arriving at Kitchen in 8 mins",
+    status: "En Route to Kitchen",
+    lat: 28.5459,
+    lng: 77.1926,
+    quantityKg: 25,
+    timestamp: Date.now() - 1000 * 60 * 15,
+  },
+  {
+    id: "sched-2",
+    itemId: "don-01",
+    institution: "Green Leaf Restaurant",
+    food: "Vegetable Biryani & Dal (12 kg)",
+    destination: "Nizamuddin Rain Basera Center",
+    driver: "Satish Pal (E-Loader DL-4E-9021)",
+    phone: "+91 98770 12345",
+    otp: "4119",
+    eta: "Loaded & In Transit to Shelter",
+    status: "Delivering to Shelter",
+    lat: 28.5672,
+    lng: 77.2100,
+    quantityKg: 12,
+    timestamp: Date.now() - 1000 * 60 * 45,
+  },
+];
+
+export const INITIAL_PAST_HISTORY: PastPickupHistoryItem[] = [
+  {
+    id: "hist-1",
+    date: "Yesterday, 3:30 PM",
+    institution: "Green Leaf Restaurant",
+    food: "Rice & Dal Tadka (15 kg)",
+    recipient: "Aasha Shelter (45 meals)",
+    receipt: "FW-RELIEF-9041",
+    driver: "Ramesh Kumar (Van DL-1L-4492)",
+    status: "Delivered & Verified",
+  },
+  {
+    id: "hist-2",
+    date: "Yesterday, 2:15 PM",
+    institution: "Sharma Family Residence",
+    food: "Homemade Pulao & Sabzi (3 kg)",
+    recipient: "Local Community Care (8 meals)",
+    receipt: "FW-RELIEF-8992",
+    driver: "Satish Pal (E-Loader DL-4E-9021)",
+    status: "Delivered & Verified",
+  },
+  {
+    id: "hist-3",
+    date: "Sep 22, 4:00 PM",
+    institution: "The Oberoi Banquets",
+    food: "Executive Buffet Surplus (40 kg)",
+    recipient: "Nizamuddin Relief Center (120 meals)",
+    receipt: "FW-RELIEF-8832",
+    driver: "Vikram Singh (Eco Van DL-2C-1108)",
+    status: "Delivered & Verified",
   },
 ];
 

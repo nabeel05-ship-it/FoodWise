@@ -75,8 +75,8 @@ export default function FoodieAIWidget() {
       }
 
       setMessages((prev) => [...prev, { role: "assistant", content: data.message }]);
-    } catch (error: any) {
-      setErrorMsg(error.message || "Foodie AI is temporarily unavailable.");
+    } catch (error: unknown) {
+      setErrorMsg(error instanceof Error ? error.message : "Foodie AI is temporarily unavailable.");
     } finally {
       setIsLoading(false);
     }

@@ -21,12 +21,12 @@ function RestaurantDonateForm() {
   const { addDonation, activeDonor } = useApp();
   const { t } = useLang();
 
-  const [foodName, setFoodName] = useState("Vegetable Dum Biryani with Raita");
-  const [foodCategory, setFoodCategory] = useState("Cooked Meals");
+  const [foodName, setFoodName] = useState(searchParams.get("repeatFood") || "Vegetable Dum Biryani with Raita");
+  const [foodCategory, setFoodCategory] = useState(searchParams.get("repeatCategory") || "Cooked Meals");
   const [serviceShift, setServiceShift] = useState("Lunch Service");
-  const [diet, setDiet] = useState<"Vegetarian" | "Non-Vegetarian" | "Vegan">("Vegetarian");
-  const [quantityKg, setQuantityKg] = useState("12");
-  const [servings, setServings] = useState("35");
+  const [diet, setDiet] = useState<"Vegetarian" | "Non-Vegetarian" | "Vegan">((searchParams.get("repeatDiet") as "Vegetarian" | "Non-Vegetarian" | "Vegan") || "Vegetarian");
+  const [quantityKg, setQuantityKg] = useState(searchParams.get("repeatKg") || "12");
+  const [servings, setServings] = useState(searchParams.get("repeatServings") || "35");
   const [preparationTime, setPreparationTime] = useState("Lunch Service (1:30 PM)");
   const [pickupDeadline, setPickupDeadline] = useState("Today, 8:30 PM");
   const [location, setLocation] = useState(
@@ -38,20 +38,6 @@ function RestaurantDonateForm() {
     "Hot held in food-grade insulated thermal containers (>65°C). Handover from kitchen back entrance."
   );
   const [safetyConfirmed, setSafetyConfirmed] = useState(true);
-
-  // Support repeat donation from URL search params
-  useEffect(() => {
-    const repeatFood = searchParams.get("repeatFood");
-    if (repeatFood) setFoodName(repeatFood);
-    const repeatCat = searchParams.get("repeatCategory");
-    if (repeatCat) setFoodCategory(repeatCat);
-    const repeatKg = searchParams.get("repeatKg");
-    if (repeatKg) setQuantityKg(repeatKg);
-    const repeatServings = searchParams.get("repeatServings");
-    if (repeatServings) setServings(repeatServings);
-    const repeatDiet = searchParams.get("repeatDiet");
-    if (repeatDiet) setDiet(repeatDiet as typeof diet);
-  }, [searchParams]);
 
   const handlePreFill = (type: "biryani" | "dal" | "roti") => {
     if (type === "biryani") {

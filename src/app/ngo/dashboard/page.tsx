@@ -242,6 +242,10 @@ const initialFeed: SurplusFeedItem[] = [
   },
 ];
 
+const generateOtp = () => String(Math.floor(1000 + Math.random() * 9000));
+const generateHistId = () => `hist-${Date.now()}`;
+const getNow = () => Date.now();
+
 function NgoDashboardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -270,7 +274,7 @@ function NgoDashboardContent() {
       institution: d.donorName,
       donorType: d.donorType,
       foodType: d.foodName,
-      diet: (d.diet as any) || "Vegetarian",
+      diet: (d.diet as "Vegetarian" | "Egg" | "Jain" | "Non-Vegetarian" | "Vegan") || "Vegetarian",
       quantityKg: d.quantityKg,
       servings: d.servings,
       location: d.location || d.city,
@@ -307,6 +311,31 @@ function NgoDashboardContent() {
     return INITIAL_PAST_HISTORY;
   });
 
+  // Hydrate scheduled pickups and pickup history from MongoDB via /api/pickups
+  useEffect(() => {
+    let isMounted = true;
+    async function loadPickups() {
+      try {
+        const res = await fetch("/api/pickups");
+        const json = await res.json();
+        if (isMounted && json.success && json.data) {
+          if (Array.isArray(json.data.scheduledPickups) && json.data.scheduledPickups.length > 0) {
+            setScheduledPickups(json.data.scheduledPickups);
+          }
+          if (Array.isArray(json.data.pickupHistory) && json.data.pickupHistory.length > 0) {
+            setPickupHistory(json.data.pickupHistory);
+          }
+        }
+      } catch (err) {
+        console.warn("Could not fetch pickups from server:", err);
+      }
+    }
+    loadPickups();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Schedule modal state
   const [scheduleModalItem, setScheduleModalItem] = useState<SurplusFeedItem | null>(null);
   const [selectedDriverIdx, setSelectedDriverIdx] = useState(0);
@@ -323,7 +352,7 @@ function NgoDashboardContent() {
 
   const handleOpenScheduleModal = (item: SurplusFeedItem) => {
     setScheduleModalItem(item);
-    setGeneratedModalOtp(String(Math.floor(1000 + Math.random() * 9000)));
+    setGeneratedModalOtp(generateOtp());
     setSelectedDriverIdx(0);
     setSelectedDestination(RELIEF_DESTINATIONS[0].name);
   };
@@ -336,7 +365,7 @@ function NgoDashboardContent() {
   ) => {
     const driver = VOLUNTEER_DRIVERS[driverIdx] || VOLUNTEER_DRIVERS[0];
     const newPickup: ScheduledPickup = {
-      id: `sched-${Date.now()}`,
+      id: `sched-${getNow()}`,
       itemId: item.id,
       institution: item.institution,
       food: `${item.foodType} (${item.quantityKg} kg)`,
@@ -349,7 +378,7 @@ function NgoDashboardContent() {
       lat: item.lat,
       lng: item.lng,
       quantityKg: item.quantityKg,
-      timestamp: Date.now(),
+      timestamp: getNow(),
     };
 
     const updated = [newPickup, ...scheduledPickups];
@@ -357,6 +386,13 @@ function NgoDashboardContent() {
     try {
       localStorage.setItem("foodwise_ngo_scheduled_pickups", JSON.stringify(updated));
     } catch {}
+
+    // Persist scheduled pickup to MongoDB via API
+    fetch("/api/pickups", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newPickup),
+    }).catch((err) => console.warn("Failed to persist scheduled pickup to MongoDB:", err));
 
     acceptNgoPickup(item.id);
     acceptDonation(item.id, activeNgo?.name || "Robin Hood Army (Delhi Chapter)", {
@@ -384,7 +420,7 @@ function NgoDashboardContent() {
 
   const handleMarkDelivered = (pickup: ScheduledPickup) => {
     const newHistoryItem = {
-      id: `hist-${Date.now()}`,
+      id: generateHistId(),
       date: "Just now",
       institution: pickup.institution,
       food: pickup.food,
@@ -408,6 +444,17 @@ function NgoDashboardContent() {
       localStorage.setItem("foodwise_ngo_pickup_history", JSON.stringify(updatedHistory));
       localStorage.setItem("foodwise_ngo_scheduled_pickups", JSON.stringify(updatedScheduled));
     } catch {}
+
+    // Persist delivery to history & remove scheduled pickup in MongoDB via API
+    fetch("/api/pickups", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...newHistoryItem, isHistory: true }),
+    }).catch((err) => console.warn("Failed to persist pickup history to MongoDB:", err));
+
+    fetch(`/api/pickups?id=${encodeURIComponent(pickup.id)}`, {
+      method: "DELETE",
+    }).catch((err) => console.warn("Failed to remove scheduled pickup from MongoDB:", err));
 
     confetti({
       particleCount: 50,

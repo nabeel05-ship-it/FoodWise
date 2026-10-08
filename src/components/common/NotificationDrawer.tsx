@@ -19,7 +19,7 @@ export default function NotificationDrawer() {
   const { t } = useLang();
   const pathname = usePathname() || "";
 
-  const [now, setNow] = useState<number>(Date.now());
+  const [now, setNow] = useState<number>(() => Date.now());
 
   const currentSection = pathname.split('/')[1];
   const knownSections = ['ngo', 'restaurant', 'hotel', 'household', 'kitchen'];
@@ -48,7 +48,6 @@ export default function NotificationDrawer() {
 
   useEffect(() => {
     if (!isNotificationOpen) return;
-    setNow(Date.now());
     const interval = setInterval(() => {
       setNow(Date.now());
     }, 15000);

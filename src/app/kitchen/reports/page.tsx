@@ -433,7 +433,7 @@ export default function KitchenReportsPage() {
             <span className="text-xs text-gray-500 font-medium">{t("kitchen.report.filterMeal")}</span>
             <select
               value={selectedMeal}
-              onChange={(e) => setSelectedMeal(e.target.value as any)}
+              onChange={(e) => setSelectedMeal(e.target.value as "ALL" | "Breakfast" | "Lunch" | "Dinner")}
               className="text-xs font-semibold px-3 py-1.5 rounded-xl border border-gray-200 bg-white text-gray-800 focus:outline-none"
             >
               <option value="ALL">{t("kitchen.report.allMeals")}</option>

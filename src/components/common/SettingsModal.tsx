@@ -101,23 +101,6 @@ export default function SettingsModal() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isSettingsOpen, setIsSettingsOpen]);
 
-  // Sync with active donor / NGO
-  useEffect(() => {
-    if (isNgo) {
-      setEntityName(activeNgo?.name || "Robin Hood Army (Delhi Chapter)");
-      setContactPerson(activeNgo?.lead || "Pooja Verma");
-      setPhone(activeNgo?.phone || "+91 98112 45890");
-      setEmail(activeNgo?.email || "delhi.chapter@robinhoodarmy.com");
-      setAddress(activeNgo?.address || "Community Center, Sector 4, RK Puram");
-      setCity(activeNgo?.city || "New Delhi");
-    } else if (activeDonor) {
-      setEntityName(activeDonor.name);
-      setContactPerson(activeDonor.contactPerson || "");
-      setPhone(activeDonor.phone || "");
-      setAddress(activeDonor.address || "");
-      setCity(activeDonor.city || "");
-    }
-  }, [activeDonor, activeNgo, isNgo]);
 
   if (!isSettingsOpen) return null;
 

@@ -432,6 +432,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             );
           }
 
+          // Hydrate donations from MongoDB
+          if (Array.isArray(d.donations) && d.donations.length > 0) {
+            setDonations(d.donations);
+          }
+
+          // Hydrate quality reports from MongoDB
+          if (Array.isArray(d.qualityReports) && d.qualityReports.length > 0) {
+            setQualityReports(d.qualityReports);
+          }
+
           // Hydrate manager override from DB
           if (d.managerOverride && d.managerOverride.active !== false) {
             const ov = {
@@ -470,7 +480,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (parsed && typeof parsed.meals === "number" && parsed.active) {
           // eslint-disable-next-line react-hooks/set-state-in-effect
           setManagerOverride({ meals: parsed.meals, reason: parsed.reason || "Known attendance change" });
-          // eslint-disable-next-line react-hooks/set-state-in-effect
           setIsOverrideActive(true);
         }
       }
@@ -993,18 +1002,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
     addNotification(newNotif);
 
-    // Also persist to local surplus store
+    // Also persist to MongoDB via surplus API
     apiCall("/api/surplus", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        item: newDonation.foodName,
-        quantityKg: newDonation.quantityKg,
-        preparedAt: newDonation.preparationTime,
-        safeUntil: newDonation.pickupDeadline,
-        hoursRemaining: 6,
-        status: "SAFE",
-      }),
+      body: JSON.stringify(newDonation),
     });
 
     return newDonation;
@@ -1033,6 +1035,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem("foodwise_community_donations", JSON.stringify(updated));
       } catch {}
       return updated;
+    });
+
+    // Persist claim acceptance to MongoDB
+    apiCall("/api/surplus", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: donationId,
+        status: "ACCEPTED",
+        acceptedBy: ngoName,
+        acceptedAt: `Today, ${nowTime}`,
+        otp: generatedOtp,
+        driverName: driver?.name || "Ramesh Kumar (Volunteer)",
+        driverPhone: driver?.phone || "+91 98112 34567",
+      }),
     });
 
     const target = donations.find((d) => d.id === donationId);
@@ -1069,6 +1086,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
 
+    // Persist completion to MongoDB
+    apiCall("/api/surplus", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: donationId,
+        status: "COMPLETED",
+        completedAt: `Today, ${nowTime}`,
+      }),
+    });
+
     const target = donations.find((d) => d.id === donationId);
     const newNotif: NotificationAlert = {
       id: `notif-${crypto.randomUUID()}`,
@@ -1090,6 +1118,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem("foodwise_community_donations", JSON.stringify(updated));
       } catch {}
       return updated;
+    });
+
+    // Persist cancellation to MongoDB
+    apiCall("/api/surplus", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: donationId,
+        status: "CANCELLED",
+      }),
     });
   }, []);
 
@@ -1138,6 +1176,34 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem("foodwise_community_donations", JSON.stringify(updated));
       } catch {}
       return updated;
+    });
+
+    // Persist flag to MongoDB surplus item
+    apiCall("/api/surplus", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: reportData.donationId,
+        status: reportData.severity === "HIGH" || reportData.severity === "MEDIUM" ? "FLAGGED_FOR_REVIEW" : undefined,
+        qualityReportId: newId,
+        qualityFlag: {
+          issueType: reportData.issueType,
+          severity: reportData.severity,
+          reportedAt: dateStr,
+        },
+      }),
+    });
+
+    // Persist complaint record to MongoDB
+    apiCall("/api/complaints", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        establishment: reportData.donorName,
+        category: reportData.issueType,
+        severity: reportData.severity,
+        description: reportData.description,
+      }),
     });
 
     // 1. NGO Notification (submission confirmation)
