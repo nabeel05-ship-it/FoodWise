@@ -736,7 +736,10 @@ function NgoDashboardContent() {
                   return (
                     <div
                       key={item.id}
-                      className="p-3.5 rounded-2xl bg-white border border-gray-200 hover:border-emerald-300 transition-all shadow-xs flex items-center justify-between gap-3 overflow-hidden"
+                      onClick={() => setSelectedPickup(item)}
+                      className={`p-3.5 rounded-2xl bg-white border transition-all shadow-xs flex items-center justify-between gap-3 overflow-hidden cursor-pointer ${
+                        selectedPickup?.id === item.id ? "border-emerald-500 ring-1 ring-emerald-500" : "border-gray-200 hover:border-emerald-300"
+                      }`}
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
