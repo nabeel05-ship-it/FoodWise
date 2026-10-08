@@ -15,7 +15,7 @@ export default function HotelDonationsPage() {
   const { donations, activeDonor, completeDonation, cancelDonation } = useApp();
   const { t } = useLang();
 
-  const [filterStatus, setFilterStatus] = useState<"ALL" | "AVAILABLE" | "ACCEPTED" | "COMPLETED">("ALL");
+  const [filterStatus, setFilterStatus] = useState<"ALL" | "AVAILABLE" | "ACCEPTED" | "COMPLETED" | "FLAGGED_FOR_REVIEW">("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDonation, setSelectedDonation] = useState<DonationItem | null>(null);
 
@@ -27,7 +27,8 @@ export default function HotelDonationsPage() {
     const matchesFilter =
       filterStatus === "ALL" ||
       item.status === filterStatus ||
-      (filterStatus === "ACCEPTED" && (item.status === "ACCEPTED" || item.status === "PICKUP"));
+      (filterStatus === "ACCEPTED" && (item.status === "ACCEPTED" || item.status === "PICKUP")) ||
+      (filterStatus === "FLAGGED_FOR_REVIEW" && (item.status === "FLAGGED_FOR_REVIEW" || Boolean(item.qualityFlag)));
 
     const matchesSearch =
       item.foodName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -86,6 +87,10 @@ export default function HotelDonationsPage() {
             { id: "AVAILABLE", label: t("Available") },
             { id: "ACCEPTED", label: t("Accepted by NGO") },
             { id: "COMPLETED", label: t("Completed") },
+            {
+              id: "FLAGGED_FOR_REVIEW",
+              label: `Flagged for Review (${hotelDonations.filter((d) => d.status === "FLAGGED_FOR_REVIEW" || Boolean(d.qualityFlag)).length})`,
+            },
           ].map((tab) => {
             const isTabActive = filterStatus === tab.id;
             return (

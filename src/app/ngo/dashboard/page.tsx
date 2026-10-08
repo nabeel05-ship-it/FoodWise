@@ -254,11 +254,11 @@ function NgoDashboardContent() {
     acceptDonation,
     completeDonation,
     activeNgo,
+    qualityReports,
   } = useApp();
   const { t } = useLang();
   const [filterType, setFilterType] = useState<string>("All");
   const [selectedPickup, setSelectedPickup] = useState<SurplusFeedItem | null>(null);
-  const [mapMode, setMapMode] = useState<"google" | "corridor">("google");
   const [historySearch, setHistorySearch] = useState("");
 
   const dynamicFeed: SurplusFeedItem[] = useMemo(() => {
@@ -672,6 +672,29 @@ function NgoDashboardContent() {
             </div>
           </div>
 
+          {/* Quality Reporting Alert Banner */}
+          {qualityReports.length > 0 && (
+            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-900 shadow-2xs">
+              <div className="flex items-center gap-2.5">
+                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+                <div>
+                  <span className="font-extrabold text-amber-950">
+                    {qualityReports.length} Food Quality Concern{qualityReports.length === 1 ? "" : "s"} Reported
+                  </span>
+                  <p className="text-[11px] text-amber-800">
+                    Donations flagged for partner review. Held back from community distribution.
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/ngo/completed"
+                className="px-3 py-1.5 rounded-xl bg-amber-200/70 hover:bg-amber-200 text-amber-950 font-bold text-xs transition-colors shrink-0 text-center"
+              >
+                View Quality Audit Log →
+              </Link>
+            </div>
+          )}
+
           {/* Quick Split: Map + Feed */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-7">
@@ -684,80 +707,30 @@ function NgoDashboardContent() {
                     </h3>
                     <p className="text-xs text-gray-500">{t("ngo.dash.traffic_map_desc")}</p>
                   </div>
-                  {/* Merged 2-mode selector */}
-                  <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl">
-                    <button
-                      onClick={() => setMapMode("google")}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                        mapMode === "google" ? "bg-white text-emerald-700 shadow-xs" : "text-gray-600 hover:text-gray-900"
-                      }`}
-                    >
-                      {t("ngo.dash.google_maps_live")}
-                    </button>
-                    <button
-                      onClick={() => setMapMode("corridor")}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                        mapMode === "corridor" ? "bg-white text-emerald-700 shadow-xs" : "text-gray-600 hover:text-gray-900"
-                      }`}
-                    >
-                      {t("ngo.dash.interactive_route")}
-                    </button>
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-xl">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>Google Maps Live</span>
                   </div>
                 </div>
 
-                {mapMode === "google" ? (
-                  <div className="relative rounded-2xl overflow-hidden border border-gray-200 bg-gray-100 h-80">
-                    <iframe
-                      src={`https://maps.google.com/maps?saddr=28.5459,77.1926&daddr=${
-                        selectedPickup ? `${selectedPickup.lat},${selectedPickup.lng}` : "28.5672,77.2100"
-                      }&layer=t&output=embed`}
-                      width="100%"
-                      height="100%"
-                      style={{ border: 0 }}
-                      allowFullScreen
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                      title={t("ngo.google_maps_live_dir")}
-                    />
-                    <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-xl border border-gray-200 text-xs font-bold text-gray-900 shadow-sm flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      {selectedPickup ? `${t("ngo.dash.route_to")} ${selectedPickup.institution}` : t("ngo.dash.google_traffic_active")}
-                    </div>
+                <div className="relative rounded-2xl overflow-hidden border border-gray-200 bg-gray-100 h-80">
+                  <iframe
+                    src={`https://maps.google.com/maps?saddr=28.5459,77.1926&daddr=${
+                      selectedPickup ? `${selectedPickup.lat},${selectedPickup.lng}` : "28.5672,77.2100"
+                    }&layer=t&output=embed`}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title={t("ngo.google_maps_live_dir")}
+                  />
+                  <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-xl border border-gray-200 text-xs font-bold text-gray-900 shadow-sm flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    {selectedPickup ? `${t("ngo.dash.route_to")} ${selectedPickup.institution}` : t("ngo.dash.google_traffic_active")}
                   </div>
-                ) : (
-                  <div className="relative rounded-2xl overflow-hidden bg-slate-900 h-80 p-4">
-                    <div
-                      className="absolute inset-0 opacity-20"
-                      style={{
-                        backgroundImage:
-                          "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
-                        backgroundSize: "30px 30px",
-                      }}
-                    />
-                    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 600 320">
-                      <line x1="50" y1="160" x2="550" y2="160" stroke="rgba(255,255,255,0.15)" strokeWidth="3" />
-                      <line x1="300" y1="20" x2="300" y2="300" stroke="rgba(255,255,255,0.15)" strokeWidth="3" />
-                      <ellipse cx="300" cy="160" rx="180" ry="110" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="2" />
-                      <line x1="300" y1="160" x2="160" y2="220" stroke="#10B981" strokeWidth="4" strokeLinecap="round" />
-                      <line x1="300" y1="160" x2="230" y2="90" stroke="#F59E0B" strokeWidth="4" strokeLinecap="round" />
-                      <line x1="300" y1="160" x2="440" y2="80" stroke="#EF4444" strokeWidth="4" strokeLinecap="round" />
-                      <line x1="300" y1="160" x2="460" y2="240" stroke="#EF4444" strokeWidth="4" strokeLinecap="round" />
-                    </svg>
-
-                    <div className="absolute left-[47%] top-[45%] flex flex-col items-center">
-                      <div className="w-8 h-8 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center shadow-lg">
-                        <HeartHandshake className="w-4 h-4 text-white" />
-                      </div>
-                      <span className="text-[9px] font-black text-white bg-black/70 px-1.5 py-0.5 rounded mt-0.5">{t("ngo.dash.ngo_hub")}</span>
-                    </div>
-
-                    <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm p-2 rounded-xl text-[10px] text-white space-y-1">
-                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-1.5 rounded-full bg-emerald-400" /> {t("ngo.hauz_khas_12")}{t("ngo.dash.mins")} ({t("ngo.dash.clear_label")})</div>
-                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-1.5 rounded-full bg-amber-400" /> {t("ngo.aiims_22")}{t("ngo.dash.mins")} ({t("ngo.dash.moderate_label")})</div>
-                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-1.5 rounded-full bg-rose-500" /> {t("ngo.oberoi_okhla_38_45")}{t("ngo.dash.mins")} ({t("ngo.dash.heavy_traffic_label")})</div>
-                    </div>
-                  </div>
-                )}
+                </div>
               </div>
             </div>
 
@@ -985,76 +958,25 @@ function NgoDashboardContent() {
                 </p>
               </div>
 
-              {/* Mode switch */}
-              <div className="flex items-center gap-1 bg-gray-100 p-1.5 rounded-xl">
-                <button
-                  onClick={() => setMapMode("google")}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                    mapMode === "google" ? "bg-white text-emerald-700 shadow-sm" : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  {t("ngo.dash.google_satellite")}
-                </button>
-                <button
-                  onClick={() => setMapMode("corridor")}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                    mapMode === "corridor" ? "bg-white text-emerald-700 shadow-sm" : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  {t("ngo.dash.interactive_corridor")}
-                </button>
+              <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Google Maps Traffic Live</span>
               </div>
             </div>
 
-            {/* Map Area */}
-            {mapMode === "google" ? (
-              <div className="relative rounded-2xl overflow-hidden border border-gray-300 bg-gray-100 h-96">
-                <iframe
-                  src="https://maps.google.com/maps?saddr=28.5459,77.1926&daddr=28.5672,77.2100&layer=t&output=embed"
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title={t("ngo.google_maps_live_rou")}
-                />
-              </div>
-            ) : (
-              <div className="relative rounded-2xl overflow-hidden bg-slate-900 h-96 p-4">
-                <div
-                  className="absolute inset-0 opacity-20"
-                  style={{
-                    backgroundImage:
-                      "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
-                    backgroundSize: "30px 30px",
-                  }}
-                />
-                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 600 360">
-                  <line x1="50" y1="180" x2="550" y2="180" stroke="rgba(255,255,255,0.2)" strokeWidth="3" />
-                  <line x1="300" y1="30" x2="300" y2="330" stroke="rgba(255,255,255,0.2)" strokeWidth="3" />
-                  <ellipse cx="300" cy="180" rx="200" ry="120" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="2" />
-                  <line x1="300" y1="180" x2="160" y2="240" stroke="#10B981" strokeWidth="5" strokeLinecap="round" />
-                  <line x1="300" y1="180" x2="230" y2="100" stroke="#F59E0B" strokeWidth="5" strokeLinecap="round" />
-                  <line x1="300" y1="180" x2="440" y2="90" stroke="#EF4444" strokeWidth="5" strokeLinecap="round" />
-                  <line x1="300" y1="180" x2="470" y2="260" stroke="#EF4444" strokeWidth="5" strokeLinecap="round" />
-                </svg>
-
-                <div className="absolute left-[47%] top-[45%] flex flex-col items-center">
-                  <div className="w-10 h-10 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center shadow-xl">
-                    <HeartHandshake className="w-5 h-5 text-white" />
-                  </div>
-                  <span className="text-[10px] font-black text-white bg-black/70 px-2 py-0.5 rounded mt-1">{t("ngo.dash.ngo_hub")}</span>
-                </div>
-
-                <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-md p-3 rounded-2xl text-xs text-white space-y-1.5 border border-white/10">
-                  <div className="font-bold text-emerald-400 mb-1">{t("ngo.dash.congestion_feed")}</div>
-                  <div className="flex items-center gap-2"><span className="w-3 h-2 rounded-full bg-emerald-400" /> {t("ngo.hauz_khas_12")}{t("ngo.dash.mins")} {t("ngo.dash.margin_prefix")} +150 {t("ngo.dash.min_buffer")}</div>
-                  <div className="flex items-center gap-2"><span className="w-3 h-2 rounded-full bg-amber-400" /> {t("ngo.aiims_flyover_22")}{t("ngo.dash.mins")} {t("ngo.dash.margin_prefix")} +230 {t("ngo.dash.min_buffer")}</div>
-                  <div className="flex items-center gap-2"><span className="w-3 h-2 rounded-full bg-rose-500" /> {t("ngo.mathura_road_okhla_4")}{t("ngo.dash.mins")} ({t("ngo.dash.deficit_risk")})</div>
-                </div>
-              </div>
-            )}
+            {/* Google Map */}
+            <div className="relative rounded-2xl overflow-hidden border border-gray-300 bg-gray-100 h-96">
+              <iframe
+                src="https://maps.google.com/maps?saddr=28.5459,77.1926&daddr=28.5672,77.2100&layer=t&output=embed"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title={t("ngo.google_maps_live_rou")}
+              />
+            </div>
 
             {/* Corridor Safety Breakdown Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">

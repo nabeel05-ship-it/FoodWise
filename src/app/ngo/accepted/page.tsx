@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   MapPin,
   Check,
+  AlertTriangle,
 } from "lucide-react";
 
 export default function NgoAcceptedPage() {
@@ -183,9 +184,11 @@ export default function NgoAcceptedPage() {
         <DonationDetailsModal
           donation={selectedDonation}
           isOpen={!!selectedDonation}
+          userRole="NGO"
           onClose={() => setSelectedDonation(null)}
         />
       )}
+
     </div>
   );
 }

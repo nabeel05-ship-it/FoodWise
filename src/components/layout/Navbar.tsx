@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
-import LanguageToggle from "@/components/common/LanguageToggle";
 import {
   Sparkles,
   Utensils,
@@ -120,9 +119,6 @@ export default function Navbar() {
 
         {/* Right CTA */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Language Switcher */}
-          <LanguageToggle compact className="bg-slate-100/90 text-slate-800 border-slate-200" />
-
           <button
             onClick={() => setIsNotificationOpen(true)}
             className="relative p-2 rounded-xl transition-colors shrink-0"

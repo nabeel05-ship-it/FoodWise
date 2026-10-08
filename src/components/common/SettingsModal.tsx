@@ -20,7 +20,6 @@ import {
   KeyRound,
   LogOut,
 } from "lucide-react";
-import LanguageToggle from "@/components/common/LanguageToggle";
 
 export default function SettingsModal() {
   const router = useRouter();
@@ -166,7 +165,6 @@ export default function SettingsModal() {
           </div>
 
           <div className="flex items-center gap-2">
-            <LanguageToggle compact className="text-xs px-2.5 py-1.5" />
             <button
               onClick={() => setIsSettingsOpen(false)}
               className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors cursor-pointer"

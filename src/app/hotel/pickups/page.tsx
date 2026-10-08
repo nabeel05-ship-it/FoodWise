@@ -154,7 +154,7 @@ export default function HotelPickupsPage() {
                 </div>
                 <span className="text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 flex items-center gap-1 text-[11px] w-fit">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  {t("status.delivered")}
+                  Delivered
                 </span>
               </div>
             ))}

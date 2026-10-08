@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { DonationItem } from "@/lib/types";
+import { useApp } from "@/context/AppContext";
 import {
   X,
   MapPin,
@@ -16,6 +17,7 @@ import {
   Home,
   HeartHandshake,
   Download,
+  AlertTriangle,
 } from "lucide-react";
 import { downloadDonationRecordPdf } from "@/lib/pdfGenerator";
 import { useLang } from "@/context/LanguageContext";
@@ -33,19 +35,22 @@ export interface DonationDetailsModalProps {
 export default function DonationDetailsModal({
   donation,
   isOpen = true,
-  userRole = "RESTAURANT",
+  userRole,
   onClose,
   onCancelDonation,
   onCompleteDonation,
   onRequestFood,
 }: DonationDetailsModalProps) {
   const { t } = useLang();
+  const { userRole: globalUserRole } = useApp();
   if (!donation || !isOpen) return null;
 
-  const normalizedRole = userRole?.toUpperCase() as "RESTAURANT" | "HOTEL" | "HOUSEHOLD" | "NGO";
+  const effectiveRole = userRole || globalUserRole || "RESTAURANT";
+  const normalizedRole = effectiveRole.toUpperCase() as "RESTAURANT" | "HOTEL" | "HOUSEHOLD" | "NGO";
   const isAvailable = donation.status === "AVAILABLE";
   const isAccepted = donation.status === "ACCEPTED" || donation.status === "PICKUP";
   const isCompleted = donation.status === "COMPLETED";
+  const isFlagged = donation.status === "FLAGGED_FOR_REVIEW" || Boolean(donation.qualityFlag);
 
   const DonorIcon =
     donation.donorType === "Restaurant"
@@ -91,14 +96,18 @@ export default function DonationDetailsModal({
           <div className="flex items-center gap-2">
             <span
               className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                isAvailable
+                isFlagged
+                  ? "bg-amber-100 text-amber-900 border border-amber-300"
+                  : isAvailable
                   ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
                   : isAccepted
                   ? "bg-blue-50 text-blue-800 border border-blue-200"
                   : "bg-gray-100 text-gray-700"
               }`}
             >
-              {donation.status === "AVAILABLE"
+              {isFlagged
+                ? "Flagged for Review"
+                : donation.status === "AVAILABLE"
                 ? t("Available For Pickup")
                 : donation.status === "ACCEPTED"
                 ? t("Volunteer Claimed")
@@ -113,6 +122,38 @@ export default function DonationDetailsModal({
             {donation.quantityKg} kg • ~{donation.servings} {t("Servings")}
           </span>
         </div>
+
+        {/* Quality Concern Banner (Visible transparently) */}
+        {isFlagged && (
+          <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 space-y-2 text-xs">
+            <div className="flex items-center justify-between text-amber-950 font-bold">
+              <div className="flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4 text-amber-600" />
+                <span>Food Quality Concern Reported</span>
+              </div>
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-200 text-amber-950 border border-amber-300">
+                {donation.qualityFlag?.severity || "Under Review"} Severity
+              </span>
+            </div>
+            <div className="text-amber-900 space-y-1 pt-1 border-t border-amber-200/60">
+              <div className="flex items-center justify-between">
+                <span className="text-amber-800 font-medium">Reported Issue:</span>
+                <strong className="text-amber-950 font-bold">{donation.qualityFlag?.issueType || "Observed Quality Concern"}</strong>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-amber-800 font-medium">Reported Date:</span>
+                <span className="text-amber-950 font-semibold">{donation.qualityFlag?.reportedAt || "Recently"}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-amber-800 font-medium">Status:</span>
+                <span className="text-amber-950 font-semibold">Flagged for Review (Held from distribution)</span>
+              </div>
+            </div>
+            <p className="text-[11px] text-amber-800/90 pt-1 leading-relaxed">
+              Reported by receiving partner for quality verification. Food is held back from distribution pending review.
+            </p>
+          </div>
+        )}
 
         {/* Description / Notes */}
         {donation.description && (

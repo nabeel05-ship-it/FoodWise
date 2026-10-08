@@ -39,15 +39,15 @@ const MONTHLY_COMMUNITY_TREND = [
   { month: "Oct", foodKg: 1380, mealsServed: 4410 },
 ];
 
-export default function SustainabilityImpactPage() {
-  const { userRole, activeDonor, activeNgo, donations, communityMetrics } = useApp();
+export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAURANT" | "HOTEL" | "NGO" }) {
+  const { activeDonor, activeNgo, donations, communityMetrics } = useApp();
   const { t } = useLang();
   const [viewMode, setViewMode] = useState<"role" | "community">("role");
 
-  const isHousehold = userRole === "HOUSEHOLD";
-  const isRestaurant = userRole === "RESTAURANT";
-  const isHotel = userRole === "HOTEL";
-  const isNgo = userRole === "NGO";
+  const isHousehold = role === "HOUSEHOLD";
+  const isRestaurant = role === "RESTAURANT";
+  const isHotel = role === "HOTEL";
+  const isNgo = role === "NGO";
 
   // Filter role-specific donations
   const myDonations = isNgo
@@ -56,7 +56,7 @@ export default function SustainabilityImpactPage() {
         (d) =>
           d.donorId === activeDonor.id ||
           d.donorName === activeDonor.name ||
-          d.donorType.toUpperCase() === userRole
+          d.donorType.toUpperCase() === role
       );
 
   const completedDonations = myDonations.filter((d) => d.status === "COMPLETED");
@@ -163,7 +163,7 @@ export default function SustainabilityImpactPage() {
                   : "Community Relief Participation Certificate",
                 quantityKg: viewMode === "role" ? roleFoodKg : totalCommunityKg,
                 servings: viewMode === "role" ? rolePeopleServed : totalCommunityServings,
-                donorType: userRole,
+                donorType: role,
                 donationDate: "October 2026",
               })
             }
@@ -303,14 +303,14 @@ export default function SustainabilityImpactPage() {
                       </div>
                     </div>
                     <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 font-semibold text-[11px] border border-emerald-200">
-                      {t("status.delivered")}
+                      Delivered
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="text-xs text-gray-500 py-3">
-                {t("impact.lifetime_record")} <strong>{roleCompletedCount} {t("status.completed")}</strong>{t("impact.totaling")}<strong>{roleFoodKg} kg</strong>. {t("impact.newly_posted")}
+                {t("impact.lifetime_record")} <strong>{roleCompletedCount} Completed</strong>{t("impact.totaling")}<strong>{roleFoodKg} kg</strong>. {t("impact.newly_posted")}
               </div>
             )}
           </div>
@@ -324,7 +324,7 @@ export default function SustainabilityImpactPage() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div className="p-5 rounded-2xl bg-white border border-emerald-100 shadow-xs">
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
-                {t("impact.total_food_donated")}
+                Total Food Donated
               </span>
               <div className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-800 mt-1">
                 {totalCommunityKg} <span className="text-xs font-semibold text-gray-500">kg</span>
@@ -334,7 +334,7 @@ export default function SustainabilityImpactPage() {
 
             <div className="p-5 rounded-2xl bg-white border border-rose-100 shadow-xs">
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
-                {t("impact.people_fed_servings")}
+                People Fed / Servings
               </span>
               <div className="text-2xl sm:text-3xl font-extrabold font-mono text-rose-700 mt-1">
                 ~{totalCommunityServings}
@@ -372,11 +372,11 @@ export default function SustainabilityImpactPage() {
                   <span>{t("impact.monthly_growth")}</span>
                 </h2>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  {t("impact.cumulative_surplus_desc")}
+                  Cumulative surplus food preserved and meals served across all donor partners.
                 </p>
               </div>
               <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">
-                {t("impact.verified_community_ledger")}
+                Verified Community Ledger
               </span>
             </div>
 

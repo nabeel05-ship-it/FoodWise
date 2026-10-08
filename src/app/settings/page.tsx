@@ -19,9 +19,7 @@ import {
   KeyRound,
   Globe,
   LogOut,
-  Truck,
 } from "lucide-react";
-import LanguageToggle from "@/components/common/LanguageToggle";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -157,10 +155,6 @@ export default function SettingsPage() {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <LanguageToggle
-            compact
-            className="bg-white text-emerald-900 border-emerald-300 hover:bg-emerald-50 px-3 py-2 text-xs"
-          />
           <button
             onClick={handleSave}
             className="px-4 py-2.5 rounded-xl text-white text-xs font-bold shadow-md shadow-emerald-950/20 flex items-center gap-2 transition-all cursor-pointer hover:brightness-110 active:scale-95"

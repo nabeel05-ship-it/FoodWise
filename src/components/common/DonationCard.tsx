@@ -15,6 +15,7 @@ import {
   HeartHandshake,
   ArrowRight,
   RotateCcw,
+  AlertTriangle,
 } from "lucide-react";
 
 interface DonationCardProps {
@@ -40,6 +41,7 @@ export default function DonationCard({
   const isAvailable = donation.status === "AVAILABLE";
   const isAccepted = donation.status === "ACCEPTED" || donation.status === "PICKUP";
   const isCompleted = donation.status === "COMPLETED";
+  const isFlagged = donation.status === "FLAGGED_FOR_REVIEW" || Boolean(donation.qualityFlag);
 
   const DonorIcon =
     donation.donorType === "Hotel" ? Hotel : donation.donorType === "Household" ? Home : Utensils;
@@ -51,7 +53,9 @@ export default function DonationCard({
     <div
       onClick={() => onViewDetails(donation)}
       className={`bg-white rounded-2xl p-5 border transition-all cursor-pointer hover:shadow-md flex flex-col justify-between ${
-        isAvailable
+        isFlagged
+          ? "border-amber-300 hover:border-amber-400 bg-amber-50/20"
+          : isAvailable
           ? "border-emerald-200 hover:border-emerald-400"
           : isAccepted
           ? "border-blue-200 hover:border-blue-400 bg-blue-50/15"
@@ -97,24 +101,27 @@ export default function DonationCard({
           </div>
 
           {/* Status Badge */}
-          {isAvailable && (
+          {isFlagged ? (
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-100 border border-amber-200 px-2.5 py-0.5 rounded-full shrink-0">
+              <AlertTriangle className="w-3 h-3 text-amber-700" />
+              <span>Flagged for Review</span>
+            </span>
+          ) : isAvailable ? (
             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               {t("dash.card_available")}
             </span>
-          )}
-          {isAccepted && (
+          ) : isAccepted ? (
             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full shrink-0">
               <Truck className="w-3 h-3" />
               {t("dash.card_accepted")}
             </span>
-          )}
-          {isCompleted && (
+          ) : isCompleted ? (
             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-gray-700 bg-gray-100 px-2.5 py-0.5 rounded-full shrink-0">
               <CheckCircle2 className="w-3 h-3 text-emerald-600" />
               {t("dash.card_completed")}
             </span>
-          )}
+          ) : null}
         </div>
 
         {/* Food Name & Donor info */}
@@ -160,7 +167,12 @@ export default function DonationCard({
       <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between gap-2 text-xs">
         {/* Left Status info / OTP */}
         <div>
-          {isAccepted && donation.otp ? (
+          {isFlagged ? (
+            <span className="text-amber-800 font-semibold text-[11px] flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3 text-amber-600" />
+              <span>Quality Review</span>
+            </span>
+          ) : isAccepted && donation.otp ? (
             <div className="flex items-center gap-1.5 text-blue-900 bg-blue-100 px-2 py-0.5 rounded-lg font-mono font-bold text-[11px]">
               <Key className="w-3 h-3 text-blue-700" />
               <span>OTP: {donation.otp}</span>

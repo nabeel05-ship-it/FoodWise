@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
-import LanguageToggle from "@/components/common/LanguageToggle";
 import { DonorType } from "@/lib/types";
 import {
   Mail,
@@ -194,24 +193,26 @@ export default function LoginPage() {
             <div className="flex items-center gap-3">
               <img
                 src="/logo.png"
-                alt={t("landing.foodwise_logo")}
+                alt="FoodWise Logo"
                 className="w-10 h-10 sm:w-11 sm:h-11 object-contain shrink-0"
               />
               <div>
                 <span className="font-extrabold text-xl text-[#143826] tracking-tight block leading-tight">
-                  {t("landing.foodwise")}</span>
+                  FoodWise
+                </span>
                 <span className="text-[11px] font-semibold text-emerald-800 tracking-wide block">
-                  {t("landing.food_waste_reduction")}</span>
+                  Food Waste Reduction & Food Donation Platform
+                </span>
               </div>
             </div>
-            <LanguageToggle compact className="bg-emerald-50 text-emerald-800 border-emerald-300/60 hover:bg-emerald-100" />
           </div>
 
           {/* Header Message */}
           <div className="my-5">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[11px] font-bold mb-2">
               <Sparkles className="w-3 h-3 text-emerald-700" />
-              {t("landing.community_project_po")}</div>
+              Community Project • PO6 & PO12 • SDG 2 & SDG 12
+            </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight leading-tight">
               {isRegistering
                 ? authType === "DONOR"
@@ -238,7 +239,7 @@ export default function LoginPage() {
               }`}
             >
               <Utensils className="w-3.5 h-3.5 text-emerald-700" />
-              <span>{t("landing.donor")}{isRegistering ? "PORTAL" : "LOGIN"}</span>
+              <span>{isRegistering ? "Donor Portal" : "Donor Login"}</span>
             </button>
             <button
               type="button"
@@ -250,7 +251,7 @@ export default function LoginPage() {
               }`}
             >
               <HeartHandshake className="w-3.5 h-3.5 text-emerald-700" />
-              <span>{t("landing.ngo_relief")}{isRegistering ? "PORTAL" : "LOGIN"}</span>
+              <span>{isRegistering ? "NGO / Relief Portal" : "NGO / Relief Organization Login"}</span>
             </button>
           </div>
 
@@ -258,7 +259,8 @@ export default function LoginPage() {
           {authType === "DONOR" && (
             <div className="mb-4">
               <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
-                {t("landing.donor_type")}</label>
+                Donor Type
+              </label>
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { id: "RESTAURANT" as const, label: "Restaurant", icon: Utensils, hint: "Cafés & Diners" },
@@ -293,7 +295,8 @@ export default function LoginPage() {
             <form onSubmit={handleSignIn} className="space-y-3.5">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  {t("landing.email_address")}</label>
+                  Email
+                </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
@@ -301,7 +304,7 @@ export default function LoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder={t("landing.name_organization_co")}
+                    placeholder="name@organization.com"
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-xs sm:text-sm font-medium text-gray-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 shadow-2xs"
                   />
                 </div>
@@ -310,9 +313,11 @@ export default function LoginPage() {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-xs font-semibold text-gray-700">
-                    {t("landing.password")}</label>
+                    Password
+                  </label>
                   <span className="text-[11px] font-semibold text-emerald-800">
-                    {t("landing.pre_filled_for_demo")}</span>
+                    Pre-filled for demo
+                  </span>
                 </div>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -358,23 +363,25 @@ export default function LoginPage() {
               <div className="pt-2 text-center text-xs text-gray-600">
                 {authType === "DONOR" ? (
                   <span>
-                    {t("landing.need_a_new_donor_pro")}{" "}
+                    Need a new donor profile?{" "}
                     <button
                       type="button"
                       onClick={() => setIsRegistering(true)}
                       className="font-bold text-emerald-800 hover:underline cursor-pointer"
                     >
-                      {t("landing.register_as_a_donor")}</button>
+                      Register as a donor
+                    </button>
                   </span>
                 ) : (
                   <span>
-                    {t("landing.new_relief_organizat")}{" "}
+                    New relief organization?{" "}
                     <button
                       type="button"
                       onClick={() => setIsRegistering(true)}
                       className="font-bold text-emerald-800 hover:underline cursor-pointer"
                     >
-                      {t("landing.register_your_ngo")}</button>
+                      Register your NGO
+                    </button>
                   </span>
                 )}
               </div>
@@ -412,19 +419,20 @@ export default function LoginPage() {
 
                     <div>
                       <label className="block font-bold text-gray-700 mb-1">
-                        {t("landing.contact_person")}</label>
+                        Contact Person
+                      </label>
                       <input
                         type="text"
                         required
                         value={regContact}
                         onChange={(e) => setRegContact(e.target.value)}
-                        placeholder={t("landing.e_g_ramesh_kumar")}
+                        placeholder="e.g. Ramesh Kumar"
                         className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600"
                       />
                     </div>
 
                     <div>
-                      <label className="block font-bold text-gray-700 mb-1">{t("landing.phone_number")}</label>
+                      <label className="block font-bold text-gray-700 mb-1">Phone Number</label>
                       <input
                         type="tel"
                         required
@@ -436,19 +444,19 @@ export default function LoginPage() {
                     </div>
 
                     <div className="sm:col-span-2">
-                      <label className="block font-bold text-gray-700 mb-1">{t("landing.pickup_address_amp_l")}</label>
+                      <label className="block font-bold text-gray-700 mb-1">Pickup Address & Location</label>
                       <input
                         type="text"
                         required
                         value={regAddress}
                         onChange={(e) => setRegAddress(e.target.value)}
-                        placeholder={t("landing.e_g_12_4_market_stre")}
+                        placeholder="e.g. 12/4 Market Street, Connaught Place"
                         className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600"
                       />
                     </div>
 
                     <div>
-                      <label className="block font-bold text-gray-700 mb-1">{t("landing.city")}</label>
+                      <label className="block font-bold text-gray-700 mb-1">City</label>
                       <input
                         type="text"
                         value={regCity}
@@ -459,12 +467,12 @@ export default function LoginPage() {
 
                     {donorCategory !== "HOUSEHOLD" && (
                       <div>
-                        <label className="block font-bold text-gray-700 mb-1">{t("landing.fssai_number_optiona")}</label>
+                        <label className="block font-bold text-gray-700 mb-1">FSSAI License Number (Optional)</label>
                         <input
                           type="text"
                           value={regFssai}
                           onChange={(e) => setRegFssai(e.target.value)}
-                          placeholder={t("landing.e_g_10019011006542")}
+                          placeholder="e.g. 10019011006542"
                           className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600"
                         />
                       </div>
@@ -477,7 +485,8 @@ export default function LoginPage() {
                       onClick={() => setIsRegistering(false)}
                       className="px-4 py-2 font-semibold text-gray-600 hover:underline cursor-pointer"
                     >
-                      {t("landing.back_to_login")}</button>
+                      Back to Login
+                    </button>
                     <button
                       type="submit"
                       disabled={isLoading}
@@ -494,32 +503,34 @@ export default function LoginPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div className="sm:col-span-2">
                       <label className="block font-bold text-gray-700 mb-1">
-                        {t("landing.ngo_relief_organizat")}</label>
+                        NGO / Relief Organization Name *
+                      </label>
                       <input
                         type="text"
                         required
                         value={ngoName}
                         onChange={(e) => setNgoName(e.target.value)}
-                        placeholder={t("landing.e_g_feeding_hope_fou")}
+                        placeholder="e.g. Feeding Hope Foundation"
                         className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600"
                       />
                     </div>
 
                     <div>
                       <label className="block font-bold text-gray-700 mb-1">
-                        {t("landing.coordinator_lead_nam")}</label>
+                        Coordinator / Lead Name *
+                      </label>
                       <input
                         type="text"
                         required
                         value={ngoLead}
                         onChange={(e) => setNgoLead(e.target.value)}
-                        placeholder={t("landing.e_g_priya_sundaram")}
+                        placeholder="e.g. Priya Sundaram"
                         className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600"
                       />
                     </div>
 
                     <div>
-                      <label className="block font-bold text-gray-700 mb-1">{t("landing.phone_number")}</label>
+                      <label className="block font-bold text-gray-700 mb-1">Phone Number</label>
                       <input
                         type="tel"
                         required
@@ -531,35 +542,35 @@ export default function LoginPage() {
                     </div>
 
                     <div className="sm:col-span-2">
-                      <label className="block font-bold text-gray-700 mb-1">{t("landing.distribution_center")}</label>
+                      <label className="block font-bold text-gray-700 mb-1">Distribution Center Address *</label>
                       <input
                         type="text"
                         required
                         value={ngoAddress}
                         onChange={(e) => setNgoAddress(e.target.value)}
-                        placeholder={t("landing.e_g_sector_4_communi")}
+                        placeholder="e.g. Sector 4 Community Center, Rohini"
                         className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600"
                       />
                     </div>
 
                     <div>
-                      <label className="block font-bold text-gray-700 mb-1">{t("landing.coverage_service_are")}</label>
+                      <label className="block font-bold text-gray-700 mb-1">Coverage / Service Area</label>
                       <input
                         type="text"
                         value={ngoCoverage}
                         onChange={(e) => setNgoCoverage(e.target.value)}
-                        placeholder={t("landing.e_g_north_west_delhi")}
+                        placeholder="e.g. North & West Delhi"
                         className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600"
                       />
                     </div>
 
                     <div>
-                      <label className="block font-bold text-gray-700 mb-1">{t("landing.ngo_darpan_registrat")}</label>
+                      <label className="block font-bold text-gray-700 mb-1">NGO DARPAN Registration / 12A / 80G No.</label>
                       <input
                         type="text"
                         value={ngoRegNo}
                         onChange={(e) => setNgoRegNo(e.target.value)}
-                        placeholder={t("landing.e_g_dl_2021_0291823")}
+                        placeholder="e.g. DL/2021/0291823"
                         className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600"
                       />
                     </div>
@@ -571,7 +582,8 @@ export default function LoginPage() {
                       onClick={() => setIsRegistering(false)}
                       className="px-4 py-2 font-semibold text-gray-600 hover:underline cursor-pointer"
                     >
-                      {t("landing.back_to_login")}</button>
+                      Back to Login
+                    </button>
                     <button
                       type="submit"
                       disabled={isLoading}
@@ -678,7 +690,7 @@ export default function LoginPage() {
           <div className="mt-4 -mx-6 -mb-6 sm:-mx-8 sm:-mb-8 lg:-mx-10 lg:-mb-10 relative flex justify-end">
             <img
               src="/login-illustration.png"
-              alt={t("landing.foodwise_sustainable")}
+              alt="FoodWise Sustainable Surplus Food Redistribution"
               className="w-full max-h-[240px] object-cover object-bottom opacity-95 hover:opacity-100 transition-opacity"
             />
           </div>
@@ -689,11 +701,14 @@ export default function LoginPage() {
       <div className="w-full max-w-[1060px] mt-8 bg-white/95 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-emerald-900/20 shadow-xl">
         <div className="text-center max-w-2xl mx-auto mb-6">
           <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-            {t("landing.how_foodwise_works")}</span>
+            How FoodWise Works
+          </span>
           <h2 className="text-xl sm:text-2xl font-black text-gray-900 mt-2">
-            {t("landing.the_circular_surplus")}</h2>
+            The Circular Surplus Redistribution Journey
+          </h2>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">
-            {t("landing.simple_transparent_a")}</p>
+            Simple, transparent, and dignified food recovery in 6 steps.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -761,36 +776,40 @@ export default function LoginPage() {
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2.5">
             <span className="text-xl">🍲</span>
             <div>
-              <div className="font-extrabold text-amber-900">{t("landing.sdg_2_zero_hunger")}</div>
+              <div className="font-extrabold text-amber-900">SDG 2: Zero Hunger</div>
               <div className="text-[11px] text-amber-800 leading-tight mt-0.5">
-                {t("landing.target_2_1_universal")}</div>
+                Target 2.1 • Access to safe, nutritious food all year round
+              </div>
             </div>
           </div>
 
           <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-start gap-2.5">
             <span className="text-xl">♻️</span>
             <div>
-              <div className="font-extrabold text-emerald-900">{t("landing.sdg_12_responsible_c")}</div>
+              <div className="font-extrabold text-emerald-900">SDG 12: Responsible Consumption</div>
               <div className="text-[11px] text-emerald-800 leading-tight mt-0.5">
-                {t("landing.target_12_3_halving")}</div>
+                Target 12.3 • Halve per-capita food waste & reduce losses
+              </div>
             </div>
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-start gap-2.5">
             <span className="text-xl">👥</span>
             <div>
-              <div className="font-extrabold text-blue-900">{t("landing.po6_engineer_amp_soc")}</div>
+              <div className="font-extrabold text-blue-900">PO6: Engineer & Society</div>
               <div className="text-[11px] text-blue-800 leading-tight mt-0.5">
-                {t("landing.applying_technology")}</div>
+                Applying technology for community nutrition & welfare
+              </div>
             </div>
           </div>
 
           <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 flex items-start gap-2.5">
             <span className="text-xl">💡</span>
             <div>
-              <div className="font-extrabold text-purple-900">{t("landing.po12_continuous_lear")}</div>
+              <div className="font-extrabold text-purple-900">PO12: Continuous Learning</div>
               <div className="text-[11px] text-purple-800 leading-tight mt-0.5">
-                {t("landing.practical_real_world")}</div>
+                Practical, real-world deployment for sustainable impact
+              </div>
             </div>
           </div>
         </div>
@@ -798,7 +817,7 @@ export default function LoginPage() {
 
       {/* Footer Branding */}
       <div className="mt-8 text-center text-xs text-emerald-300/80 font-medium">
-        {t("landing.foodwise_community_p")}<span className="italic font-semibold text-emerald-200">{t("landing.ldquo_don_apos_t_le")}</span>
+        FoodWise Community Platform — Making every meal count • <span className="italic font-semibold text-emerald-200">&ldquo;Don&apos;t Let Good Food Go to Waste&rdquo;</span>
       </div>
     </div>
   );

@@ -113,7 +113,7 @@ function HotelDonateForm() {
 
     try {
       confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
-    } catch {}
+    } catch { }
 
     router.push("/hotel/donations");
   };

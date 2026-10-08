@@ -1,7 +1,16 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
-import { InstitutionRole, NotificationAlert, SurplusItem, DonationItem, DonorType } from "@/lib/types";
+import {
+  InstitutionRole,
+  NotificationAlert,
+  SurplusItem,
+  DonationItem,
+  DonorType,
+  DonationStatus,
+  FoodQualityReport,
+  QualityReportStatus,
+} from "@/lib/types";
 import {
   INITIAL_NOTIFICATIONS,
   SURPLUS_ITEMS,
@@ -10,6 +19,7 @@ import {
   COMMUNITY_NGOS,
   CommunityDonor,
   CommunityNgo,
+  INITIAL_QUALITY_REPORTS,
 } from "@/lib/mockData";
 
 export interface DonorHotel {
@@ -254,6 +264,12 @@ interface AppContextType {
     activeCount: number;
     co2SavedKg: number;
   };
+
+  // ─── NGO FOOD QUALITY REPORTING ───
+  qualityReports: FoodQualityReport[];
+  createQualityReport: (report: Omit<FoodQualityReport, "id" | "createdAt" | "dateStr" | "status">) => FoodQualityReport;
+  getQualityReports: () => FoodQualityReport[];
+  updateQualityReportStatus: (reportId: string, status: QualityReportStatus, statusNote?: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -285,6 +301,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [donorHotels, setDonorHotels] = useState<DonorHotel[]>(INITIAL_HOTELS);
   const [donorFeedback, setDonorFeedback] = useState<FeedbackEntry[]>(INITIAL_FEEDBACK);
   const [dbConnected, setDbConnected] = useState(false);
+  const [qualityReports, setQualityReports] = useState<FoodQualityReport[]>(INITIAL_QUALITY_REPORTS);
 
   const setUserRole = useCallback(
     (role: "RESTAURANT" | "HOTEL" | "HOUSEHOLD" | "NGO") => {
@@ -464,6 +481,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const parsed = JSON.parse(storedDonations);
         if (Array.isArray(parsed) && parsed.length > 0) {
           setDonations(parsed);
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    // Hydrate food quality reports from localStorage
+    try {
+      const storedReports = localStorage.getItem("foodwise_quality_reports");
+      if (storedReports) {
+        const parsed = JSON.parse(storedReports);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setQualityReports(parsed);
         }
       }
     } catch {
@@ -1057,6 +1087,96 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const createQualityReport = useCallback((reportData: Omit<FoodQualityReport, "id" | "createdAt" | "dateStr" | "status">): FoodQualityReport => {
+    const newId = `fqr-${Date.now()}`;
+    const now = Date.now();
+    const dateStr = new Date(now).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+    const newReport: FoodQualityReport = {
+      ...reportData,
+      id: newId,
+      createdAt: now,
+      dateStr,
+      status: "REPORTED",
+    };
+
+    setQualityReports((prev) => {
+      const updated = [newReport, ...prev];
+      try {
+        localStorage.setItem("foodwise_quality_reports", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    // Flag donation if MEDIUM or HIGH severity (or flag for review)
+    setDonations((prev) => {
+      const updated = prev.map((d) => {
+        if (d.id === reportData.donationId) {
+          const newStatus: DonationStatus =
+            reportData.severity === "HIGH" || reportData.severity === "MEDIUM"
+              ? "FLAGGED_FOR_REVIEW"
+              : d.status;
+          return {
+            ...d,
+            status: newStatus,
+            qualityReportId: newId,
+            qualityFlag: {
+              issueType: reportData.issueType,
+              severity: reportData.severity,
+              reportedAt: dateStr,
+            },
+          };
+        }
+        return d;
+      });
+      try {
+        localStorage.setItem("foodwise_community_donations", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    // 1. NGO Notification (submission confirmation)
+    const ngoNotif: NotificationAlert = {
+      id: `notif-${crypto.randomUUID()}`,
+      title: "Food quality report submitted.",
+      message: `The donation has been flagged for review (${reportData.issueType}).`,
+      time: "Just now",
+      severity: reportData.severity === "HIGH" ? "urgent" : "warning",
+      category: "Redistribution",
+      read: false,
+    };
+    addNotification(ngoNotif);
+
+    // 2. Donor Notification (transparent notification of reported concern)
+    const donorNotif: NotificationAlert = {
+      id: `notif-${crypto.randomUUID()}`,
+      title: "A quality concern was reported for your donation.",
+      message: `${reportData.foodName}: Reported for review — ${reportData.issueType} (${reportData.severity} severity).`,
+      time: "Just now",
+      severity: reportData.severity === "HIGH" ? "urgent" : "warning",
+      category: "Donation",
+      actionLabel: "View Details",
+      actionUrl: "/hotel/donations",
+      read: false,
+    };
+    addNotification(donorNotif);
+
+    return newReport;
+  }, [addNotification]);
+
+  const getQualityReports = useCallback((): FoodQualityReport[] => {
+    return qualityReports;
+  }, [qualityReports]);
+
+  const updateQualityReportStatus = useCallback((reportId: string, status: QualityReportStatus, statusNote?: string) => {
+    setQualityReports((prev) => {
+      const updated = prev.map((r) => (r.id === reportId ? { ...r, status, ...(statusNote ? { statusNote } : {}) } : r));
+      try {
+        localStorage.setItem("foodwise_quality_reports", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  }, []);
+
   const communityMetrics = useMemo(() => {
     let totalKg = 0;
     let totalServings = 0;
@@ -1142,6 +1262,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         activeNgo,
         setActiveNgoId,
         communityMetrics,
+        // NGO Food Quality Reporting
+        qualityReports,
+        createQualityReport,
+        getQualityReports,
+        updateQualityReportStatus,
       }}
     >
       {children}

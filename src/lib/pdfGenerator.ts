@@ -1,17 +1,9 @@
 import { jsPDF } from "jspdf";
 import { FOODWISE_LOGO_BASE64 } from "./pdfAssets";
-import { translateHindiToEnglish } from "@/context/dictionary";
-import { translateKannadaToEnglish } from "@/context/kannadaDictionary";
 
 export function safePdfText(val: any): string {
   if (val === undefined || val === null) return "";
-  let str = String(val).trim();
-  if (/[\u0900-\u097F]/.test(str)) {
-    str = translateHindiToEnglish(str);
-  }
-  if (/[\u0C80-\u0CFF]/.test(str)) {
-    str = translateKannadaToEnglish(str);
-  }
+  const str = String(val).trim();
   return str.replace(/[^\x20-\x7E\xA0-\xFF]/g, " ").replace(/\s+/g, " ").trim();
 }
 

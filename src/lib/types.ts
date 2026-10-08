@@ -18,7 +18,43 @@ export type DonationStatus =
   | "PICKUP" 
   | "PICKUP_IN_PROGRESS"
   | "COMPLETED" 
-  | "CANCELLED";
+  | "CANCELLED"
+  | "FLAGGED_FOR_REVIEW";
+
+export type FoodQualityIssueType =
+  | "Spoiled / rotten food"
+  | "Unusual smell"
+  | "Suspected contamination"
+  | "Expired / unsafe date"
+  | "Damaged packaging"
+  | "Poor storage condition"
+  | "Food quality does not match description"
+  | "Other";
+
+export type QualityReportSeverity = "LOW" | "MEDIUM" | "HIGH";
+
+export type QualityReportStatus = "REPORTED" | "UNDER REVIEW" | "RESOLVED";
+
+export interface FoodQualityReport {
+  id: string;
+  donationId: string;
+  donorId: string;
+  donorName: string;
+  donorType: DonorType;
+  foodName: string;
+  quantity: string;
+  quantityKg: number;
+  ngoId: string;
+  ngoName: string;
+  issueType: FoodQualityIssueType;
+  severity: QualityReportSeverity;
+  description: string;
+  photoUrl?: string;
+  createdAt: string | number;
+  dateStr: string;
+  status: QualityReportStatus;
+  statusNote?: string;
+}
 
 export interface DonationItem {
   id: string;
@@ -50,6 +86,12 @@ export interface DonationItem {
   reason?: string;
   source?: string;
   serviceShift?: string;
+  qualityReportId?: string;
+  qualityFlag?: {
+    issueType: string;
+    severity: QualityReportSeverity;
+    reportedAt: string;
+  };
 }
 
 export interface Institution {

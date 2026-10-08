@@ -32,7 +32,6 @@ import {
 import { INSTITUTIONS } from "@/lib/mockData";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
-import LanguageToggle from "@/components/common/LanguageToggle";
 
 interface SidebarProps {
   type: "restaurant" | "hotel" | "household" | "ngo" | "kitchen";
@@ -106,7 +105,7 @@ function SidebarContent({ type }: SidebarProps) {
     { label: t("nav.donate_food"), href: "/restaurant/donate", icon: HeartHandshake, badge: t("nav.post_food"), highlight: true },
     { label: t("nav.my_donations"), href: "/restaurant/donations", icon: PackageCheck },
     { label: t("nav.pickup_handover"), href: "/restaurant/pickups", icon: Truck },
-    { label: t("nav.impact"), href: "/dashboard/impact", icon: Sparkles },
+    { label: t("nav.impact"), href: "/restaurant/impact", icon: Sparkles },
     { label: t("nav.profile"), href: "/restaurant/profile", icon: Users },
   ];
 
@@ -116,7 +115,7 @@ function SidebarContent({ type }: SidebarProps) {
     { label: t("nav.donate_food"), href: "/hotel/donate", icon: HeartHandshake, badge: t("nav.post_meals"), highlight: true },
     { label: t("nav.my_donations"), href: "/hotel/donations", icon: PackageCheck },
     { label: t("nav.pickup_handover"), href: "/hotel/pickups", icon: Truck },
-    { label: t("nav.impact"), href: "/dashboard/impact", icon: Sparkles },
+    { label: t("nav.impact"), href: "/hotel/impact", icon: Sparkles },
     { label: t("nav.profile"), href: "/hotel/profile", icon: Users },
   ];
 
@@ -125,7 +124,7 @@ function SidebarContent({ type }: SidebarProps) {
     { label: t("nav.home"), href: "/household/dashboard", icon: LayoutDashboard },
     { label: t("nav.donate_food"), href: "/household/donate", icon: HeartHandshake, badge: t("nav.share_food"), highlight: true },
     { label: t("nav.my_donations"), href: "/household/donations", icon: PackageCheck },
-    { label: t("nav.impact"), href: "/dashboard/impact", icon: Sparkles },
+    { label: t("nav.impact"), href: "/household/impact", icon: Sparkles },
     { label: t("nav.profile"), href: "/household/profile", icon: Users },
   ];
 
@@ -136,7 +135,8 @@ function SidebarContent({ type }: SidebarProps) {
     { label: t("nav.requests"), href: "/ngo/requests", icon: Clock },
     { label: t("nav.accepted_donations"), href: "/ngo/accepted", icon: Truck },
     { label: t("nav.completed"), href: "/ngo/completed", icon: CheckCircle2 },
-    { label: t("nav.impact"), href: "/dashboard/impact", icon: Sparkles },
+    { label: "Food Issues", href: "/ngo/food-issues", icon: ShieldCheck, highlight: true },
+    { label: t("nav.impact"), href: "/ngo/impact", icon: Sparkles },
     { label: t("nav.profile"), href: "/ngo/profile", icon: Users },
   ];
 
@@ -205,10 +205,6 @@ function SidebarContent({ type }: SidebarProps) {
         </div>
 
         <div className="flex items-center gap-1.5">
-          <LanguageToggle
-            compact
-            className="bg-emerald-900/50 text-emerald-300 border-emerald-500/30 hover:bg-emerald-800/60"
-          />
           <button
             onClick={() => setIsNotificationOpen(true)}
             aria-label="Notifications"
@@ -316,12 +312,6 @@ function SidebarContent({ type }: SidebarProps) {
                 <Settings className="w-4 h-4 text-emerald-400" />
                 <span>{t("common.settings")}</span>
               </button>
-              <div className="pt-0.5">
-                <LanguageToggle
-                  compact
-                  className="bg-emerald-900/50 text-emerald-300 border-emerald-500/30 hover:bg-emerald-800/60 hover:text-white w-full justify-center"
-                />
-              </div>
               <Link
                 href="/"
                 onClick={() => setMobileOpen(false)}
@@ -581,11 +571,6 @@ function SidebarContent({ type }: SidebarProps) {
           <Settings className="w-[18px] h-[18px] text-emerald-400" />
           {!collapsed && <span>{t("common.settings")}</span>}
         </button>
-        {!collapsed && (
-          <div className="pt-1">
-            <LanguageToggle compact className="bg-emerald-900/50 text-emerald-300 border-emerald-500/30 hover:bg-emerald-800/60 hover:text-white w-full justify-center" />
-          </div>
-        )}
       </div>
 
       {/* User Profile + Collapse Toggle */}

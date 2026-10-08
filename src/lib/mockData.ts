@@ -9,6 +9,7 @@ import {
   NotificationAlert,
   DonationItem,
   DonorType,
+  FoodQualityReport,
 } from "./types";
 
 export const INSTITUTIONS = {
@@ -844,7 +845,7 @@ export const INITIAL_COMMUNITY_DONATIONS: DonationItem[] = [
     city: "Central New Delhi",
     phone: "+91 98115 67890",
     foodCondition: "Verified by Executive Chef.",
-    status: "COMPLETED",
+    status: "FLAGGED_FOR_REVIEW",
     acceptedBy: "Aasha Shelter & Orphanage Network",
     acceptedAt: "Yesterday, 8:30 PM",
     completedAt: "Yesterday, 10:15 PM",
@@ -852,6 +853,12 @@ export const INITIAL_COMMUNITY_DONATIONS: DonationItem[] = [
     driverName: "Satish Pal (E-Loader DL-4E-9021)",
     driverPhone: "+91 98770 12345",
     createdAt: Date.now() - 1000 * 60 * 60 * 24,
+    qualityReportId: "fqr-01",
+    qualityFlag: {
+      issueType: "Unusual smell",
+      severity: "MEDIUM",
+      reportedAt: "08 Oct 2026",
+    },
   },
   {
     id: "don-06",
@@ -924,6 +931,27 @@ export const INITIAL_COMMUNITY_DONATIONS: DonationItem[] = [
     foodCondition: "Freshly prepared home meal.",
     status: "AVAILABLE",
     createdAt: Date.now() - 1000 * 60 * 20,
+  },
+];
+
+export const INITIAL_QUALITY_REPORTS: FoodQualityReport[] = [
+  {
+    id: "fqr-01",
+    donationId: "don-05",
+    donorId: "donor-hot-1",
+    donorName: "The Oberoi New Delhi",
+    donorType: "Hotel",
+    foodName: "Executive Buffet: Dal Makhani & Saffron Pulao",
+    quantity: "28 kg",
+    quantityKg: 28,
+    ngoId: "ngo-1",
+    ngoName: "Robin Hood Army (Delhi Chapter)",
+    issueType: "Unusual smell",
+    severity: "MEDIUM",
+    description: "Slight sour smell observed in cooked dal upon arrival at collection point. Held back from immediate distribution pending chef verification.",
+    createdAt: Date.now() - 1000 * 60 * 60 * 20,
+    dateStr: "08 Oct 2026",
+    status: "UNDER REVIEW",
   },
 ];
 
