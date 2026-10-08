@@ -5,6 +5,7 @@ import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
 import { X, Bell, AlertTriangle, AlertCircle, CheckCircle2, Info, ArrowRight, Check, Clock, BellOff } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function NotificationDrawer() {
   const {
@@ -16,8 +17,23 @@ export default function NotificationDrawer() {
     unreadCount,
   } = useApp();
   const { t } = useLang();
+  const pathname = usePathname() || "";
 
   const [now, setNow] = useState<number>(Date.now());
+
+  const currentSection = pathname.split('/')[1];
+  const knownSections = ['ngo', 'restaurant', 'hotel', 'household', 'kitchen'];
+
+  const filteredNotifications = notifications.filter(notif => {
+    if (!currentSection || !knownSections.includes(currentSection)) return true;
+    const actionDomain = notif.actionUrl?.split('/')[1];
+    if (actionDomain && knownSections.includes(actionDomain)) {
+      return actionDomain === currentSection;
+    }
+    return true; // Fallback: show if we can't determine
+  });
+
+  const displayUnreadCount = filteredNotifications.filter(n => !n.read).length;
 
   const closeDrawer = useCallback(() => setIsNotificationOpen(false), [setIsNotificationOpen]);
 
@@ -120,9 +136,9 @@ export default function NotificationDrawer() {
             <div>
               <h2 className="font-bold text-[#111827] text-base flex items-center gap-2">
                 {t("notif.title")}
-                {unreadCount > 0 && (
+                {displayUnreadCount > 0 && (
                   <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-red-50 text-red-600 border border-red-200">
-                    {unreadCount} {t("notif.new")}
+                    {displayUnreadCount} {t("notif.new")}
                   </span>
                 )}
               </h2>
@@ -140,8 +156,8 @@ export default function NotificationDrawer() {
 
         {/* Actions Bar */}
         <div className="px-5 py-2.5 bg-[#FAFBFC] border-b border-[#E8ECF3] flex items-center justify-between text-xs">
-          <span className="text-[#6B7280]">{notifications.length} {t("notif.total_alerts")}</span>
-          {unreadCount > 0 && (
+          <span className="text-[#6B7280]">{filteredNotifications.length} {t("notif.total_alerts")}</span>
+          {displayUnreadCount > 0 && (
             <button
               onClick={markAllNotificationsAsRead}
               className="text-emerald-600 hover:underline flex items-center gap-1 font-medium"
@@ -153,7 +169,7 @@ export default function NotificationDrawer() {
 
         {/* List */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {notifications.length === 0 ? (
+          {filteredNotifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="w-14 h-14 rounded-2xl bg-[#F3F4F6] flex items-center justify-center mb-4">
                 <BellOff className="w-7 h-7 text-[#9CA3AF]" />
@@ -162,7 +178,7 @@ export default function NotificationDrawer() {
               <p className="text-xs text-[#6B7280] max-w-[240px]">{t("notif.empty_desc")}</p>
             </div>
           ) : (
-            notifications.map((notif) => (
+            filteredNotifications.map((notif) => (
               <div
                 key={notif.id}
                 onClick={() => markNotificationAsRead(notif.id)}
