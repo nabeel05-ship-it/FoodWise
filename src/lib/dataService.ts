@@ -74,8 +74,8 @@ export interface FeedbackRecord {
 
 // In-Memory Storage Singletons (Persists across hot reloads in memory)
 let inMemoryDonations: DonationItem[] = [...INITIAL_COMMUNITY_DONATIONS];
-let inMemoryDonors: CommunityDonor[] = [...COMMUNITY_DONORS];
-let inMemoryNgos: CommunityNgo[] = [...COMMUNITY_NGOS];
+const inMemoryDonors: CommunityDonor[] = [...COMMUNITY_DONORS];
+const inMemoryNgos: CommunityNgo[] = [...COMMUNITY_NGOS];
 let inMemoryNotifications: NotificationAlert[] = [...INITIAL_NOTIFICATIONS];
 let inMemoryComplaints: ComplaintRecord[] = [
   {

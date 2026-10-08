@@ -6,7 +6,7 @@ import ClientProvider from "@/components/providers/ClientProvider";
 import NotificationDrawer from "@/components/common/NotificationDrawer";
 import SettingsModal from "@/components/common/SettingsModal";
 import PushNotificationPrompt from "@/components/common/PushNotificationPrompt";
-
+import FoodieAIWidget from "@/components/common/FoodieAIWidget";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -52,6 +52,7 @@ export default function RootLayout({
           <NotificationDrawer />
           <SettingsModal />
           <PushNotificationPrompt />
+          <FoodieAIWidget />
         </ClientProvider>
       </body>
     </html>

@@ -608,7 +608,7 @@ export default function MobileNotificationPreview({
                 </>
               ) : (
                 <>
-                  <strong>Surplus Safety Window:</strong> Every surplus push notification carries a live countdown timer. When an NGO taps <em className="font-semibold text-emerald-700">"Tap to claim →"</em>, the delivery route is locked and volunteer transit begins immediately.
+                  <strong>Surplus Safety Window:</strong> Every surplus push notification carries a live countdown timer. When an NGO taps <em className="font-semibold text-emerald-700">&quot;Tap to claim →&quot;</em>, the delivery route is locked and volunteer transit begins immediately.
                 </>
               )}
             </div>

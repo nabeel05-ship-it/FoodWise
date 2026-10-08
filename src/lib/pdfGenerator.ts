@@ -1,7 +1,7 @@
 import { jsPDF } from "jspdf";
 import { FOODWISE_LOGO_BASE64 } from "./pdfAssets";
 
-export function safePdfText(val: any): string {
+export function safePdfText(val: unknown): string {
   if (val === undefined || val === null) return "";
   const str = String(val).trim();
   return str.replace(/[^\x20-\x7E\xA0-\xFF]/g, " ").replace(/\s+/g, " ").trim();

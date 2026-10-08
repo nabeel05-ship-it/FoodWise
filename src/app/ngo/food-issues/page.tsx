@@ -290,7 +290,7 @@ export default function FoodIssuesPage() {
             <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center">
               <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-bold text-gray-900 mb-1">No Issues Reported</h3>
-              <p className="text-gray-500 text-sm">You haven't reported any food quality issues yet.</p>
+              <p className="text-gray-500 text-sm">You haven&apos;t reported any food quality issues yet.</p>
             </div>
           ) : (
             qualityReports.map(report => (
@@ -320,7 +320,7 @@ export default function FoodIssuesPage() {
                     <div className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wider">Reported Issue</div>
                     <div className="text-sm font-medium text-gray-900 mb-2">{report.issueType}</div>
                     <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                      "{report.description}"
+                      &quot;{report.description}&quot;
                     </div>
                     {report.photoUrl && (
                       <div className="mt-3 rounded-lg overflow-hidden border border-gray-200 max-w-[200px]">

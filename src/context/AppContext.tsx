@@ -466,7 +466,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed && typeof parsed.meals === "number" && parsed.active) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setManagerOverride({ meals: parsed.meals, reason: parsed.reason || "Known attendance change" });
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setIsOverrideActive(true);
         }
       }
