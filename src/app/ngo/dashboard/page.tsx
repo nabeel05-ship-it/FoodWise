@@ -23,7 +23,7 @@ import {
   AlertTriangle,
   CircleDot,
   Timer,
-  Route,
+
   Zap,
   ExternalLink,
   PackageCheck,
@@ -451,14 +451,7 @@ function NgoDashboardContent() {
     }
   };
 
-  const getTrafficBg = (status: string) => {
-    switch (status) {
-      case "low": return "#ECFDF5";
-      case "moderate": return "#FFF8EB";
-      case "heavy": return "#FEF2F2";
-      default: return "#F9FAFB";
-    }
-  };
+
 
   const canDeliverInTime = (item: SurplusFeedItem) => {
     const safeMinutes = item.hoursLeft * 60;
@@ -556,37 +549,30 @@ function NgoDashboardContent() {
       </div>
 
       {/* SECTION NAVIGATION TABS */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-gray-200 text-xs font-bold">
-        {[
-          { id: "overview", label: t("ngo.dash.tab_overview"), icon: Layers },
-          { id: "claims", label: `${t("ngo.dash.tab_live_claims")} (${dynamicFeed.length})`, icon: PackageCheck, badge: t("ngo.dash.badge_live") },
-          { id: "routing", label: t("ngo.dash.tab_traffic_routing"), icon: Route },
-          { id: "scheduled", label: `${t("ngo.dash.tab_scheduled_pickups")} (${scheduledPickups.length})`, icon: Truck },
-          { id: "history", label: `${t("ngo.dash.tab_pickup_history")} (${pickupHistory.length})`, icon: Clock },
-        ].map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTabFromUrl === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setTab(tab.id)}
-              className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
-                isActive
-                  ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/25"
-                  : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              <span>{tab.label}</span>
-              {tab.badge && !isActive && (
-                <span className="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-rose-500 text-white">
-                  {tab.badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+      {activeTabFromUrl === "overview" && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-gray-200 text-xs font-bold">
+          {[
+            { id: "overview", label: t("ngo.dash.tab_overview"), icon: Layers },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTabFromUrl === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setTab(tab.id)}
+                className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+                  isActive
+                    ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/25"
+                    : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {scheduleSuccess && (
         <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
@@ -939,75 +925,6 @@ function NgoDashboardContent() {
                 </div>
               );
             })}
-          </div>
-        </div>
-      )}
-
-      {/* TAB 3: DEDICATED TRAFFIC & SAFE ROUTING */}
-      {activeTabFromUrl === "routing" && (
-        <div className="space-y-5">
-          <div className="card p-6 bg-white border border-gray-200 rounded-2xl shadow-sm space-y-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div>
-                <h3 className="font-extrabold text-base text-gray-900 flex items-center gap-2">
-                  <Route className="w-5 h-5 text-emerald-600" />
-                  {t("ngo.dash.corridor_title")}
-                </h3>
-                <p className="text-xs text-gray-500">
-                  {t("ngo.dash.corridor_desc")}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>Google Maps Traffic Live</span>
-              </div>
-            </div>
-
-            {/* Google Map */}
-            <div className="relative rounded-2xl overflow-hidden border border-gray-300 bg-gray-100 h-96">
-              <iframe
-                src="https://maps.google.com/maps?saddr=28.5459,77.1926&daddr=28.5672,77.2100&layer=t&output=embed"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title={t("ngo.google_maps_live_rou")}
-              />
-            </div>
-
-            {/* Corridor Safety Breakdown Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
-              {dynamicFeed.map((item) => {
-                const safe = canDeliverInTime(item);
-                return (
-                  <div
-                    key={item.id}
-                    className="p-3.5 rounded-xl border border-gray-200 bg-gray-50/70 space-y-1.5"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-gray-900 truncate">{item.institution.split(" ")[0]}</span>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: getTrafficBg(item.trafficStatus), color: getTrafficColor(item.trafficStatus) }}>
-                        {item.etaMinutes}{t("ngo.dash.m_eta")}
-                      </span>
-                    </div>
-                    <div className="text-[11px] text-gray-500">
-                      {safe ? (
-                        <span className="text-emerald-700 font-bold flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> {t("ngo.dash.safe_dispatch")}
-                        </span>
-                      ) : (
-                        <span className="text-rose-700 font-bold flex items-center gap-1">
-                          <AlertTriangle className="w-3.5 h-3.5" /> {t("ngo.dash.delay_risk")}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           </div>
         </div>
       )}
