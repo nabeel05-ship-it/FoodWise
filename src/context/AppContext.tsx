@@ -368,6 +368,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 actionLabel: n.actionLabel as string | undefined,
                 actionUrl: n.actionUrl as string | undefined,
                 read: n.read as boolean,
+                titleParams: n.titleParams as Record<string, string | number> | undefined,
+                messageParams: n.messageParams as Record<string, string | number> | undefined,
               }))
             );
           }
@@ -574,6 +576,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         category: enrichedNotif.category,
         actionLabel: enrichedNotif.actionLabel,
         actionUrl: enrichedNotif.actionUrl,
+        titleParams: enrichedNotif.titleParams,
+        messageParams: enrichedNotif.messageParams,
       }),
     });
 

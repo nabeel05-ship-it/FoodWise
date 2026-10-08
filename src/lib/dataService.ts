@@ -199,6 +199,8 @@ export async function createNotification(
     category: (notif.category as "Kitchen" | "Factory" | "Redistribution" | "IoT") || "Redistribution",
     actionLabel: notif.actionLabel,
     actionUrl: notif.actionUrl,
+    titleParams: notif.titleParams,
+    messageParams: notif.messageParams,
     read: false,
     createdAt: Date.now(),
   };
