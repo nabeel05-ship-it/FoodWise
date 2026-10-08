@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useApp } from "@/context/AppContext";
 import { usePathname } from "next/navigation";
+import { Sparkles } from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";
@@ -94,9 +95,13 @@ export default function FoodieAIWidget() {
       {!isOpen && (
         <button
           onClick={toggleDrawer}
-          className="fixed bottom-6 right-6 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-2xl rounded-full px-6 py-4 font-bold flex items-center space-x-3 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-emerald-500/50 z-50 ring-2 ring-white/20"
+          aria-label="Open Foodie AI"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-white border border-gray-200 shadow-lg hover:shadow-xl rounded-full p-2 pr-4 text-sm font-semibold text-gray-700 flex items-center gap-2.5 transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 z-50 group"
         >
-          <span className="text-2xl drop-shadow-sm">💭</span>
+          <div className="relative flex items-center justify-center bg-emerald-50 group-hover:bg-emerald-100 text-emerald-600 p-2 rounded-full transition-colors">
+            <Sparkles className="w-4 h-4" />
+            <span className="absolute top-0 right-0 w-2 h-2 bg-emerald-500 rounded-full border-2 border-white" />
+          </div>
           <span className="tracking-wide">Foodie AI</span>
         </button>
       )}
@@ -107,7 +112,7 @@ export default function FoodieAIWidget() {
           <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-5 text-white flex justify-between items-center shrink-0 shadow-md z-10 relative">
             <div>
               <h3 className="font-extrabold text-lg flex items-center gap-2 drop-shadow-sm">
-                <span className="text-xl">💭</span> Foodie AI
+                <Sparkles className="w-5 h-5 text-emerald-100" /> Foodie AI
               </h3>
               <p className="text-emerald-50 text-xs font-medium mt-0.5 opacity-90">Your smart FoodWise assistant</p>
             </div>
