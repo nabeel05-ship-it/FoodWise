@@ -96,7 +96,7 @@ export default function FoodieAIWidget() {
           onClick={toggleDrawer}
           className="fixed bottom-6 right-6 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-2xl rounded-full px-6 py-4 font-bold flex items-center space-x-3 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-emerald-500/50 z-50 ring-2 ring-white/20"
         >
-          <span className="text-2xl drop-shadow-sm">🤖</span>
+          <span className="text-2xl drop-shadow-sm">💭</span>
           <span className="tracking-wide">Foodie AI</span>
         </button>
       )}
@@ -107,7 +107,7 @@ export default function FoodieAIWidget() {
           <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-5 text-white flex justify-between items-center shrink-0 shadow-md z-10 relative">
             <div>
               <h3 className="font-extrabold text-lg flex items-center gap-2 drop-shadow-sm">
-                <span className="text-xl">🤖</span> Foodie AI
+                <span className="text-xl">💭</span> Foodie AI
               </h3>
               <p className="text-emerald-50 text-xs font-medium mt-0.5 opacity-90">Your smart FoodWise assistant</p>
             </div>
