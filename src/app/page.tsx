@@ -817,7 +817,7 @@ export default function LoginPage() {
 
       {/* Footer Branding */}
       <div className="mt-8 text-center text-xs text-emerald-300/80 font-medium">
-        FoodWise Community Platform — Making every meal count • <span className="italic font-semibold text-emerald-200">&ldquo;Don&apos;t Let Good Food Go to Waste&rdquo;</span>
+        FoodWise Community Platform — Making every meal count
       </div>
     </div>
   );
