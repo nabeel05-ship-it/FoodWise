@@ -29,8 +29,7 @@ Foodie AI automatically extracts the logged-in user's role from the application'
 
 The backend dynamically adjusts the system prompt depending on whether the user is a:
 - **Household Donor**
-- **Restaurant Donor**
-- **Hotel Donor**
+- **Restaurant / Hotel / Banquet Donor**
 - **NGO / Relief Partner**
 
 This ensures answers remain localized to their workflows (e.g., small donations vs bulk banquets vs receiving food).

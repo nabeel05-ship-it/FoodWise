@@ -57,47 +57,25 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
         (d) =>
           d.donorId === activeDonor.id ||
           d.donorName === activeDonor.name ||
-          d.donorType.toUpperCase() === role
+          d.donorType.toUpperCase() === role ||
+          (isHotel && d.donorType === "Restaurant")
       );
 
   const completedDonations = myDonations.filter((d) => d.status === "COMPLETED");
 
-  // Realistic Role-Specific Totals
-  const roleFoodKg =
-    completedDonations.reduce((acc, curr) => acc + (curr.quantityKg || 0), 0) ||
-    (isHousehold
-      ? activeDonor.totalKgDonated || 9.5
-      : isRestaurant
-      ? activeDonor.totalKgDonated || 480
-      : isHotel
-      ? activeDonor.totalKgDonated || 920
-      : 1250);
+  // Calculations directly derived from persisted records
+  const roleFoodKg = completedDonations.reduce((acc, curr) => acc + (curr.quantityKg || 0), 0);
+  const rolePeopleServed = completedDonations.reduce((acc, curr) => acc + (curr.servings || 0), 0);
+  const roleCompletedCount = completedDonations.length;
 
-  const rolePeopleServed =
-    completedDonations.reduce((acc, curr) => acc + (curr.servings || 0), 0) ||
-    (isHousehold
-      ? activeDonor.peopleServed || 24
-      : isRestaurant
-      ? activeDonor.peopleServed || 1450
-      : isHotel
-      ? activeDonor.peopleServed || 2750
-      : 3800);
-
-  const roleCompletedCount =
-    completedDonations.length ||
-    (isHousehold
-      ? activeDonor.totalDonations || 4
-      : isRestaurant
-      ? activeDonor.totalDonations || 38
-      : isHotel
-      ? activeDonor.totalDonations || 42
-      : 34);
-
-  // Overall Community totals
-  const totalCommunityKg =
-    donations.reduce((acc, curr) => acc + (curr.quantityKg || 0), 0) || communityMetrics.totalKg;
-  const totalCommunityServings =
-    donations.reduce((acc, curr) => acc + (curr.servings || 0), 0) || communityMetrics.totalServings;
+  // Overall Community totals computed strictly from completed redistribution records
+  const completedCommunityDonations = donations.filter((d) => d.status === "COMPLETED");
+  const totalCommunityKg = completedCommunityDonations.reduce((acc, curr) => acc + (curr.quantityKg || 0), 0);
+  const totalCommunityServings = completedCommunityDonations.reduce((acc, curr) => acc + (curr.servings || 0), 0);
+  const totalCommunityCompletedCount = completedCommunityDonations.length;
+  const uniqueDonorsCount = new Set(donations.map((d) => d.donorName)).size;
+  const uniqueNgosCount = new Set(donations.filter((d) => d.acceptedBy).map((d) => d.acceptedBy)).size;
+  const completionRate = donations.length > 0 ? Math.round((totalCommunityCompletedCount / donations.length) * 100) : 0;
 
   return (
     <motion.div
@@ -119,13 +97,13 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
               : isRestaurant
               ? "Restaurant Surplus & Impact Ledger"
               : isHotel
-              ? "Hotel & Banquet Redistribution Impact"
+              ? "Restaurant & Hotel Food Redistribution Impact"
               : "NGO Relief & Distribution Impact"}
           </h1>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">
             {isHousehold && `Personal impact for ${activeDonor?.name || "your family"} • Sharing extra food with local people in need.`}
             {isRestaurant && `Commercial redistribution ledger for ${activeDonor?.name || "your restaurant"} • Reducing kitchen waste.`}
-            {isHotel && `Banquet and meal rescue impact for ${activeDonor?.name || "your property"} • Zero buffet food to landfill.`}
+            {isHotel && `Commercial kitchen and banquet rescue impact for ${activeDonor?.name || "your property"} • Zero food to landfill.`}
             {isNgo && `Distribution summary for ${activeNgo?.name || "your organization"} • Delivering donor surplus to communities.`}
           </p>
         </div>
@@ -371,6 +349,41 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
               </div>
               <span className="text-[11px] text-gray-500 mt-1 block">{t("impact.co2_saved")}</span>
             </motion.div>
+          </div>
+
+          {/* Secondary Operational KPIs */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-[#F8FAFC] border border-gray-200 text-center">
+            <div>
+              <div className="text-xs text-gray-500 font-semibold">Completed Batches</div>
+              <div className="text-lg font-bold font-mono text-gray-900 mt-0.5">{totalCommunityCompletedCount}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500 font-semibold">Active Donors</div>
+              <div className="text-lg font-bold font-mono text-gray-900 mt-0.5">{uniqueDonorsCount}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500 font-semibold">Partner NGOs</div>
+              <div className="text-lg font-bold font-mono text-gray-900 mt-0.5">{uniqueNgosCount}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500 font-semibold">Completion Rate</div>
+              <div className="text-lg font-bold font-mono text-emerald-700 mt-0.5">{completionRate}%</div>
+            </div>
+          </div>
+
+          {/* Documented Methodology Note */}
+          <div className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200 text-xs text-emerald-950 space-y-1.5">
+            <div className="font-bold flex items-center gap-1.5 text-emerald-900">
+              <Sparkles className="w-4 h-4 text-emerald-600" />
+              <span>Transparent Impact Calculation Methodology (SDG 2 &amp; SDG 12)</span>
+            </div>
+            <p className="text-gray-600 text-[11px] leading-relaxed">
+              • <strong>Food Waste Avoided:</strong> Calculated directly from the net weight of donations marked as <span className="font-mono font-bold text-gray-800">COMPLETED</span> following authorized handover and NGO delivery confirmation.
+              <br />
+              • <strong>GHG Emissions Avoided (Estimate):</strong> Derived using the UNEP / FAO benchmark formula of <em>~2.5 kg CO₂e avoided per 1 kg of edible surplus food</em> diverted from municipal organic decomposition in landfills.
+              <br />
+              • <strong>Nutritional Portions Provided:</strong> Standardized estimate based on 300–350g wholesome food portions per adult meal.
+            </p>
           </div>
 
           {/* Growth Chart */}

@@ -47,8 +47,10 @@ export default function HouseholdDonatePage() {
   const [servings, setServings] = useState("6");
   const [preparationTime, setPreparationTime] = useState("Prepared 1-2 hours ago");
   const [pickupHours, setPickupHours] = useState("4");
+  const [storageCondition, setStorageCondition] = useState<"Ambient" | "Refrigerated (< 4°C)" | "Hot Holding (> 60°C)">("Ambient");
+  const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [location, setLocation] = useState(
-    activeDonor?.address || "Flat 402, Green Avenue, Hauz Khas"
+    activeDonor?.address || "9th Main Road, 4th Block East, Jayanagar, Bengaluru"
   );
   const [description, setDescription] = useState("Extra home-cooked portions packed in clean food-safe containers.");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -84,12 +86,23 @@ export default function HouseholdDonatePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const parsedKg = parseFloat(quantityKg);
+    if (isNaN(parsedKg) || parsedKg <= 0) {
+      alert(t("Please specify a valid surplus quantity greater than 0 kg."));
+      return;
+    }
+
+    const parsedHours = parseFloat(pickupHours || "4");
+    if (isNaN(parsedHours) || parsedHours <= 0) {
+      alert(t("Please specify a valid collection window."));
+      return;
+    }
+
     setIsSubmitting(true);
 
     const now = new Date();
-    const expiryDate = new Date(
-      now.getTime() + parseFloat(pickupHours || "4") * 60 * 60 * 1000
-    );
+    const expiryDate = new Date(now.getTime() + parsedHours * 60 * 60 * 1000);
     const deadlineStr = `${expiryDate.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -98,22 +111,28 @@ export default function HouseholdDonatePage() {
     setTimeout(() => {
       addDonation({
         donorId: activeDonor.id || "donor-household-01",
-        donorName: activeDonor.name || "Sharma Family Residence",
+        donorName: activeDonor.name || "Local Resident (Demo Account)",
         donorType: "Household",
         foodName: foodName.trim(),
         foodCategory,
         reason: surplusReason,
         diet,
-        quantity: `${quantityKg} kg`,
-        quantityKg: parseFloat(quantityKg) || 2.5,
-        servings: parseInt(servings, 10) || 6,
+        quantity: `${parsedKg} kg`,
+        quantityKg: parsedKg,
+        servings: parseInt(servings, 10) || Math.round(parsedKg * 3),
         description: description || "Freshly cooked household food packed hygienically.",
         preparationTime,
         pickupDeadline: deadlineStr,
         location,
-        city: activeDonor.city || "New Delhi",
-        phone: activeDonor.phone || "+91 98112 34567",
-        foodCondition: "Freshly Cooked / Food Safe",
+        city: activeDonor.city || "Bengaluru",
+        phone: activeDonor.phone || "+91 99112 34987",
+        contactPerson: activeDonor.name || "Household Resident",
+        pickupInstructions: "Residential collection. Ring doorbell upon arrival.",
+        storageCondition,
+        allergens: selectedAllergens,
+        lat: activeDonor.lat || 12.9272,
+        lng: activeDonor.lng || 77.5841,
+        foodCondition: `Freshly Cooked / Food Safe (${storageCondition})`,
       });
 
       setIsSubmitting(false);
@@ -360,6 +379,70 @@ export default function HouseholdDonatePage() {
               <option value="6">{t("Next 6 hours")}</option>
               <option value="12">{t("Next 12 hours")}</option>
             </select>
+          </div>
+        </div>
+
+        {/* Storage Condition & Allergens */}
+        <div className="space-y-3.5 p-4 rounded-2xl bg-gray-50 border border-gray-200">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-gray-800 uppercase tracking-wider">
+              {t("Household Storage Condition")}
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: "Ambient / Room Temp", value: "Ambient" as const },
+                { label: "Refrigerated (< 4°C)", value: "Refrigerated (< 4°C)" as const },
+                { label: "Hot Holding (> 60°C)", value: "Hot Holding (> 60°C)" as const },
+              ].map((sc) => (
+                <button
+                  key={sc.value}
+                  type="button"
+                  onClick={() => setStorageCondition(sc.value)}
+                  className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer text-center ${
+                    storageCondition === sc.value
+                      ? "bg-emerald-100 text-emerald-950 border-emerald-400 shadow-2xs"
+                      : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100"
+                  }`}
+                >
+                  {sc.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-gray-800 uppercase tracking-wider">
+              {t("Allergen Declarations (Optional)")}
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {["Dairy / Milk", "Nuts", "Gluten / Wheat", "Soy", "Eggs", "Allergen Free / None"].map((allergen) => {
+                const isSelected = selectedAllergens.includes(allergen);
+                return (
+                  <button
+                    key={allergen}
+                    type="button"
+                    onClick={() => {
+                      if (allergen === "Allergen Free / None") {
+                        setSelectedAllergens(isSelected ? [] : ["Allergen Free / None"]);
+                      } else {
+                        setSelectedAllergens((prev) =>
+                          isSelected
+                            ? prev.filter((a) => a !== allergen)
+                            : [...prev.filter((a) => a !== "Allergen Free / None"), allergen]
+                        );
+                      }
+                    }}
+                    className={`px-3 py-1 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                      isSelected
+                        ? "bg-amber-100 border-amber-400 text-amber-950 font-bold"
+                        : "bg-white border-gray-200 text-gray-600 hover:bg-gray-100"
+                    }`}
+                  >
+                    {allergen}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 

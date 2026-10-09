@@ -20,7 +20,7 @@ export default function KitchenLayout({
     } else if (userRole === "NGO") {
       router.replace("/ngo/dashboard");
     } else {
-      router.replace("/restaurant/dashboard");
+      router.replace("/hotel/dashboard");
     }
   }, [userRole, activeDonor, router]);
 

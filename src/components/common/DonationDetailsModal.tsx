@@ -52,12 +52,12 @@ export default function DonationDetailsModal({
   const isCompleted = donation.status === "COMPLETED";
   const isFlagged = donation.status === "FLAGGED_FOR_REVIEW" || Boolean(donation.qualityFlag);
 
-  const DonorIcon =
-    donation.donorType === "Restaurant"
-      ? Utensils
-      : donation.donorType === "Hotel"
-      ? Hotel
-      : Home;
+  const isCommercial =
+    donation.donorType === "Restaurant" ||
+    donation.donorType === "Hotel" ||
+    donation.donorType === "Restaurant / Hotel";
+
+  const DonorIcon = isCommercial ? Hotel : Home;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
@@ -71,7 +71,7 @@ export default function DonationDetailsModal({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">
-                  {t(donation.donorType)} {t("Listing")}
+                  {isCommercial ? "Restaurant / Hotel" : t(donation.donorType)} {t("Listing")}
                 </span>
                 <span className="text-gray-300">•</span>
                 <span className="text-xs font-semibold text-gray-500">
@@ -206,7 +206,76 @@ export default function DonationDetailsModal({
           )}
         </div>
 
-        {/* In-Transit Info (if claimed) */}
+        {/* Storage Conditions & Allergens */}
+        {(donation.storageCondition || (donation.allergens && donation.allergens.length > 0)) && (
+          <div className="p-3 rounded-xl bg-amber-50/50 border border-amber-200/70 text-xs space-y-1">
+            {donation.storageCondition && (
+              <div className="flex items-center gap-1.5 text-gray-800">
+                <span className="font-bold text-gray-900">Storage Standard:</span>
+                <span>{donation.storageCondition}</span>
+              </div>
+            )}
+            {donation.allergens && donation.allergens.length > 0 && (
+              <div className="flex items-center gap-1.5 text-gray-800">
+                <span className="font-bold text-amber-900">Allergen Declaration:</span>
+                <span className="text-amber-950 font-semibold">{donation.allergens.join(", ")}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Feature F: Donation Traceability Timeline */}
+        <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-700" />
+              <span>Chain of Custody & Traceability</span>
+            </span>
+            <span className="text-[10px] uppercase font-bold text-gray-400">Server Timestamped</span>
+          </div>
+
+          <div className="space-y-3 pl-2 border-l-2 border-emerald-500/30 ml-2 text-xs">
+            <div className="relative pl-4">
+              <span className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-emerald-600 ring-4 ring-white" />
+              <div className="font-bold text-gray-900">Listed by {donation.donorName}</div>
+              <p className="text-[11px] text-gray-500">
+                {typeof donation.createdAt === "number" ? new Date(donation.createdAt).toLocaleString() : donation.createdAt || "Initial batch registered"}
+              </p>
+            </div>
+
+            {(isAccepted || isCompleted) && (
+              <div className="relative pl-4">
+                <span className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-blue-600 ring-4 ring-white" />
+                <div className="font-bold text-gray-900">Claim Accepted by {donation.acceptedBy || "Relief Partner"}</div>
+                <p className="text-[11px] text-gray-500">
+                  {donation.acceptedAt || "Volunteer fleet assigned with tamper-evident OTP"}
+                </p>
+              </div>
+            )}
+
+            {isCompleted && (
+              <div className="relative pl-4">
+                <span className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-emerald-600 ring-4 ring-white" />
+                <div className="font-bold text-gray-900">Delivery Verified & Distributed</div>
+                <p className="text-[11px] text-gray-500">
+                  {donation.completedAt || "Surplus safely handed over to community beneficiaries"}
+                </p>
+              </div>
+            )}
+
+            {isFlagged && (
+              <div className="relative pl-4">
+                <span className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-amber-600 ring-4 ring-white" />
+                <div className="font-bold text-amber-950">Food Quality Concern Reported</div>
+                <p className="text-[11px] text-amber-800">
+                  {donation.qualityFlag?.reportedAt || "Under partner safety review"} — {donation.qualityFlag?.issueType || "Observed condition"}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* In-Transit Driver & OTP Verification */}
         {isAccepted && (
           <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-100 space-y-2 text-xs">
             <div className="flex items-center gap-2 text-blue-900 font-bold">

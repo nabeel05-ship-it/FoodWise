@@ -17,7 +17,11 @@ import {
   ArrowRight,
   RotateCcw,
   AlertTriangle,
+  Flame,
+  ThermometerSnowflake,
+  Sparkles,
 } from "lucide-react";
+import { calculateUrgency, calculateSmartDonationMatch } from "@/lib/smartMatching";
 
 interface DonationCardProps {
   donation: DonationItem;
@@ -44,8 +48,13 @@ export default function DonationCard({
   const isCompleted = donation.status === "COMPLETED";
   const isFlagged = donation.status === "FLAGGED_FOR_REVIEW" || Boolean(donation.qualityFlag);
 
+  const isCommercial =
+    donation.donorType === "Hotel" ||
+    donation.donorType === "Restaurant" ||
+    donation.donorType === "Restaurant / Hotel";
+
   const DonorIcon =
-    donation.donorType === "Hotel" ? Hotel : donation.donorType === "Household" ? Home : Utensils;
+    isCommercial ? Hotel : donation.donorType === "Household" ? Home : Utensils;
 
   const isNgo = userRole?.toUpperCase() === "NGO";
   const handleRequest = onRequestFood || onRequestClaim;
@@ -71,7 +80,7 @@ export default function DonationCard({
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
               <DonorIcon className="w-3 h-3" />
-              <span>{t(donation.donorType) || donation.donorType}</span>
+              <span>{isCommercial ? "Restaurant / Hotel" : (t(donation.donorType) || donation.donorType)}</span>
             </span>
             {donation.diet && (
               <span
@@ -151,6 +160,37 @@ export default function DonationCard({
           </div>
         </div>
 
+        {/* Urgency Pill & Storage Standard */}
+        {(() => {
+          const urgency = calculateUrgency(donation.pickupDeadline);
+          return (
+            <div className="mt-2.5 flex items-center justify-between gap-2 flex-wrap text-[11px]">
+              <span
+                style={{
+                  color: urgency.color,
+                  backgroundColor: urgency.bgColor,
+                  borderColor: urgency.borderColor,
+                }}
+                className="px-2 py-0.5 rounded-full font-bold border flex items-center gap-1 shadow-2xs"
+              >
+                <Clock className="w-3 h-3" />
+                <span>{urgency.badgeLabel}: {urgency.timeLabel}</span>
+              </span>
+
+              {donation.storageCondition && (
+                <span className="text-[10px] font-semibold text-gray-500 bg-gray-50 px-2 py-0.5 rounded border border-gray-100 flex items-center gap-1">
+                  {donation.storageCondition.includes("Hot") ? (
+                    <Flame className="w-3 h-3 text-amber-500" />
+                  ) : donation.storageCondition.includes("Refrigerat") ? (
+                    <ThermometerSnowflake className="w-3 h-3 text-blue-500" />
+                  ) : null}
+                  <span>{donation.storageCondition}</span>
+                </span>
+              )}
+            </div>
+          );
+        })()}
+
         {/* Location & Time details */}
         <div className="mt-3 space-y-1.5 text-xs text-gray-600">
           <div className="flex items-center gap-2">
@@ -194,11 +234,16 @@ export default function DonationCard({
         <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
           {isNgo && isAvailable && handleRequest && (
             <button
+              disabled={calculateUrgency(donation.pickupDeadline).isExpired}
               onClick={() => handleRequest(donation)}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 transition-all cursor-pointer flex items-center gap-1 shadow-xs"
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs ${
+                calculateUrgency(donation.pickupDeadline).isExpired
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "text-white bg-emerald-700 hover:bg-emerald-800 cursor-pointer active:scale-95"
+              }`}
             >
               <HeartHandshake className="w-3.5 h-3.5" />
-              <span>{t("dash.card_request")}</span>
+              <span>{calculateUrgency(donation.pickupDeadline).isExpired ? "Expired" : t("dash.card_request")}</span>
             </button>
           )}
 

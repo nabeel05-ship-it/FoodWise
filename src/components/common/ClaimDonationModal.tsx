@@ -110,7 +110,10 @@ export default function ClaimDonationModal({
         {/* Donation Summary Card */}
         <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-gray-200/80 space-y-1.5">
           <div className="text-xs font-bold uppercase tracking-wider text-emerald-800">
-            {donation.donorType} {t("modal_claim.listing")}{donation.foodCategory}
+            {donation.donorType === "Restaurant" || donation.donorType === "Hotel" || donation.donorType === "Restaurant / Hotel"
+              ? "Restaurant / Hotel"
+              : donation.donorType}{" "}
+            {t("modal_claim.listing")}{donation.foodCategory ? ` • ${donation.foodCategory}` : ""}
           </div>
           <div className="text-base font-bold text-gray-900">{donation.foodName}</div>
           <div className="text-xs text-gray-600 font-medium">

@@ -6,7 +6,7 @@ import { ShieldCheck, AlertTriangle, FileText, CheckCircle2, Search, ArrowRight,
 import { FoodQualityIssueType, QualityReportSeverity } from "@/lib/types";
 
 export default function FoodIssuesPage() {
-  const { donations, qualityReports, createQualityReport } = useApp();
+  const { donations, qualityReports, createQualityReport, activeNgo } = useApp();
   const [activeTab, setActiveTab] = useState<"report" | "track">("report");
   
   // Reporting state
@@ -49,8 +49,8 @@ export default function FoodIssuesPage() {
         foodName: selectedDonation.foodName,
         quantity: selectedDonation.quantity,
         quantityKg: selectedDonation.quantityKg,
-        ngoId: "active-ngo-id", // mock
-        ngoName: selectedDonation.acceptedBy || "NGO",
+        ngoId: activeNgo?.id || "ngo-1",
+        ngoName: activeNgo?.name || selectedDonation.acceptedBy || "Akshaya Patra Foundation",
         issueType,
         severity,
         description,
@@ -331,7 +331,11 @@ export default function FoodIssuesPage() {
                   <div>
                      <div className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wider">Donor Details</div>
                      <div className="text-sm font-medium text-gray-900">{report.donorName}</div>
-                     <div className="text-xs text-gray-500">{report.donorType} • {report.quantityKg} kg affected</div>
+                     <div className="text-xs text-gray-500">
+                       {report.donorType === "Restaurant" || report.donorType === "Hotel" || report.donorType === "Restaurant / Hotel"
+                         ? "Restaurant / Hotel"
+                         : report.donorType} • {report.quantityKg} kg affected
+                     </div>
                      
                      {report.statusNote && (
                         <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-lg">

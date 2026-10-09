@@ -18,16 +18,16 @@ export default function HouseholdProfilePage() {
   const { activeDonor } = useApp();
   const { t } = useLang();
 
-  const [name, setName] = useState(activeDonor?.name || "Sharma Family Residence");
+  const [name, setName] = useState(activeDonor?.name || "Local Resident (Demo Account)");
   const [contactPerson, setContactPerson] = useState(
-    activeDonor?.contactPerson || "Vikram Sharma"
+    activeDonor?.contactPerson || "Local Resident"
   );
-  const [phone, setPhone] = useState(activeDonor?.phone || "+91 98112 34567");
-  const [email, setEmail] = useState("sharma.family@gmail.com");
+  const [phone, setPhone] = useState(activeDonor?.phone || "+91 99112 34987");
+  const [email, setEmail] = useState(activeDonor?.email || "resident@bengaluru.in");
   const [address, setAddress] = useState(
-    activeDonor?.address || "Flat 402, Green Avenue, Hauz Khas"
+    activeDonor?.address || "9th Main Road, 4th Block East, Jayanagar, Bengaluru, Karnataka 560011"
   );
-  const [city, setCity] = useState(activeDonor?.city || "New Delhi");
+  const [city, setCity] = useState(activeDonor?.city || "Jayanagar, Bengaluru");
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   const handleSave = (e: React.FormEvent) => {

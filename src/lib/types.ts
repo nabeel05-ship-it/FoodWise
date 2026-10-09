@@ -9,7 +9,7 @@ export type InstitutionRole =
   | "DONOR"
   | "NGO";
 
-export type DonorType = "Restaurant" | "Hotel" | "Household";
+export type DonorType = "Restaurant" | "Hotel" | "Household" | "Restaurant / Hotel";
 
 export type DonationStatus = 
   | "AVAILABLE" 
@@ -56,6 +56,37 @@ export interface FoodQualityReport {
   statusNote?: string;
 }
 
+export interface LocationDetails {
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+  source: string;
+  verified: boolean;
+}
+
+export type DonationEventAction = 
+  | "CREATED" 
+  | "EDITED" 
+  | "REQUESTED" 
+  | "ACCEPTED" 
+  | "SCHEDULED" 
+  | "COLLECTED" 
+  | "DELIVERED" 
+  | "QUALITY_ISSUE_REPORTED" 
+  | "CANCELLED" 
+  | "EXPIRED";
+
+export interface DonationTimelineEvent {
+  id: string;
+  action: DonationEventAction;
+  timestamp: string;
+  actor: string;
+  details?: string;
+}
+
 export interface DonationItem {
   id: string;
   donorId: string;
@@ -73,6 +104,15 @@ export interface DonationItem {
   location: string;
   city: string;
   phone: string;
+  contactPerson?: string;
+  pickupInstructions?: string;
+  storageCondition?: "Ambient" | "Refrigerated (< 4°C)" | "Frozen (< -18°C)" | "Hot Holding (> 60°C)";
+  allergens?: string[];
+  lat?: number;
+  lng?: number;
+  locationDetails?: LocationDetails;
+  dataMode?: "DEMO" | "VERIFIED_REFERENCE";
+  isRealBusinessReference?: boolean;
   foodCondition: string;
   status: DonationStatus;
   imageUrl?: string;
@@ -92,6 +132,8 @@ export interface DonationItem {
     severity: QualityReportSeverity;
     reportedAt: string;
   };
+  timeline?: DonationTimelineEvent[];
+  urgencyLevel?: "CRITICAL" | "URGENT" | "STANDARD" | "EXPIRED";
 }
 
 export interface Institution {
@@ -224,10 +266,12 @@ export interface ScheduledPickup {
   otp: string;
   eta: string;
   status: string;
-  lat?: number;
-  lng?: number;
+  lat: number;
+  lng: number;
   quantityKg?: number;
   timestamp?: number;
+  locationDetails?: LocationDetails;
+  dataMode?: "DEMO" | "VERIFIED_REFERENCE";
 }
 
 export interface PastPickupHistoryItem {

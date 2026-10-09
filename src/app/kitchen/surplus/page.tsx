@@ -52,9 +52,9 @@ export default function KitchenSurplusPage() {
   const [servings, setServings] = useState("40");
   const [preparationTime, setPreparationTime] = useState("Today, 1:30 PM");
   const [pickupDeadline, setPickupDeadline] = useState("Today, 8:00 PM");
-  const [location, setLocation] = useState(activeDonor?.address || "ABC Restaurant, Shimoga");
-  const [city, setCity] = useState(activeDonor?.city || "Shimoga");
-  const [phone, setPhone] = useState(activeDonor?.phone || "+91 98450 87654");
+  const [location, setLocation] = useState(activeDonor?.address || "37-39, MG Road, Bengaluru");
+  const [city, setCity] = useState(activeDonor?.city || "Bengaluru");
+  const [phone, setPhone] = useState(activeDonor?.phone || "+91 80 2558 5858");
   const [description, setDescription] = useState(
     "Freshly prepared food, suitable for immediate consumption. Packed in hygienic sealed thermal containers."
   );
@@ -123,6 +123,8 @@ export default function KitchenSurplusPage() {
       location,
       city,
       phone,
+      lat: activeDonor?.lat || 13.9351265,
+      lng: activeDonor?.lng || 75.5684887,
       foodCondition,
     });
 
@@ -506,7 +508,7 @@ export default function KitchenSurplusPage() {
                     required
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="e.g. ABC Restaurant, MG Road, Shimoga"
+                    placeholder="e.g. Block B, Radial Road 3, Connaught Place, New Delhi"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600"
                   />
                 </div>

@@ -29,56 +29,53 @@ export default function SettingsPage() {
 
   // Determine role context
   const isHousehold = userRole === "HOUSEHOLD";
-  const isRestaurant = userRole === "RESTAURANT";
   const isHotel = userRole === "HOTEL";
   const isNgo = userRole === "NGO";
 
   // Form State: Profile
   const [entityName, setEntityName] = useState(
     isNgo
-      ? activeNgo?.name || "Robin Hood Army (Delhi Chapter)"
-      : activeDonor?.name || (isHousehold ? "Sharma Family Residence" : isHotel ? "Hotel Mayura Grand" : "Green Leaf Restaurant")
+      ? activeNgo?.name || "Bangalore Food Bank (Bengaluru Central Hub)"
+      : activeDonor?.name || (isHousehold ? "Local Resident (Demo Account)" : "The Oberoi, Bengaluru")
   );
   const [contactPerson, setContactPerson] = useState(
     isNgo
       ? activeNgo?.lead || "Pooja Verma"
-      : activeDonor?.contactPerson || (isHousehold ? "Vikram Sharma" : isHotel ? "Suresh Rao" : "Rajeev Mehra")
+      : activeDonor?.contactPerson || (isHousehold ? "Local Resident" : "Suresh Rao")
   );
   const [phone, setPhone] = useState(
     isNgo
-      ? activeNgo?.phone || "+91 98112 45890"
-      : activeDonor?.phone || (isHousehold ? "+91 98112 34567" : isHotel ? "+91 98450 87654" : "+91 98101 23456")
+      ? activeNgo?.phone || "+91 80 2315 4029"
+      : activeDonor?.phone || (isHousehold ? "+91 99112 34987" : isHotel ? "+91 80 2558 5858" : "+91 98451 23456")
   );
   const [email, setEmail] = useState(
     isNgo
-      ? activeNgo?.email || "delhi.chapter@robinhoodarmy.com"
-      : activeDonor?.email || (isHousehold ? "sharma.family@gmail.com" : isHotel ? "banquets@mayuragrand.com" : "greenleaf.cp@gmail.com")
+      ? activeNgo?.email || "relief@bangalorefoodbank.org"
+      : activeDonor?.email || (isHousehold ? "resident@bengaluru.in" : isHotel ? "banquets@oberoibangalore.com" : "operations@barbequenation.in")
   );
   const [regNumber, setRegNumber] = useState(
     isNgo
-      ? activeNgo?.registrationNumber || "DARPAN: DL/2021/029841"
-      : activeDonor?.fssaiNumber || (isHousehold ? "Community Contributor #HH-01" : isHotel ? "FSSAI LIC: 11220005001290" : "FSSAI LIC: 13321008000412")
+      ? activeNgo?.registrationNumber || "NGO-DARPAN-KA-2019-02114"
+      : activeDonor?.fssaiNumber || (isHousehold ? "Community Contributor #HH-01" : isHotel ? "FSSAI LIC: 11220005001290" : "FSSAI LIC: 11219004000312")
   );
 
   // Form State: Location & Pickup
   const [address, setAddress] = useState(
     isNgo
-      ? activeNgo?.address || "Community Center, Sector 4, RK Puram"
-      : activeDonor?.address || (isHousehold ? "Flat 402, Green Avenue, Hauz Khas" : isHotel ? "14/2, Station Main Road, Opp. City Park" : "Block B, Radial Road 3, Connaught Place")
+      ? activeNgo?.address || "5th Main Road, Industrial Suburb, Rajajinagar, Bengaluru"
+      : activeDonor?.address || (isHousehold ? "9th Main Road, 4th Block East, Jayanagar, Bengaluru" : "37-39, MG Road, Bengaluru")
   );
   const [city, setCity] = useState(
-    isNgo ? activeNgo?.city || "New Delhi" : activeDonor?.city || "New Delhi"
+    isNgo ? activeNgo?.city || "Bengaluru" : activeDonor?.city || "Bengaluru"
   );
   const [coverageArea, setCoverageArea] = useState(
-    isNgo ? activeNgo?.coverageArea || "South Delhi, Central Delhi, Hauz Khas, Okhla" : ""
+    isNgo ? activeNgo?.coverageArea || "Rajajinagar, Malleshwaram, Yeshwanthpur, Central Bengaluru" : ""
   );
   const [pickupInstructions, setPickupInstructions] = useState(
     isHousehold
       ? "Ring flat bell 402, elevator accessible. Food pre-packed in clean containers."
       : isHotel
       ? "Enter via Banquet Service Gate 3. Loading bay 2. Security will guide volunteer vehicle."
-      : isRestaurant
-      ? "Use service entrance behind Block B. Ask for kitchen supervisor."
       : "Open 9:00 AM to 9:00 PM for food drop-offs and volunteer dispatch."
   );
 
@@ -125,8 +122,6 @@ export default function SettingsPage() {
                   ? "Household Settings"
                   : isHotel
                   ? "Hotel & Banquet Settings"
-                  : isRestaurant
-                  ? "Restaurant Settings"
                   : "NGO Settings"}
               </span>
             </div>
@@ -169,8 +164,6 @@ export default function SettingsPage() {
         >
           {isHousehold ? (
             <Home className="w-4 h-4" />
-          ) : isRestaurant ? (
-            <Utensils className="w-4 h-4" />
           ) : isHotel ? (
             <Hotel className="w-4 h-4" />
           ) : (
@@ -179,8 +172,6 @@ export default function SettingsPage() {
           <span>
             {isHousehold
               ? t("Household Profile")
-              : isRestaurant
-              ? t("Restaurant Profile")
               : isHotel
               ? t("Hotel Profile")
               : t("Organization Profile")}
@@ -236,8 +227,6 @@ export default function SettingsPage() {
                 <span>
                   {isHousehold
                     ? t("Family & Contact Details")
-                    : isRestaurant
-                    ? t("Restaurant & Kitchen Contact")
                     : isHotel
                     ? t("Hotel & Banquet Management")
                     : t("Relief Organization Details")}
@@ -252,8 +241,6 @@ export default function SettingsPage() {
                 <label className="block text-xs font-bold text-gray-800 mb-1">
                   {isHousehold
                     ? t("Household / Family Name")
-                    : isRestaurant
-                    ? t("Restaurant Name")
                     : isHotel
                     ? t("Hotel & Property Name")
                     : t("NGO / Relief Organization Name")}
@@ -272,8 +259,6 @@ export default function SettingsPage() {
                   <label className="block text-xs font-bold text-gray-800 mb-1">
                     {isHousehold
                       ? t("Primary Contact Person")
-                      : isRestaurant
-                      ? t("Head Chef / Kitchen Manager")
                       : isHotel
                       ? t("Banquet / Operations Manager")
                       : t("Relief Coordinator / Lead")}
@@ -407,8 +392,6 @@ export default function SettingsPage() {
                   ? t("Doorbell & Floor Instructions for Volunteer")
                   : isHotel
                   ? t("Loading Dock & Banquet Service Access Notes")
-                  : isRestaurant
-                  ? t("Backdoor / Kitchen Handover Instructions")
                   : t("Hub Operating Hours & Drop-off Notes")}
               </label>
               <textarea

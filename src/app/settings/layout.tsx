@@ -17,7 +17,7 @@ export default function SettingsLayout({
       ? "household"
       : userRole === "NGO"
       ? "ngo"
-      : "restaurant";
+      : "hotel";
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "#F4F6FA" }}>

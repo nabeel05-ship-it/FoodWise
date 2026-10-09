@@ -69,13 +69,12 @@ SURPLUS FOOD  ──>  DONATION LISTING  ──>  NGO DISCOVERY  ──>  REQUES
 
 ## 4. User Roles & Access Control
 
-FoodWise features four distinct, dedicated role experiences without any in-app demo switchers. Authentication routes users directly to their designated experience:
+FoodWise features three distinct, dedicated role experiences without any in-app demo switchers. Authentication routes users directly to their designated experience:
 
 | Role | Target Donor / Actor | Portal Route Tree | Realistic Surplus Scale |
 | :--- | :--- | :--- | :--- |
 | **Household** | Families & residences | `/household/*` | 1.5 – 3 kg (~4 – 8 servings); 5 – 6 kg for gatherings |
-| **Restaurant** | Commercial kitchens & eateries | `/restaurant/*` | 12 – 25 kg (~35 – 70 servings) |
-| **Hotel** | Hotels, buffets & banquet caterers | `/hotel/*` | 25 – 55 kg (~75 – 160 servings) |
+| **Restaurant / Hotel / Banquet** | Commercial kitchens, eateries, hotels & caterers | `/hotel/*` | 12 – 55 kg (~35 – 160 servings) |
 | **NGO** | Food banks, shelters & charities | `/ngo/*` | Aggregates all incoming donations |
 
 ---
@@ -88,21 +87,13 @@ FoodWise features four distinct, dedicated role experiences without any in-app d
 * **My Donations (`/household/donations`):** Simple timeline tracking active vs completed donations.
 * **Profile (`/household/profile`):** Resident name, contact person, phone number, and residential address.
 
-### 5.2 Restaurant Experience (`/restaurant/*`)
-* **Dashboard (`/restaurant/dashboard`):** Real-time commercial KPIs (Surplus Listed, Active Donations, Upcoming Pickups, Completed Rescues, People Served) and 1-click "Donate Again" re-listing.
-* **Donate Food (`/restaurant/donate`):** Fast commercial form with a "Service Shift / Timing" selector (Lunch Service, Dinner Service, Daily Closing Time, Catering Excess).
-* **My Donations (`/restaurant/donations`):** Manage active listings and pending NGO requests.
-* **Pickups & Handover (`/restaurant/pickups`):** Pickup monitoring, driver name & vehicle tracking, and secure 4-digit handover OTP verification.
-* **Profile (`/restaurant/profile`):** Restaurant name, FSSAI license, head chef, and kitchen dock instructions.
-
-### 5.3 Hotel & Banquet Experience (`/hotel/*`)
-* **Dashboard (`/hotel/dashboard`):** Large-volume meal surplus overview and scheduled banquet vehicle collections.
-* **Donate Food (`/hotel/donate`):** Large-batch donation form with Meal Type (Breakfast, Lunch, Dinner, Buffet, Banquet, Packed Meals) and Surplus Source context (Buffet Service, Banquet Hall, Conference, Event, Hotel Main Kitchen).
-* **My Donations (`/hotel/donations`):** Multi-event surplus history.
-* **Pickups (`/hotel/pickups`):** Handover verification with driver details and OTP.
-* **Profile (`/hotel/profile`):** Hotel property name, banquet operations manager, FSSAI registration, and loading bay entrance notes.
-
-### 5.4 NGO & Relief Organization Experience (`/ngo/*`)
+### 5.2 Restaurant, Hotel & Banquet Experience (`/hotel/*`)
+* **Dashboard (`/hotel/dashboard`):** Real-time commercial KPIs (Surplus Listed, Active Donations, Upcoming Pickups, Completed Rescues, People Served) and 1-click "Donate Again" re-listing. Large-volume meal surplus overview and scheduled banquet vehicle collections.
+* **Donate Food (`/hotel/donate`):** Fast commercial and large-batch donation form with a "Service Shift / Timing" selector and Meal Type (Breakfast, Lunch, Dinner, Buffet, Banquet, Packed Meals).
+* **My Donations (`/hotel/donations`):** Manage active listings and pending NGO requests.
+* **Pickups & Handover (`/hotel/pickups`):** Pickup monitoring, driver name & vehicle tracking, and secure 4-digit handover OTP verification.
+* **Profile (`/hotel/profile`):** Restaurant/Hotel name, FSSAI license, head chef, and kitchen dock instructions.
+### 5.3 NGO & Relief Organization Experience (`/ngo/*`)
 * **Dashboard (`/ngo/dashboard`):** Action-oriented relief dashboard with primary "+ Find Available Food" CTA, live claim queue, and urgent collection alerts.
 * **Find Food (`/ngo/find`):** Real-time surplus feed with filters by Donor Type (Restaurant, Hotel, Household) and Diet (Vegetarian, Non-Vegetarian) displaying exact kg, approximate servings, proximity (km), and pickup deadline countdowns.
 * **Requests (`/ngo/requests`):** Track submitted pickup requests awaiting donor approval.

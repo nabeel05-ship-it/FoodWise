@@ -62,8 +62,8 @@ export function getDonorTier(points: number): DonorTier {
 const INITIAL_HOTELS: DonorHotel[] = [
   {
     id: "h-1",
-    name: "The Oberoi New Delhi",
-    location: "Dr. Zakir Hussain Marg",
+    name: "The Oberoi, Bengaluru",
+    location: "MG Road, Bengaluru",
     totalPoints: 6840,
     totalDonations: 147,
     avgRating: 4.8,
@@ -75,24 +75,37 @@ const INITIAL_HOTELS: DonorHotel[] = [
   },
   {
     id: "h-2",
-    name: "IIT Delhi Central Mess",
-    location: "Hauz Khas, New Delhi",
+    name: "Barbeque Nation (Indiranagar)",
+    location: "100 Feet Road, Indiranagar, Bengaluru",
+    totalPoints: 5120,
+    totalDonations: 124,
+    avgRating: 4.7,
+    totalRatings: 98,
+    lastDonation: "Today, 1:15 PM",
+    specialBadges: ["Bulk Contributor", "Zero Waste Champion", "Fast Dispatch"],
+    streak: 42,
+    fssaiVerified: true,
+  },
+  {
+    id: "h-3",
+    name: "The Leela Palace Bengaluru",
+    location: "HAL Old Airport Road, Bengaluru",
     totalPoints: 4250,
-    totalDonations: 210,
-    avgRating: 4.5,
-    totalRatings: 156,
+    totalDonations: 110,
+    avgRating: 4.9,
+    totalRatings: 112,
     lastDonation: "Today, 12:00 PM",
     specialBadges: ["Bulk Contributor", "Consistent Donor", "Zero Waste Champion"],
     streak: 52,
     fssaiVerified: true,
   },
   {
-    id: "h-3",
-    name: "Bikanervala Central Kitchen",
-    location: "Okhla Phase III",
+    id: "h-4",
+    name: "Empire Restaurant (Koramangala)",
+    location: "5th Block, Koramangala, Bengaluru",
     totalPoints: 3180,
     totalDonations: 98,
-    avgRating: 4.3,
+    avgRating: 4.5,
     totalRatings: 64,
     lastDonation: "Yesterday, 5:00 PM",
     specialBadges: ["Festival Support", "Rapid Response"],
@@ -100,43 +113,30 @@ const INITIAL_HOTELS: DonorHotel[] = [
     fssaiVerified: true,
   },
   {
-    id: "h-4",
-    name: "AIIMS Staff Cafeteria",
-    location: "Ansari Nagar, New Delhi",
+    id: "h-5",
+    name: "Windmills Craftworks",
+    location: "EPIP Zone, Whitefield, Bengaluru",
     totalPoints: 1850,
     totalDonations: 65,
-    avgRating: 4.1,
+    avgRating: 4.6,
     totalRatings: 42,
     lastDonation: "Sep 23, 3:30 PM",
-    specialBadges: ["Weekend Hero"],
+    specialBadges: ["Weekend Hero", "Cold Chain Certified"],
     streak: 8,
     fssaiVerified: true,
   },
   {
-    id: "h-5",
-    name: "Rajdhani Thali House",
-    location: "Connaught Place",
+    id: "h-6",
+    name: "IISc Bengaluru Central Dining",
+    location: "CV Raman Road, Malleswaram, Bengaluru",
     totalPoints: 920,
     totalDonations: 34,
-    avgRating: 3.9,
+    avgRating: 4.4,
     totalRatings: 22,
     lastDonation: "Sep 22, 6:00 PM",
     specialBadges: ["Rapid Response"],
     streak: 5,
-    fssaiVerified: false,
-  },
-  {
-    id: "h-6",
-    name: "Street Food Collective — Chandni Chowk",
-    location: "Chandni Chowk, Old Delhi",
-    totalPoints: 380,
-    totalDonations: 12,
-    avgRating: 3.7,
-    totalRatings: 8,
-    lastDonation: "Sep 20, 4:15 PM",
-    specialBadges: [],
-    streak: 3,
-    fssaiVerified: false,
+    fssaiVerified: true,
   },
 ];
 
@@ -144,7 +144,7 @@ const INITIAL_FEEDBACK: FeedbackEntry[] = [
   {
     id: "fb-1",
     hotelId: "h-1",
-    hotelName: "The Oberoi New Delhi",
+    hotelName: "The Oberoi, Bengaluru",
     date: "Sep 24, 2026",
     foodQuality: 5,
     packaging: 5,
@@ -157,13 +157,13 @@ const INITIAL_FEEDBACK: FeedbackEntry[] = [
   {
     id: "fb-2",
     hotelId: "h-2",
-    hotelName: "IIT Delhi Central Mess",
+    hotelName: "Barbeque Nation (Indiranagar)",
     date: "Sep 24, 2026",
-    foodQuality: 4,
+    foodQuality: 5,
     packaging: 4,
     timeliness: 5,
     quantity: 5,
-    overallRating: 4.5,
+    overallRating: 4.7,
     comment: "Large quantity, always on time. Good basic food that feeds many people.",
     pointsAwarded: 70,
   },
@@ -220,9 +220,9 @@ interface AppContextType {
   dbConnected: boolean;
 
   // ─── ROLE-BASED AUTHENTICATION & ACCESS ───
-  userRole: "RESTAURANT" | "HOTEL" | "HOUSEHOLD" | "NGO";
-  setUserRole: (role: "RESTAURANT" | "HOTEL" | "HOUSEHOLD" | "NGO") => void;
-  login: (role: "RESTAURANT" | "HOTEL" | "HOUSEHOLD" | "NGO", email: string) => void;
+  userRole: "HOTEL" | "HOUSEHOLD" | "NGO";
+  setUserRole: (role: "HOTEL" | "HOUSEHOLD" | "NGO") => void;
+  login: (role: "HOTEL" | "HOUSEHOLD" | "NGO", email: string) => void;
   logout: () => void;
   registerDonor: (data: {
     type: DonorType;
@@ -281,7 +281,7 @@ function apiCall(url: string, options?: RequestInit) {
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [currentRole, setCurrentRole] = useState<InstitutionRole>("DONOR");
-  const [userRole, setUserRoleState] = useState<"RESTAURANT" | "HOTEL" | "HOUSEHOLD" | "NGO">("RESTAURANT");
+  const [userRole, setUserRoleState] = useState<"HOTEL" | "HOUSEHOLD" | "NGO">("HOTEL");
   const [donorsList, setDonorsList] = useState<CommunityDonor[]>(COMMUNITY_DONORS);
   const [ngosList, setNgosList] = useState<CommunityNgo[]>(COMMUNITY_NGOS);
   const [donations, setDonations] = useState<DonationItem[]>(INITIAL_COMMUNITY_DONATIONS);
@@ -304,7 +304,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [qualityReports, setQualityReports] = useState<FoodQualityReport[]>(INITIAL_QUALITY_REPORTS);
 
   const setUserRole = useCallback(
-    (role: "RESTAURANT" | "HOTEL" | "HOUSEHOLD" | "NGO") => {
+    (role: "HOTEL" | "HOUSEHOLD" | "NGO") => {
       setUserRoleState(role);
       try {
         localStorage.setItem("foodwise_user_role", role);
@@ -315,17 +315,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       } else {
         setCurrentRole("DONOR");
         const donorTypeMap: Record<string, DonorType> = {
-          RESTAURANT: "Restaurant",
-          HOTEL: "Hotel",
+          HOTEL: "Restaurant / Hotel",
           HOUSEHOLD: "Household",
         };
         const targetType = donorTypeMap[role];
         setActiveDonorId((prevId) => {
           const current = donorsList.find((d) => d.id === prevId);
-          if (current && current.type === targetType) {
+          if (
+            current &&
+            (current.type === targetType ||
+              ((role === "HOTEL") &&
+                (current.type === "Restaurant / Hotel" ||
+                  current.type === "Hotel" ||
+                  current.type === "Restaurant")))
+          ) {
             return prevId;
           }
-          const matched = donorsList.find((d) => d.type === targetType);
+          const matched = donorsList.find(
+            (d) =>
+              d.type === targetType ||
+              ((role === "HOTEL") &&
+                (d.type === "Restaurant / Hotel" ||
+                  d.type === "Hotel" ||
+                  d.type === "Restaurant"))
+          );
           if (matched) {
             try {
               localStorage.setItem("foodwise_active_donor_id", matched.id);
@@ -437,6 +450,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             setDonations(d.donations);
           }
 
+          // Hydrate community donors and NGOs from MongoDB
+          if (Array.isArray(d.donors) && d.donors.length > 0) {
+            setDonorsList(d.donors);
+          }
+          if (Array.isArray(d.ngos) && d.ngos.length > 0) {
+            setNgosList(d.ngos);
+          }
+
           // Hydrate quality reports from MongoDB
           if (Array.isArray(d.qualityReports) && d.qualityReports.length > 0) {
             setQualityReports(d.qualityReports);
@@ -487,13 +508,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       // ignore
     }
 
-    // Hydrate community donations from localStorage
+    // Hydrate community donations from localStorage only if coordinates are valid
     try {
       const storedDonations = localStorage.getItem("foodwise_community_donations");
       if (storedDonations) {
         const parsed = JSON.parse(storedDonations);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setDonations(parsed);
+          const hasValidCoords = parsed.some((p: DonationItem) => typeof p.lat === "number" && typeof p.lng === "number");
+          if (hasValidCoords) {
+            setDonations(parsed);
+          }
         }
       }
     } catch {
@@ -515,7 +539,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     // Hydrate user role & IDs from localStorage
     try {
-      const storedRole = localStorage.getItem("foodwise_user_role") as "RESTAURANT" | "HOTEL" | "HOUSEHOLD" | "NGO" | null;
+      const storedRole = localStorage.getItem("foodwise_user_role") as "HOTEL" | "HOUSEHOLD" | "NGO" | null;
       if (storedRole) {
         setUserRole(storedRole);
         if (storedRole === "NGO") {
@@ -875,15 +899,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const login = useCallback(
-    (role: "RESTAURANT" | "HOTEL" | "HOUSEHOLD" | "NGO", email: string) => {
+    (role: "HOTEL" | "HOUSEHOLD" | "NGO", email: string) => {
       setUserRole(role);
       try {
         localStorage.setItem("foodwise_user_role", role);
       } catch {}
 
+      const emailLower = (email || "").toLowerCase().trim();
+
       if (role === "NGO") {
         setCurrentRole("NGO_PARTNER");
-        const matched = ngosList.find((n) => n.lead.toLowerCase().includes(email.toLowerCase()) || n.phone.includes(email)) || ngosList[0];
+        const matched =
+          ngosList.find(
+            (n) =>
+              (n.email && n.email.toLowerCase() === emailLower) ||
+              (emailLower.includes("foodbank") && n.id === "ngo-1") ||
+              (emailLower.includes("feedingindia") && n.id === "ngo-2") ||
+              (emailLower.includes("robinhood") && n.id === "ngo-3") ||
+              n.lead.toLowerCase().includes(emailLower) ||
+              n.name.toLowerCase().includes(emailLower)
+          ) || ngosList[0];
         setActiveNgoId(matched.id);
         try {
           localStorage.setItem("foodwise_active_ngo_id", matched.id);
@@ -891,12 +926,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       } else {
         setCurrentRole("DONOR");
         const donorTypeMap: Record<string, DonorType> = {
-          RESTAURANT: "Restaurant",
-          HOTEL: "Hotel",
+          HOTEL: "Restaurant / Hotel",
           HOUSEHOLD: "Household",
         };
         const targetType = donorTypeMap[role];
-        const matched = donorsList.find((d) => d.type === targetType) || donorsList[0];
+        const matched =
+          donorsList.find(
+            (d) =>
+              (d.email && d.email.toLowerCase() === emailLower) ||
+              (emailLower.includes("barbeque") && d.id === "donor-res-1") ||
+              (emailLower.includes("oberoi") && d.id === "donor-hot-1") ||
+              (emailLower.includes("leela") && d.id === "donor-hot-2") ||
+              (emailLower.includes("empire") && d.id === "donor-res-2") ||
+              (emailLower.includes("resident") && d.id === "donor-house-1") ||
+              (emailLower.includes("rao") && d.id === "donor-house-2") ||
+              (emailLower.includes("kamath") && d.id === "donor-house-3") ||
+              (emailLower.includes("windmills") && d.id === "donor-hot-3")
+          ) ||
+          donorsList.find(
+            (d) =>
+              (role === "HOUSEHOLD" && d.type === "Household") ||
+              (role === "HOTEL" && d.id === "donor-hot-1") ||
+              d.type === targetType
+          ) ||
+          donorsList[0];
         setActiveDonorId(matched.id);
         try {
           localStorage.setItem("foodwise_active_donor_id", matched.id);
@@ -925,6 +978,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const newDonor: CommunityDonor = {
       ...data,
       id: `donor-${data.type.toLowerCase().slice(0, 3)}-${Date.now()}`,
+      lat: 12.9716,
+      lng: 77.5946,
       verified: true,
       totalDonations: 0,
       totalKgDonated: 0,
@@ -932,7 +987,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
     setDonorsList((prev) => [newDonor, ...prev]);
     setActiveDonorId(newDonor.id);
-    const roleKey = data.type.toUpperCase() as "RESTAURANT" | "HOTEL" | "HOUSEHOLD";
+    const roleKey = data.type.toUpperCase() as "HOTEL" | "HOUSEHOLD";
     setUserRole(roleKey);
     setCurrentRole("DONOR");
     try {
@@ -955,6 +1010,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const newNgo: CommunityNgo = {
       ...data,
       id: `ngo-${Date.now()}`,
+      lat: 13.0185,
+      lng: 77.5452,
       volunteers: 15,
       sheltersServed: 4,
       rating: 5.0,

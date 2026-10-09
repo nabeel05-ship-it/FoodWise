@@ -25,57 +25,27 @@ export default function SettingsModal() {
   const router = useRouter();
   const { isSettingsOpen, setIsSettingsOpen, userRole, activeDonor, activeNgo, logout } = useApp();
   const { t } = useLang();
-  const [activeTab, setActiveTab] = useState<"profile" | "location" | "notifications" | "security">("profile");
+  const [activeTab, setActiveTab] = useState<"location" | "notifications" | "security">("location");
 
   const isHousehold = userRole === "HOUSEHOLD";
-  const isRestaurant = userRole === "RESTAURANT";
   const isHotel = userRole === "HOTEL";
   const isNgo = userRole === "NGO";
-
-  // Form State: Profile
-  const [entityName, setEntityName] = useState(
-    isNgo
-      ? activeNgo?.name || "Robin Hood Army (Delhi Chapter)"
-      : activeDonor?.name || (isHousehold ? "Sharma Family Residence" : isHotel ? "Hotel Mayura Grand" : "Green Leaf Restaurant")
-  );
-  const [contactPerson, setContactPerson] = useState(
-    isNgo
-      ? activeNgo?.lead || "Pooja Verma"
-      : activeDonor?.contactPerson || (isHousehold ? "Vikram Sharma" : isHotel ? "Suresh Rao" : "Rajeev Mehra")
-  );
-  const [phone, setPhone] = useState(
-    isNgo
-      ? activeNgo?.phone || "+91 98112 45890"
-      : activeDonor?.phone || (isHousehold ? "+91 98112 34567" : isHotel ? "+91 98450 87654" : "+91 98101 23456")
-  );
-  const [email, setEmail] = useState(
-    isNgo
-      ? activeNgo?.email || "delhi.chapter@robinhoodarmy.com"
-      : activeDonor?.email || (isHousehold ? "sharma.family@gmail.com" : isHotel ? "banquets@mayuragrand.com" : "greenleaf.cp@gmail.com")
-  );
-  const [regNumber, setRegNumber] = useState(
-    isNgo
-      ? activeNgo?.registrationNumber || "DARPAN: DL/2021/029841"
-      : activeDonor?.fssaiNumber || (isHousehold ? "Community Contributor #HH-01" : isHotel ? "FSSAI LIC: 11220005001290" : "FSSAI LIC: 13321008000412")
-  );
 
   // Form State: Location & Pickup
   const [address, setAddress] = useState(
     isNgo
-      ? activeNgo?.address || "Community Center, Sector 4, RK Puram"
-      : activeDonor?.address || (isHousehold ? "Flat 402, Green Avenue, Hauz Khas" : isHotel ? "14/2, Station Main Road, Opp. City Park" : "Block B, Radial Road 3, Connaught Place")
+      ? activeNgo?.address || "5th Main Road, Industrial Suburb, Rajajinagar, Bengaluru"
+      : activeDonor?.address || (isHousehold ? "9th Main Road, 4th Block East, Jayanagar, Bengaluru" : "37-39 MG Road, Bengaluru")
   );
-  const [city, setCity] = useState(isNgo ? activeNgo?.city || "New Delhi" : activeDonor?.city || "New Delhi");
+  const [city, setCity] = useState(isNgo ? activeNgo?.city || "Bengaluru" : activeDonor?.city || "Bengaluru");
   const [coverageArea, setCoverageArea] = useState(
-    isNgo ? activeNgo?.coverageArea || "South Delhi, Central Delhi, Hauz Khas, Okhla" : ""
+    isNgo ? activeNgo?.coverageArea || "Rajajinagar, Malleshwaram, Central Bengaluru" : ""
   );
   const [pickupInstructions, setPickupInstructions] = useState(
     isHousehold
       ? "Ring flat bell 402, elevator accessible. Food pre-packed in clean containers."
       : isHotel
       ? "Enter via Banquet Service Gate 3. Loading bay 2. Security will guide volunteer vehicle."
-      : isRestaurant
-      ? "Use service entrance behind Block B. Ask for kitchen supervisor."
       : "Open 9:00 AM to 9:00 PM for food drop-offs and volunteer dispatch."
   );
 
@@ -138,8 +108,6 @@ export default function SettingsModal() {
                     ? t("Household Settings")
                     : isHotel
                     ? t("Hotel & Banquet Settings")
-                    : isRestaurant
-                    ? t("Restaurant Settings")
                     : t("NGO Settings")}
                 </span>
               </div>
@@ -167,19 +135,6 @@ export default function SettingsModal() {
 
         {/* Tab Navigation */}
         <div className="px-6 border-b border-[#E8ECF3] flex gap-2 overflow-x-auto shrink-0 bg-[#F9FAFB]">
-          <button
-            type="button"
-            onClick={() => setActiveTab("profile")}
-            className={`py-3 px-3 text-xs font-bold transition-all flex items-center gap-1.5 border-b-2 cursor-pointer whitespace-nowrap ${
-              activeTab === "profile"
-                ? "border-emerald-700 text-emerald-800"
-                : "border-transparent text-gray-500 hover:text-gray-900"
-            }`}
-          >
-            {isHousehold ? <Home className="w-3.5 h-3.5" /> : isRestaurant ? <Utensils className="w-3.5 h-3.5" /> : isHotel ? <Hotel className="w-3.5 h-3.5" /> : <Building className="w-3.5 h-3.5" />}
-            <span>{t("Profile")}</span>
-          </button>
-
           <button
             type="button"
             onClick={() => setActiveTab("location")}
@@ -222,82 +177,6 @@ export default function SettingsModal() {
 
         {/* Content Body */}
         <div className="p-6 overflow-y-auto flex-1 space-y-4">
-          {activeTab === "profile" && (
-            <form onSubmit={handleSave} className="space-y-4 text-xs">
-              <div>
-                <label className="block font-bold text-gray-800 mb-1">
-                  {isHousehold ? t("Household / Family Name") : isRestaurant ? t("Restaurant Name") : isHotel ? t("Hotel Property Name") : t("Organization Name")}
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={entityName}
-                  onChange={(e) => setEntityName(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-gray-950 focus:outline-none focus:border-emerald-600"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-gray-800 mb-1">
-                    {isHousehold ? t("Contact Person") : isRestaurant ? t("Head Chef / Manager") : isHotel ? t("Banquet Manager") : t("Relief Lead")}
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={contactPerson}
-                    onChange={(e) => setContactPerson(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-gray-950 focus:outline-none focus:border-emerald-600"
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-gray-800 mb-1">
-                    {isHousehold ? t("Donor Reference ID") : isNgo ? t("DARPAN Registration") : t("FSSAI License")}
-                  </label>
-                  <input
-                    type="text"
-                    value={regNumber}
-                    onChange={(e) => setRegNumber(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl border border-gray-300 font-mono text-gray-950 focus:outline-none focus:border-emerald-600"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-gray-800 mb-1">{t("Phone Number")}</label>
-                  <input
-                    type="tel"
-                    required
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-gray-950 focus:outline-none focus:border-emerald-600"
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-gray-800 mb-1">{t("Email Address")}</label>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-gray-950 focus:outline-none focus:border-emerald-600"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-2 flex justify-end">
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-xl text-white font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110"
-                  style={{ background: "#164A31" }}
-                >
-                  {t("Save Profile")}
-                </button>
-              </div>
-            </form>
-          )}
-
           {activeTab === "location" && (
             <form onSubmit={handleSave} className="space-y-4 text-xs">
               <div>

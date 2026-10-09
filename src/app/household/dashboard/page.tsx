@@ -58,7 +58,7 @@ export default function HouseholdDashboard() {
               {t("household.donor")}
             </span>
             <span className="text-gray-300">•</span>
-            <span className="text-xs text-gray-500">{activeDonor.city || "New Delhi"}</span>
+            <span className="text-xs text-gray-500">{activeDonor.city || "Bengaluru"}</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-950">
             {t("household.title")}

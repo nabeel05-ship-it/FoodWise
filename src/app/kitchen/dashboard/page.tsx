@@ -42,7 +42,6 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import NgoDirectionModal, { NgoDirectionData } from "@/components/common/NgoDirectionModal";
 
 // Weekly surplus redistribution trend
 const WEEKLY_DONATION_TREND = [
@@ -68,7 +67,6 @@ export default function KitchenDashboardPage() {
 
   const [timePeriod, setTimePeriod] = useState<"Today" | "This Week" | "This Month">("This Week");
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
-  const [selectedNgoDirection, setSelectedNgoDirection] = useState<NgoDirectionData | null>(null);
 
   // Filter donations for the active donor
   const donorDonations = donations.filter((d) => d.donorId === activeDonor.id || !d.donorId);
@@ -416,15 +414,6 @@ export default function KitchenDashboardPage() {
           </table>
         </div>
       </div>
-
-      {/* Direction Modal */}
-      {selectedNgoDirection && (
-        <NgoDirectionModal
-          isOpen={Boolean(selectedNgoDirection)}
-          ngo={selectedNgoDirection}
-          onClose={() => setSelectedNgoDirection(null)}
-        />
-      )}
     </div>
   );
 }

@@ -696,13 +696,13 @@ export function downloadDonationImpactReportPdf(params: ImpactReportParams) {
   const sampleRows = params.donationsList && params.donationsList.length > 0
     ? params.donationsList.slice(0, 7)
     : [
-        { date: "07 Oct 2026", donorName: "Hotel Mayura Grand", foodName: "Breakfast Buffet Surplus", category: "Buffet", quantityKg: 25, servings: 75, status: "Delivered" },
-        { date: "07 Oct 2026", donorName: "Green Leaf Restaurant", foodName: "Vegetable Dum Biryani", category: "Cooked Meals", quantityKg: 12, servings: 35, status: "Delivered" },
-        { date: "06 Oct 2026", donorName: "Sharma Family Residence", foodName: "Vegetable Pulao & Dal", category: "Home Meal", quantityKg: 2.5, servings: 6, status: "Delivered" },
-        { date: "06 Oct 2026", donorName: "Bikanervala Sweets", foodName: "Paneer Curry & Rotis", category: "Dinner", quantityKg: 16, servings: 45, status: "Delivered" },
-        { date: "05 Oct 2026", donorName: "The Oberoi Banquets", foodName: "Banquet Dinner Surplus", category: "Banquet", quantityKg: 55, servings: 160, status: "Delivered" },
-        { date: "05 Oct 2026", donorName: "Verma Family Home", foodName: "Celebration Dinner Surplus", category: "Family Event", quantityKg: 4.5, servings: 12, status: "Delivered" },
-        { date: "04 Oct 2026", donorName: "Grand Palace Hotel", foodName: "Lunch Buffet Surplus", category: "Buffet", quantityKg: 35, servings: 100, status: "Delivered" },
+        { date: "07 Oct 2026", donorName: "The Oberoi, Bengaluru", foodName: "Breakfast Buffet Surplus", category: "Buffet", quantityKg: 25, servings: 75, status: "Delivered" },
+        { date: "07 Oct 2026", donorName: "Barbeque Nation (Indiranagar)", foodName: "Vegetable Dum Biryani", category: "Cooked Meals", quantityKg: 12, servings: 35, status: "Delivered" },
+        { date: "06 Oct 2026", donorName: "Local Resident (Demo Account)", foodName: "Vegetable Pulao & Dal", category: "Home Meal", quantityKg: 2.5, servings: 6, status: "Delivered" },
+        { date: "06 Oct 2026", donorName: "Empire Restaurant (Koramangala)", foodName: "Paneer Curry & Rotis", category: "Dinner", quantityKg: 16, servings: 45, status: "Delivered" },
+        { date: "05 Oct 2026", donorName: "The Leela Palace Bengaluru", foodName: "Banquet Dinner Surplus", category: "Banquet", quantityKg: 55, servings: 160, status: "Delivered" },
+        { date: "05 Oct 2026", donorName: "Rao Family Residence (Demo Account)", foodName: "Celebration Dinner Surplus", category: "Family Event", quantityKg: 4.5, servings: 12, status: "Delivered" },
+        { date: "04 Oct 2026", donorName: "Windmills Craftworks", foodName: "Lunch Buffet Surplus", category: "Buffet", quantityKg: 20, servings: 60, status: "Delivered" },
       ];
 
   sampleRows.forEach((row, rIdx) => {

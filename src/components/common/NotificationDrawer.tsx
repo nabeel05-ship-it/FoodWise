@@ -177,9 +177,9 @@ export default function NotificationDrawer() {
               <p className="text-xs text-[#6B7280] max-w-[240px]">{t("notif.empty_desc")}</p>
             </div>
           ) : (
-            filteredNotifications.map((notif) => (
+            filteredNotifications.map((notif, index) => (
               <div
-                key={notif.id}
+                key={`${notif.id}-${index}`}
                 onClick={() => markNotificationAsRead(notif.id)}
                 role="button"
                 tabIndex={0}

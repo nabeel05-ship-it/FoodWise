@@ -18,17 +18,17 @@ export default function NgoProfilePage() {
   const { activeNgo } = useApp();
   const { t } = useLang();
 
-  const [name, setName] = useState(activeNgo?.name || "Robin Hood Army (Delhi Chapter)");
+  const [name, setName] = useState(activeNgo?.name || "Bangalore Food Bank & Relief Partners (Bengaluru Hub)");
   const [contactPerson, setContactPerson] = useState(activeNgo?.lead || "Pooja Verma");
-  const [phone, setPhone] = useState(activeNgo?.phone || "+91 98112 40291");
+  const [phone, setPhone] = useState(activeNgo?.phone || "+91 80 2315 4029");
   const [registrationNumber, setRegistrationNumber] = useState(
-    activeNgo?.registrationNumber || "DL/NGO/2021/0084"
+    activeNgo?.registrationNumber || "NGO-DARPAN-KA-2019-02114"
   );
-  const [city, setCity] = useState(activeNgo?.city || "South & Central Delhi");
+  const [city, setCity] = useState(activeNgo?.city || "Bengaluru");
   const [coverageArea, setCoverageArea] = useState(
-    activeNgo?.coverageArea || "Hauz Khas, Connaught Place, Okhla, Malviya Nagar"
+    activeNgo?.coverageArea || "Rajajinagar, Malleshwaram, Yeshwanthpur, Central Bengaluru"
   );
-  const [address, setAddress] = useState("Sector 3, Community Center, Malviya Nagar, New Delhi");
+  const [address, setAddress] = useState(activeNgo?.address || "5th Main Road, Industrial Suburb, Rajajinagar, Bengaluru, Karnataka 560022");
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   const handleSave = (e: React.FormEvent) => {

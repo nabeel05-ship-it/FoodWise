@@ -6,16 +6,20 @@
  * server-side only data access, and connection caching.
  */
 
+import { ObjectId } from "mongodb";
 import { getDatabase, isMongoConfigured } from "./mongodb";
 import {
   DonationItem,
   DonationStatus,
+  DonationTimelineEvent,
   NotificationAlert,
   FoodQualityReport,
   ScheduledPickup,
   PastPickupHistoryItem,
 } from "./types";
+import { calculateUrgency } from "./smartMatching";
 import {
+  INSTITUTIONS,
   INITIAL_COMMUNITY_DONATIONS,
   COMMUNITY_DONORS,
   COMMUNITY_NGOS,
@@ -95,7 +99,7 @@ const INITIAL_FEEDBACK: FeedbackRecord[] = [
   {
     feedbackId: "fb-1",
     hotelId: "donor-hot-1",
-    hotelName: "Hotel Mayura Grand",
+    hotelName: "The Oberoi, Bengaluru",
     date: "Sep 24, 2026",
     foodQuality: 5,
     packaging: 5,
@@ -129,26 +133,81 @@ function cleanDoc<T>(doc: unknown): T {
 
 // Track collections seeded during process lifetime
 const seededCollections = new Set<string>();
+const seedingPromises = new Map<string, Promise<void>>();
 
 /**
- * Ensures initial seed data exists in a MongoDB collection if empty
+ * Validates whether latitude and longitude are valid, finite geographic coordinates
  */
-async function ensureSeeded<T extends object>(
+export function isValidCoordinate(lat?: unknown, lng?: unknown): boolean {
+  if (typeof lat !== "number" || typeof lng !== "number") return false;
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+  return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+}
+
+/**
+ * Ensures initial seed data exists in a MongoDB collection idempotently.
+ * Upserts known seed records by stable ID without overwriting user data,
+ * and purges duplicate documents sharing the same ID.
+ */
+async function ensureSeeded<T extends { id?: string; complaintId?: string; feedbackId?: string }>(
   collectionName: string,
   initialData: T[]
 ): Promise<void> {
   if (seededCollections.has(collectionName)) return;
-  try {
-    const db = await getDatabase();
-    const col = db.collection(collectionName);
-    const count = await col.countDocuments({}, { limit: 1 });
-    if (count === 0 && initialData.length > 0) {
-      await col.insertMany(initialData.map((d) => ({ ...(d as Record<string, unknown>) })));
-    }
-    seededCollections.add(collectionName);
-  } catch (err) {
-    console.error(`[MongoDB] Failed to check/seed ${collectionName}:`, (err as Error).message);
+  if (seedingPromises.has(collectionName)) {
+    return seedingPromises.get(collectionName);
   }
+
+  const seedPromise = (async () => {
+    try {
+      const db = await getDatabase();
+      const col = db.collection(collectionName);
+      
+      // 1. Idempotently upsert each initial reference/demo item
+      for (const item of initialData) {
+        const stableId = item.id || item.complaintId || item.feedbackId;
+        if (stableId) {
+          const query = item.id
+            ? { id: item.id }
+            : item.complaintId
+            ? { complaintId: item.complaintId }
+            : { feedbackId: item.feedbackId };
+          await col.updateOne(
+            query,
+            { $set: { ...(item as Record<string, unknown>) } },
+            { upsert: true }
+          );
+        }
+      }
+
+      // 2. Remove duplicate documents sharing the same id
+      const allDocs = await col.find({}, { projection: { _id: 1, id: 1, complaintId: 1, feedbackId: 1 } }).toArray();
+      const seenIds = new Set<string>();
+      const duplicateIdsToDelete: ObjectId[] = [];
+      for (const d of allDocs) {
+        const sid = (d.id || d.complaintId || d.feedbackId) as string | undefined;
+        if (sid) {
+          if (seenIds.has(sid)) {
+            duplicateIdsToDelete.push(d._id as ObjectId);
+          } else {
+            seenIds.add(sid);
+          }
+        }
+      }
+      if (duplicateIdsToDelete.length > 0) {
+        await col.deleteMany({ _id: { $in: duplicateIdsToDelete } });
+      }
+
+      seededCollections.add(collectionName);
+    } catch (err) {
+      console.error(`[MongoDB] Failed to check/seed ${collectionName}:`, (err as Error).message);
+    } finally {
+      seedingPromises.delete(collectionName);
+    }
+  })();
+
+  seedingPromises.set(collectionName, seedPromise);
+  return seedPromise;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -156,8 +215,31 @@ async function ensureSeeded<T extends object>(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function getDonations(): Promise<DonationItem[]> {
+  const sanitizeDonation = (d: DonationItem): DonationItem => {
+    const item = { ...d };
+    if (!isValidCoordinate(item.lat, item.lng)) {
+      const donor = COMMUNITY_DONORS.find((cd) => cd.id === item.donorId);
+      item.lat = donor ? donor.lat : 12.9716;
+      item.lng = donor ? donor.lng : 77.5946;
+    }
+    if (!item.dataMode) {
+      item.dataMode = "DEMO";
+    }
+    return item;
+  };
+
+  const dedupe = (items: DonationItem[]) => {
+    const seen = new Set<string>();
+    return items.filter((d) => {
+      const id = d.id || "";
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    }).map(sanitizeDonation);
+  };
+
   if (!isMongoConfigured()) {
-    return [...memDonations];
+    return dedupe(memDonations);
   }
   try {
     await ensureSeeded("donations", INITIAL_COMMUNITY_DONATIONS);
@@ -167,10 +249,10 @@ export async function getDonations(): Promise<DonationItem[]> {
       .find({}, { projection: { _id: 0 } })
       .sort({ createdAt: -1 })
       .toArray();
-    return docs.map((d) => cleanDoc<DonationItem>(d));
+    return dedupe(docs.map((d) => cleanDoc<DonationItem>(d)));
   } catch (error) {
     console.error("[MongoDB] getDonations error:", (error as Error).message);
-    return [...memDonations];
+    return dedupe(memDonations);
   }
 }
 
@@ -195,22 +277,69 @@ export async function getDonationById(id: string): Promise<DonationItem | null> 
 export async function createDonation(
   data: Partial<DonationItem>
 ): Promise<DonationItem> {
+  const latNum =
+    typeof data.lat === "number" && Number.isFinite(data.lat)
+      ? data.lat
+      : data.lat
+      ? parseFloat(String(data.lat))
+      : undefined;
+  const lngNum =
+    typeof data.lng === "number" && Number.isFinite(data.lng)
+      ? data.lng
+      : data.lng
+      ? parseFloat(String(data.lng))
+      : undefined;
+
+  const validLat = isValidCoordinate(latNum, lngNum) ? (latNum as number) : 12.9716;
+  const validLng = isValidCoordinate(latNum, lngNum) ? (lngNum as number) : 77.5946;
+
+  const quantityKg = Number(data.quantityKg) > 0 ? Number(data.quantityKg) : 10;
+  const foodName = (data.foodName || "").trim() || "Surplus Food";
+  const donorName = data.donorName || "Kitchen Partner";
+  const donorType = data.donorType || "Restaurant";
+  const quantity = data.quantity || `${quantityKg} kg`;
+
+  const initialTimelineEvent: DonationTimelineEvent = {
+    id: `evt-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    action: "CREATED",
+    actor: donorName,
+    timestamp: new Date().toISOString(),
+    details: `Surplus posted: ${foodName} (${quantity})`,
+  };
+
   const newDonation: DonationItem = {
     donorId: data.donorId || "donor-res-1",
-    donorName: data.donorName || "Kitchen Partner",
-    donorType: data.donorType || "Restaurant",
-    foodName: data.foodName || "Surplus Food",
+    donorName,
+    donorType,
+    foodName,
     foodCategory: data.foodCategory || "Cooked Meals",
     diet: data.diet || "Vegetarian",
-    quantity: data.quantity || `${data.quantityKg || 10} kg`,
-    quantityKg: Number(data.quantityKg) || 10,
-    servings: Number(data.servings) || 30,
+    quantity,
+    quantityKg,
+    servings: Number(data.servings) > 0 ? Number(data.servings) : Math.round(quantityKg * 3),
     description: data.description || "Prepared surplus meals.",
     preparationTime: data.preparationTime || "Today",
     pickupDeadline: data.pickupDeadline || "Today, 8:00 PM",
-    location: data.location || "Connaught Place, New Delhi",
-    city: data.city || "New Delhi",
-    phone: data.phone || "+91 98101 23456",
+    location: data.location || "Indiranagar, Bengaluru",
+    city: data.city || "Bengaluru",
+    phone: data.phone || "+91 98451 23456",
+    contactPerson: data.contactPerson,
+    pickupInstructions: data.pickupInstructions,
+    storageCondition: data.storageCondition || "Ambient",
+    allergens: data.allergens || [],
+    lat: validLat,
+    lng: validLng,
+    locationDetails: data.locationDetails || {
+      address: data.location || "Indiranagar, Bengaluru",
+      city: data.city || "Bengaluru",
+      state: "Karnataka",
+      country: "India",
+      latitude: validLat,
+      longitude: validLng,
+      source: "User Operational Listing (Demo)",
+      verified: false,
+    },
+    dataMode: "DEMO",
     foodCondition: data.foodCondition || "Freshly Cooked",
     id: data.id || `don-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     status: (data.status as DonationStatus) || "AVAILABLE",
@@ -225,6 +354,7 @@ export async function createDonation(
     reason: data.reason,
     source: data.source,
     serviceShift: data.serviceShift,
+    timeline: data.timeline && data.timeline.length > 0 ? data.timeline : [initialTimelineEvent],
   };
 
   if (!isMongoConfigured()) {
@@ -292,6 +422,214 @@ export async function deleteDonation(id: string): Promise<boolean> {
   }
 }
 
+export interface ClaimDonationResult {
+  success: boolean;
+  status: number;
+  error?: string;
+  donation?: DonationItem;
+}
+
+export async function claimDonationAtomic(
+  donationId: string,
+  claimDetails: {
+    ngoName: string;
+    driverName?: string;
+    driverPhone?: string;
+    otp?: string;
+  }
+): Promise<ClaimDonationResult> {
+  const nowTime = new Date().toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+  const otp = claimDetails.otp || Math.floor(1000 + Math.random() * 9000).toString();
+  const driverName = claimDetails.driverName || "Ramesh Kumar (Volunteer)";
+  const driverPhone = claimDetails.driverPhone || "+91 98112 34567";
+  const claimEvent: DonationTimelineEvent = {
+    id: `evt-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    action: "ACCEPTED",
+    actor: claimDetails.ngoName,
+    timestamp: new Date().toISOString(),
+    details: `Claim accepted by ${claimDetails.ngoName}. Assigned driver: ${driverName}`,
+  };
+
+  if (!isMongoConfigured()) {
+    const item = memDonations.find((d) => d.id === donationId);
+    if (!item) {
+      return { success: false, status: 404, error: "Donation not found" };
+    }
+    if (item.status !== "AVAILABLE") {
+      return {
+        success: false,
+        status: 409,
+        error: `Donation has already been claimed by ${item.acceptedBy || "another organization"}.`,
+      };
+    }
+    const urgency = calculateUrgency(item.pickupDeadline);
+    if (urgency.isExpired) {
+      return {
+        success: false,
+        status: 400,
+        error: "Cannot claim donation: collection deadline has expired.",
+      };
+    }
+    item.status = "ACCEPTED";
+    item.acceptedBy = claimDetails.ngoName;
+    item.acceptedAt = `Today, ${nowTime}`;
+    item.driverName = driverName;
+    item.driverPhone = driverPhone;
+    item.otp = otp;
+    item.timeline = [...(item.timeline || []), claimEvent];
+    return { success: true, status: 200, donation: { ...item } };
+  }
+
+  try {
+    const db = await getDatabase();
+    const existing = await db.collection("donations").findOne({ id: donationId });
+    if (!existing) {
+      return { success: false, status: 404, error: "Donation not found" };
+    }
+    if (existing.status !== "AVAILABLE") {
+      return {
+        success: false,
+        status: 409,
+        error: `Donation has already been claimed by ${existing.acceptedBy || "another organization"}.`,
+      };
+    }
+    const urgency = calculateUrgency(existing.pickupDeadline);
+    if (urgency.isExpired) {
+      return {
+        success: false,
+        status: 400,
+        error: "Cannot claim donation: collection deadline has expired.",
+      };
+    }
+
+    const res = await db.collection<DonationItem>("donations").findOneAndUpdate(
+      { id: donationId, status: "AVAILABLE" },
+      {
+        $set: {
+          status: "ACCEPTED",
+          acceptedBy: claimDetails.ngoName,
+          acceptedAt: `Today, ${nowTime}`,
+          driverName,
+          driverPhone,
+          otp,
+        },
+        $push: {
+          timeline: claimEvent,
+        },
+      },
+      { returnDocument: "after", projection: { _id: 0 } }
+    );
+
+    if (!res) {
+      return {
+        success: false,
+        status: 409,
+        error: "Concurrent claim conflict: This donation was just claimed by another organization.",
+      };
+    }
+
+    return { success: true, status: 200, donation: cleanDoc<DonationItem>(res) };
+  } catch (error) {
+    console.error("[MongoDB] claimDonationAtomic error:", (error as Error).message);
+    return { success: false, status: 500, error: "Failed to process donation claim" };
+  }
+}
+
+export interface CompleteDonationResult {
+  success: boolean;
+  status: number;
+  error?: string;
+  donation?: DonationItem;
+}
+
+export async function completeDonationAtomic(
+  donationId: string,
+  completedBy?: string
+): Promise<CompleteDonationResult> {
+  const nowTime = new Date().toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+  const completeEvent: DonationTimelineEvent = {
+    id: `evt-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    action: "DELIVERED",
+    actor: completedBy || "NGO Relief Fleet",
+    timestamp: new Date().toISOString(),
+    details: "Food batch safely received, verified and redistributed to beneficiaries.",
+  };
+
+  if (!isMongoConfigured()) {
+    const item = memDonations.find((d) => d.id === donationId);
+    if (!item) {
+      return { success: false, status: 404, error: "Donation not found" };
+    }
+    if (item.status === "COMPLETED") {
+      return { success: true, status: 200, donation: { ...item } };
+    }
+    if (!["ACCEPTED", "PICKUP", "PICKUP_IN_PROGRESS"].includes(item.status)) {
+      return {
+        success: false,
+        status: 400,
+        error: `Invalid state transition: Cannot complete donation with status '${item.status}'. Donation must be accepted first.`,
+      };
+    }
+    item.status = "COMPLETED";
+    item.completedAt = `Today, ${nowTime}`;
+    item.timeline = [...(item.timeline || []), completeEvent];
+    return { success: true, status: 200, donation: { ...item } };
+  }
+
+  try {
+    const db = await getDatabase();
+    const existing = await db.collection("donations").findOne({ id: donationId });
+    if (!existing) {
+      return { success: false, status: 404, error: "Donation not found" };
+    }
+    if (existing.status === "COMPLETED") {
+      return { success: true, status: 200, donation: cleanDoc<DonationItem>(existing) };
+    }
+    if (!["ACCEPTED", "PICKUP", "PICKUP_IN_PROGRESS"].includes(existing.status)) {
+      return {
+        success: false,
+        status: 400,
+        error: `Invalid state transition: Cannot complete donation with status '${existing.status}'. Donation must be accepted first.`,
+      };
+    }
+
+    const res = await db.collection<DonationItem>("donations").findOneAndUpdate(
+      { id: donationId, status: { $in: ["ACCEPTED", "PICKUP", "PICKUP_IN_PROGRESS"] } },
+      {
+        $set: {
+          status: "COMPLETED",
+          completedAt: `Today, ${nowTime}`,
+        },
+        $push: {
+          timeline: completeEvent,
+        },
+      },
+      { returnDocument: "after", projection: { _id: 0 } }
+    );
+
+    if (!res) {
+      return {
+        success: false,
+        status: 400,
+        error: "Failed to complete donation: status transition conflict.",
+      };
+    }
+
+    return { success: true, status: 200, donation: cleanDoc<DonationItem>(res) };
+  } catch (error) {
+    console.error("[MongoDB] completeDonationAtomic error:", (error as Error).message);
+    return { success: false, status: 500, error: "Failed to complete donation" };
+  }
+}
+
 export async function claimDonation(
   donationId: string,
   claimDetails: {
@@ -301,20 +639,8 @@ export async function claimDonation(
     otp?: string;
   }
 ): Promise<DonationItem | null> {
-  const nowTime = new Date().toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
-
-  return updateDonation(donationId, {
-    status: "ACCEPTED",
-    acceptedBy: claimDetails.ngoName,
-    acceptedAt: `Today, ${nowTime}`,
-    driverName: claimDetails.driverName || "Ramesh Kumar (Volunteer)",
-    driverPhone: claimDetails.driverPhone || "+91 98112 34567",
-    otp: claimDetails.otp || Math.floor(1000 + Math.random() * 9000).toString(),
-  });
+  const result = await claimDonationAtomic(donationId, claimDetails);
+  return result.donation || null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -322,8 +648,18 @@ export async function claimDonation(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function getScheduledPickups(): Promise<ScheduledPickup[]> {
+  const dedupe = (items: ScheduledPickup[]) => {
+    const seen = new Set<string>();
+    return items.filter((p) => {
+      const id = p.id || "";
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  };
+
   if (!isMongoConfigured()) {
-    return [...memPickups];
+    return dedupe(memPickups);
   }
   try {
     await ensureSeeded("pickups", DEFAULT_SCHEDULED_PICKUPS);
@@ -333,10 +669,10 @@ export async function getScheduledPickups(): Promise<ScheduledPickup[]> {
       .find({}, { projection: { _id: 0 } })
       .sort({ timestamp: -1 })
       .toArray();
-    return docs.map((d) => cleanDoc<ScheduledPickup>(d));
+    return dedupe(docs.map((d) => cleanDoc<ScheduledPickup>(d)));
   } catch (error) {
     console.error("[MongoDB] getScheduledPickups error:", (error as Error).message);
-    return [...memPickups];
+    return dedupe(memPickups);
   }
 }
 
@@ -348,17 +684,21 @@ export async function schedulePickup(pickup: ScheduledPickup): Promise<Scheduled
   };
 
   if (!isMongoConfigured()) {
-    memPickups = [item, ...memPickups];
+    memPickups = [item, ...memPickups.filter((p) => p.id !== item.id)];
     return item;
   }
 
   try {
     const db = await getDatabase();
-    await db.collection("pickups").insertOne({ ...item });
+    await db.collection("pickups").updateOne(
+      { id: item.id },
+      { $set: { ...item } },
+      { upsert: true }
+    );
     return item;
   } catch (error) {
     console.error("[MongoDB] schedulePickup error:", (error as Error).message);
-    memPickups = [item, ...memPickups];
+    memPickups = [item, ...memPickups.filter((p) => p.id !== item.id)];
     return item;
   }
 }
@@ -412,8 +752,18 @@ export async function deleteScheduledPickup(id: string): Promise<boolean> {
 }
 
 export async function getPickupHistory(): Promise<PastPickupHistoryItem[]> {
+  const dedupe = (items: PastPickupHistoryItem[]) => {
+    const seen = new Set<string>();
+    return items.filter((item) => {
+      const id = item.id || "";
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  };
+
   if (!isMongoConfigured()) {
-    return [...memPickupHistory];
+    return dedupe(memPickupHistory);
   }
   try {
     await ensureSeeded("pickup_history", INITIAL_PAST_HISTORY);
@@ -422,10 +772,10 @@ export async function getPickupHistory(): Promise<PastPickupHistoryItem[]> {
       .collection("pickup_history")
       .find({}, { projection: { _id: 0 } })
       .toArray();
-    return docs.map((d) => cleanDoc<PastPickupHistoryItem>(d));
+    return dedupe(docs.map((d) => cleanDoc<PastPickupHistoryItem>(d)));
   } catch (error) {
     console.error("[MongoDB] getPickupHistory error:", (error as Error).message);
-    return [...memPickupHistory];
+    return dedupe(memPickupHistory);
   }
 }
 
@@ -439,17 +789,21 @@ export async function createPickupHistory(
   };
 
   if (!isMongoConfigured()) {
-    memPickupHistory = [newHist, ...memPickupHistory];
+    memPickupHistory = [newHist, ...memPickupHistory.filter((h) => h.id !== newHist.id)];
     return newHist;
   }
 
   try {
     const db = await getDatabase();
-    await db.collection("pickup_history").insertOne({ ...newHist });
+    await db.collection("pickup_history").updateOne(
+      { id: newHist.id },
+      { $set: { ...newHist } },
+      { upsert: true }
+    );
     return newHist;
   } catch (error) {
     console.error("[MongoDB] createPickupHistory error:", (error as Error).message);
-    memPickupHistory = [newHist, ...memPickupHistory];
+    memPickupHistory = [newHist, ...memPickupHistory.filter((h) => h.id !== newHist.id)];
     return newHist;
   }
 }
@@ -500,8 +854,18 @@ export async function createQualityReport(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function getDonors(): Promise<CommunityDonor[]> {
+  const sanitizeDonor = (d: CommunityDonor): CommunityDonor => {
+    const item = { ...d };
+    if (!isValidCoordinate(item.lat, item.lng)) {
+      const fallback = COMMUNITY_DONORS.find((cd) => cd.id === item.id);
+      item.lat = fallback ? fallback.lat : 12.9716;
+      item.lng = fallback ? fallback.lng : 77.5946;
+    }
+    return item;
+  };
+
   if (!isMongoConfigured()) {
-    return [...memDonors];
+    return memDonors.map(sanitizeDonor);
   }
   try {
     await ensureSeeded("donors", COMMUNITY_DONORS);
@@ -510,16 +874,26 @@ export async function getDonors(): Promise<CommunityDonor[]> {
       .collection("donors")
       .find({}, { projection: { _id: 0 } })
       .toArray();
-    return docs.map((d) => cleanDoc<CommunityDonor>(d));
+    return docs.map((d) => sanitizeDonor(cleanDoc<CommunityDonor>(d)));
   } catch (error) {
     console.error("[MongoDB] getDonors error:", (error as Error).message);
-    return [...memDonors];
+    return memDonors.map(sanitizeDonor);
   }
 }
 
 export async function getNgos(): Promise<CommunityNgo[]> {
+  const sanitizeNgo = (n: CommunityNgo): CommunityNgo => {
+    const item = { ...n };
+    if (!isValidCoordinate(item.lat, item.lng)) {
+      const fallback = COMMUNITY_NGOS.find((cn) => cn.id === item.id);
+      item.lat = fallback ? fallback.lat : 13.0185;
+      item.lng = fallback ? fallback.lng : 77.5452;
+    }
+    return item;
+  };
+
   if (!isMongoConfigured()) {
-    return [...memNgos];
+    return memNgos.map(sanitizeNgo);
   }
   try {
     await ensureSeeded("ngos", COMMUNITY_NGOS);
@@ -528,10 +902,10 @@ export async function getNgos(): Promise<CommunityNgo[]> {
       .collection("ngos")
       .find({}, { projection: { _id: 0 } })
       .toArray();
-    return docs.map((d) => cleanDoc<CommunityNgo>(d));
+    return docs.map((d) => sanitizeNgo(cleanDoc<CommunityNgo>(d)));
   } catch (error) {
     console.error("[MongoDB] getNgos error:", (error as Error).message);
-    return [...memNgos];
+    return memNgos.map(sanitizeNgo);
   }
 }
 
@@ -818,7 +1192,8 @@ export async function getAllData() {
   const [
     donations,
     notifications,
-    donorHotels,
+    donors,
+    ngos,
     donorFeedback,
     complaints,
     scheduledPickups,
@@ -828,6 +1203,7 @@ export async function getAllData() {
     getDonations(),
     getNotifications(),
     getDonors(),
+    getNgos(),
     getFeedback(),
     getComplaints(),
     getScheduledPickups(),
@@ -838,13 +1214,13 @@ export async function getAllData() {
   return {
     institutions: [
       {
-        code: "IITD-MESS-01",
-        name: "IIT Delhi Central Mess (Aravali)",
+        code: INSTITUTIONS.kitchen.code,
+        name: INSTITUTIONS.kitchen.name,
         type: "KITCHEN",
-        city: "Hauz Khas, New Delhi",
-        fssai: "FSSAI LIC: 10019011006542",
-        diners: "2,400 Students & Staff",
-        shift: "Afternoon Shift (Lunch Prep)",
+        city: INSTITUTIONS.kitchen.city,
+        fssai: INSTITUTIONS.kitchen.fssai,
+        diners: INSTITUTIONS.kitchen.diners,
+        shift: INSTITUTIONS.kitchen.shift,
         esgScore: 78.0,
       },
     ],
@@ -863,7 +1239,9 @@ export async function getAllData() {
     // Dynamic collections persisted in MongoDB:
     donations,
     notifications,
-    donorHotels,
+    donors,
+    ngos,
+    donorHotels: donors,
     donorFeedback,
     complaints,
     scheduledPickups,

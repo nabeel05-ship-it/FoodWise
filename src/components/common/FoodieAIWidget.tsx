@@ -37,10 +37,8 @@ export default function FoodieAIWidget() {
     switch (userRole) {
       case "HOUSEHOLD":
         return ["How do I donate food?", "What should I prepare for pickup?", "Where can I see my donations?"];
-      case "RESTAURANT":
-        return ["How do I post surplus?", "How does pickup work?", "How do I track my impact?"];
       case "HOTEL":
-        return ["How do I list banquet surplus?", "How do I schedule pickup?", "How do I track redistribution?"];
+        return ["How do I list restaurant/banquet surplus?", "How do I schedule pickup?", "How do I track redistribution?"];
       case "NGO":
         return ["How do I accept food?", "How do I report a food issue?", "How do I track deliveries?"];
       default:

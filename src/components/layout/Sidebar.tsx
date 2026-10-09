@@ -34,7 +34,7 @@ import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
 
 interface SidebarProps {
-  type: "restaurant" | "hotel" | "household" | "ngo" | "kitchen";
+  type: "hotel" | "household" | "ngo" | "kitchen";
 }
 
 interface NavItem {
@@ -54,9 +54,9 @@ function SidebarContent({ type }: SidebarProps) {
   const { unreadCount, setIsNotificationOpen, setIsSettingsOpen, activeDonor, activeNgo, logout, userRole } = useApp();
   const { t } = useLang();
 
-  // Resolve role: "restaurant" | "hotel" | "household" | "ngo"
-  const role: "restaurant" | "hotel" | "household" | "ngo" =
-    type === "restaurant" || type === "hotel" || type === "household" || type === "ngo"
+  // Resolve role: "hotel" | "household" | "ngo"
+  const role: "hotel" | "household" | "ngo" =
+    type === "hotel" || type === "household" || type === "ngo"
       ? type
       : userRole === "HOTEL" || activeDonor?.type === "Hotel"
       ? "hotel"
@@ -64,52 +64,34 @@ function SidebarContent({ type }: SidebarProps) {
       ? "household"
       : userRole === "NGO"
       ? "ngo"
-      : "restaurant";
+      : "hotel";
 
   const institution =
-    role === "restaurant"
+    role === "hotel"
       ? {
-          name: activeDonor?.name || "Green Leaf Restaurant",
-          city: activeDonor?.city || "Connaught Place, New Delhi",
-          fssai: activeDonor?.fssaiNumber || "Verified Food Partner",
-          code: "RESTAURANT-DONOR",
-          category: t("Restaurant Donor"),
-        }
-      : role === "hotel"
-      ? {
-          name: activeDonor?.name || "Hotel Mayura Grand",
-          city: activeDonor?.city || "Bangalore / Shimoga",
-          fssai: activeDonor?.fssaiNumber || "Verified Banquet Partner",
-          code: "HOTEL-DONOR",
-          category: t("Hotel & Banquet Donor"),
+          name: activeDonor?.name || "The Oberoi, Bengaluru",
+          city: activeDonor?.city || "MG Road, Bengaluru",
+          fssai: activeDonor?.fssaiNumber || "Verified Commercial Partner",
+          code: "COMMERCIAL-DONOR",
+          category: t("Restaurant / Hotel Partner"),
         }
       : role === "household"
       ? {
-          name: activeDonor?.name || "Sharma Family Residence",
-          city: activeDonor?.city || "Hauz Khas, New Delhi",
+          name: activeDonor?.name || "Local Resident (Demo Account)",
+          city: activeDonor?.city || "Jayanagar, Bengaluru",
           fssai: "Verified Community Contributor",
           code: "HOUSEHOLD-DONOR",
           category: t("Household Donor"),
         }
       : {
-          name: activeNgo?.name || "Robin Hood Army (Delhi Chapter)",
-          city: activeNgo?.city || "South & Central Delhi",
+          name: activeNgo?.name || "Bangalore Food Bank (Bengaluru Central Hub)",
+          city: activeNgo?.city || "Rajajinagar, Bengaluru",
           fssai: activeNgo?.registrationNumber || "NGO DARPAN Verified Partner",
           code: "NGO-RELIEF-HUB",
           category: t("Relief NGO Partner"),
         };
 
-  // 1. Restaurant Navigation
-  const restaurantNav: NavItem[] = [
-    { label: t("nav.dashboard"), href: "/restaurant/dashboard", icon: LayoutDashboard },
-    { label: t("nav.donate_food"), href: "/restaurant/donate", icon: HeartHandshake, badge: t("nav.post_food"), highlight: true },
-    { label: t("nav.my_donations"), href: "/restaurant/donations", icon: PackageCheck },
-    { label: t("nav.pickup_handover"), href: "/restaurant/pickups", icon: Truck },
-    { label: t("nav.impact"), href: "/restaurant/impact", icon: Sparkles },
-    { label: t("nav.profile"), href: "/restaurant/profile", icon: Users },
-  ];
-
-  // 2. Hotel Navigation
+  // 1 & 2. Unified Restaurant / Hotel Navigation
   const hotelNav: NavItem[] = [
     { label: t("nav.dashboard"), href: "/hotel/dashboard", icon: LayoutDashboard },
     { label: t("nav.donate_food"), href: "/hotel/donate", icon: HeartHandshake, badge: t("nav.post_meals"), highlight: true },
@@ -140,9 +122,7 @@ function SidebarContent({ type }: SidebarProps) {
   ];
 
   const navItems =
-    role === "restaurant"
-      ? restaurantNav
-      : role === "hotel"
+    role === "hotel"
       ? hotelNav
       : role === "household"
       ? householdNav
@@ -172,10 +152,8 @@ function SidebarContent({ type }: SidebarProps) {
       initials,
       name: activeDonor?.contactPerson || activeDonor?.name || "Donor Manager",
       role:
-        role === "restaurant"
-          ? t("Restaurant Lead")
-          : role === "hotel"
-          ? t("Banquet Manager")
+        role === "hotel"
+          ? t("Operations & Banquet Lead")
           : t("Household Contributor"),
     };
   };
@@ -198,7 +176,9 @@ function SidebarContent({ type }: SidebarProps) {
             <img src="/logo.png" alt="FoodWise Logo" className="w-7 h-7 object-contain shrink-0" />
             <div>
               <span className="font-extrabold text-sm text-white block leading-tight">FoodWise</span>
-              <span className="text-[9px] font-semibold text-emerald-300 block capitalize">{type} Portal</span>
+              <span className="text-[9px] font-semibold text-emerald-300 block capitalize">
+                {type === "hotel" ? "Restaurant / Hotel Portal" : `${type} Portal`}
+              </span>
             </div>
           </Link>
         </div>
