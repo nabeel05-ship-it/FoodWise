@@ -2,21 +2,24 @@
 
 # 🌱 FoodWise
 
-## Food Waste Reduction and Food Donation Platform
+### Food Waste Reduction and Food Donation Platform
 
 **Connecting Surplus Food with Communities in Need.**
 
-A technology-driven platform connecting restaurants, hotels, and households with NGOs to donate surplus food before it is wasted.
+A web-based platform connecting restaurants, hotels, and households with NGOs to donate surplus food before it is wasted.
 
 <br>
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Visit_FoodWise-16A34A?style=for-the-badge&logo=vercel&logoColor=white)](https://food-wise-henna.vercel.app)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![AI Powered](https://img.shields.io/badge/AI-Groq-F55036)](https://groq.com/)
-[![Deployment](https://img.shields.io/badge/Deployment-Vercel-black?logo=vercel)](https://vercel.com/)
+
+<br>
+
+## 🚀 [Explore the Live Application](https://food-wise-henna.vercel.app)
 
 **Reducing Food Waste • Enabling Food Donations • Supporting Communities**
 
@@ -36,23 +39,37 @@ A technology-driven platform connecting restaurants, hotels, and households with
 
 ## 🌍 About FoodWise
 
-Food waste and food insecurity are two interconnected challenges. Restaurants, hotels, banquet halls, and households often have surplus food, while NGOs and charitable organizations work to provide meals to people in need.
+Food waste and food insecurity are interconnected challenges. Restaurants, hotels, institutional kitchens, and households often have surplus food, while NGOs and charitable organizations work to provide meals to people in need.
 
-However, the lack of efficient coordination between food donors and recipient organizations can make timely food redistribution difficult.
+However, the lack of effective coordination between food donors and recipient organizations can make timely food redistribution difficult.
 
-**FoodWise is a web-based food donation platform designed to bridge this gap.**
+**FoodWise bridges this gap through a centralized digital food donation platform.**
 
-It provides a centralized digital space where food donors can list their surplus food, NGOs can discover and claim available donations, and both parties can coordinate collection and delivery.
+It enables food donors to list surplus food, allows NGOs to discover and claim available donations, and provides tools to coordinate collection, track donation progress, and record completed deliveries.
 
-The platform aims to simplify food donation, improve coordination, support responsible food management, and help reduce avoidable food waste.
+By bringing donors and recipient organizations together, FoodWise aims to make food donation more accessible, organized, and transparent.
 
 ### 🎯 Our Mission
 
-To make surplus food donation easier, faster, and more accessible by connecting food donors with NGOs through a centralized digital platform.
+To simplify surplus food donation by connecting food donors with NGOs through a centralized, technology-driven platform.
 
 ### 💡 Our Vision
 
-A future where surplus food is recognized as an opportunity to support communities rather than becoming unnecessary waste.
+A future where surplus food becomes an opportunity to nourish communities rather than unnecessary waste.
+
+---
+
+## 🌐 Live Deployment
+
+FoodWise is deployed on **Vercel** and can be accessed online.
+
+### 🔗 Live Application
+
+**https://food-wise-henna.vercel.app**
+
+Explore the platform to discover its interface, donation workflows, and NGO coordination features.
+
+> **Note:** The availability of individual features depends on the current deployment configuration. Please do not enter sensitive personal information into a demonstration application.
 
 ---
 
@@ -60,14 +77,14 @@ A future where surplus food is recognized as an opportunity to support communiti
 
 ### 🏠 1. Household Food Donations
 
-Households can share surplus food with organizations that redistribute meals to communities in need.
+Households can list surplus food for potential redistribution through participating NGOs.
 
 Features include:
-- Simple food donation forms.
+- Food donation forms.
 - Food quantity and category information.
-- Pickup deadline management.
-- Dietary and handling information.
-- Quick-donation options.
+- Pickup deadlines.
+- Dietary and handling details.
+- Donation status tracking.
 
 ### 🏨 2. Restaurant and Hotel Donations
 
@@ -75,31 +92,31 @@ Restaurants, hotels, banquet halls, and institutional kitchens can list surplus 
 
 Features include:
 - Structured surplus food listings.
-- Bulk food quantity management.
-- Food holding and storage information.
+- Food quantity management.
 - Collection deadlines.
-- Loading dock and pickup instructions.
-- Dietary and allergen information.
+- Food storage and handling information.
+- Dietary and allergen details.
+- Pickup instructions.
 
-The objective is to make surplus food available to recipient organizations through a structured donation workflow.
+The platform provides a centralized way for commercial food donors to make available surplus food visible to recipient organizations.
 
 ### 🤝 3. NGO Dashboard
 
-NGOs can use a dedicated portal to manage food donation and collection activities.
+NGOs have a dedicated interface for managing food collection and redistribution activities.
 
 Features include:
-- View available food donations.
-- Review donation details.
+- Browse available donations.
+- Review food details and collection requirements.
 - Claim suitable donations.
-- Coordinate pickups.
-- Manage scheduled collections.
+- Coordinate scheduled pickups.
 - Track donation status.
 - Record completed deliveries.
+- Review relevant notifications.
 - Report food quality concerns.
 
 ### 🧠 4. Smart Donation Matching
 
-FoodWise includes a rule-based matching system that helps users evaluate available food donations.
+FoodWise includes a rule-based matching system to help NGOs assess available food donations.
 
 Matching considerations include:
 - Food quantity.
@@ -107,13 +124,13 @@ Matching considerations include:
 - Dietary compatibility.
 - Collection requirements.
 
-The matching system supports decision-making by helping NGOs identify potentially suitable donations. Matching scores do not guarantee food suitability or safety.
+Matching results are intended to assist users in evaluating donations. They do not guarantee food suitability or safety.
 
 ### ⏱️ 5. Donation Lifecycle Management
 
-FoodWise supports structured donation status tracking throughout the redistribution process.
+FoodWise supports structured donation status tracking.
 
-Typical states include:
+Typical donation states include:
 
 - `AVAILABLE`
 - `ACCEPTED`
@@ -122,48 +139,47 @@ Typical states include:
 - `CANCELLED`
 - `FLAGGED_FOR_REVIEW`
 
-The application validates important status transitions to support a consistent donation workflow.
+The application validates important status transitions to help maintain a consistent donation workflow.
 
-Database-level atomic operations are implemented to help prevent multiple NGOs from claiming the same available donation simultaneously when MongoDB-backed persistence is active.
+When MongoDB-backed persistence is active, database operations help prevent multiple NGOs from claiming the same available donation simultaneously.
 
 ### 🔐 6. Digital Handover Verification
 
-FoodWise includes a four-digit digital OTP workflow to support the handover of donated food.
+FoodWise includes a four-digit OTP workflow to support the handover of donated food.
 
-The process helps coordinate the transfer between the donor and the receiving organization.
+The process helps coordinate transfers between donors and recipient organizations.
 
-The OTP supports handover verification but does not independently establish participant identity or certify food safety.
+The OTP supports the handover workflow but does not independently verify participant identity or certify food safety.
 
 ### 🥗 7. Food Quality Reporting
 
-NGOs can report concerns identified during food collection or handling.
+NGOs can report food quality concerns encountered during collection or handling.
 
 The reporting workflow supports:
-- Food quality issue descriptions.
-- Packaging and storage concerns.
+- Incident descriptions.
+- Food quality and packaging concerns.
 - Severity information.
 - Supporting evidence where available.
-- Donation flagging and review workflows.
+- Review and follow-up workflows.
 
-This feature supports transparency and accountability during redistribution.
+This feature helps improve visibility into issues that arise during food redistribution.
 
 ### 🤖 8. Foodie AI Assistant
 
 Foodie AI is an AI-powered assistant integrated using the Groq SDK.
 
-It provides contextual guidance based on the user's role and the platform workflow.
+It provides contextual guidance to help users understand and navigate the platform.
 
-It can assist with:
-- Understanding platform features.
-- Navigating donation workflows.
-- Creating surplus food listings.
-- Understanding NGO collection procedures.
-- Interpreting donation statuses.
-- Accessing operational guidance.
+Potential use cases include:
+- Understanding donation workflows.
+- Creating food donation listings.
+- Navigating NGO operations.
+- Understanding donation statuses.
+- Accessing platform-related guidance.
 
-**Important:** Foodie AI does not certify food as safe to consume and does not replace qualified food safety professionals. Food quality concerns should be reported through the platform's designated reporting workflow.
+Foodie AI is intended to support platform usage. It does not certify food as safe to consume and does not replace qualified food safety professionals.
 
-### 🌐 9. Multilingual Support
+### 🌐 9. Multilingual Interface
 
 FoodWise includes interface support for:
 
@@ -171,11 +187,11 @@ FoodWise includes interface support for:
 - Hindi
 - Kannada
 
-The multilingual interface is designed to improve accessibility for users from different linguistic backgrounds.
+The multilingual interface aims to make the platform more accessible to users from different linguistic backgrounds.
 
 ### 📊 10. Impact Dashboard
 
-The impact dashboard summarizes food redistribution activity using application records.
+The impact dashboard summarizes redistribution activity using application records.
 
 Supported metrics include:
 - Food weight recorded as diverted.
@@ -184,124 +200,121 @@ Supported metrics include:
 - Donor participation.
 - Estimated environmental impact.
 
-Impact figures depend on the available records and calculation assumptions. They should not be interpreted as independently audited environmental or social impact measurements.
+Impact figures depend on available records and calculation assumptions. They are not independently audited impact measurements.
 
 ### 📄 11. PDF Reports and Certificates
 
 FoodWise includes PDF generation functionality for supported documents, such as:
-
 - Donation records.
-- Donation receipts.
+- Receipts.
 - Certificates.
 - Impact reports.
 
 These documents help users maintain records of donation activities.
 
-### 🔔 12. Notifications and User Settings
+### 🔔 12. Notifications and Settings
 
 The platform includes:
 - In-app notifications.
-- Notification status management.
+- Notification read/unread management.
 - Role-specific navigation.
 - Profile and facility settings.
 - Donation and pickup status updates.
 - Browser push notification functionality when correctly configured.
 
-### 💾 13. Database Integration
+### 💾 13. MongoDB Data Persistence
 
-FoodWise includes a MongoDB integration layer for supported application data.
+FoodWise integrates MongoDB through the official MongoDB Node.js driver.
 
-The application also contains an in-memory fallback for prototype scenarios where a database connection is unavailable.
+The database layer supports persistence for application data, including donations, pickups, notifications, complaints, and related records.
 
-For durable shared data, MongoDB must be correctly configured and the relevant application workflows must be using the database-backed persistence layer.
+A MongoDB connection must be correctly configured for durable database-backed operation. In-memory fallback data should not be assumed to persist across server restarts.
 
 ---
 
 ## 🔄 How FoodWise Works
 
-The platform follows a structured food donation and redistribution workflow.
+FoodWise follows a structured food donation and redistribution workflow.
 
 ```text
-       ┌─────────────────────────┐
-       │       FOOD DONORS       │
-       │                         │
-       │ Households, Restaurants │
-       │ Hotels and Kitchens     │
-       └────────────┬────────────┘
-                    │
-                    ▼
-       ┌─────────────────────────┐
-       │  LIST SURPLUS FOOD      │
-       │                         │
-       │ Quantity, Details and   │
-       │ Collection Deadline     │
-       └────────────┬────────────┘
-                    │
-                    ▼
-       ┌─────────────────────────┐
-       │      NGO DASHBOARD      │
-       │                         │
-       │ Discover and Review     │
-       │ Available Donations     │
-       └────────────┬────────────┘
-                    │
-                    ▼
-       ┌─────────────────────────┐
-       │   CLAIM & COORDINATE    │
-       │                         │
-       │ Schedule Food Pickup    │
-       └────────────┬────────────┘
-                    │
-                    ▼
-       ┌─────────────────────────┐
-       │   DIGITAL HANDOVER      │
-       │                         │
-       │ Four-Digit OTP Workflow │
-       └────────────┬────────────┘
-                    │
-                    ▼
-       ┌─────────────────────────┐
-       │   DELIVERY COMPLETION   │
-       │                         │
-       │ Update Donation Status  │
-       └────────────┬────────────┘
-                    │
-                    ▼
-       ┌─────────────────────────┐
-       │  IMPACT & REPORTING     │
-       │                         │
-       │ Track Records and       │
-       │ Report Quality Issues   │
-       └─────────────────────────┘
+┌──────────────────────────────┐
+│          FOOD DONORS         │
+│                              │
+│  Households • Restaurants    │
+│       Hotels • Kitchens      │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│      LIST SURPLUS FOOD       │
+│                              │
+│  Quantity • Food Details     │
+│  Handling • Pickup Deadline  │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│        NGO DASHBOARD         │
+│                              │
+│  Discover and Review Food    │
+│        Donations             │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│      CLAIM & COORDINATE      │
+│                              │
+│    Arrange Food Collection   │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│     DIGITAL HANDOVER         │
+│                              │
+│     Four-Digit OTP Flow      │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│     DELIVERY COMPLETION      │
+│                              │
+│    Update Donation Status    │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│      IMPACT & REPORTING      │
+│                              │
+│  Track Records and Report    │
+│       Quality Issues         │
+└──────────────────────────────┘
 ```
 
-### The Workflow
+### Workflow Overview
 
 1. A household, restaurant, or hotel lists surplus food.
 2. The donation becomes available for NGO discovery.
-3. An NGO reviews the listing and claims the donation.
-4. Collection details and pickup arrangements are coordinated.
-5. The handover workflow supports digital OTP verification.
-6. The NGO records delivery completion.
-7. The completed donation contributes to the applicable impact records.
-8. Food quality concerns can be submitted through the reporting module.
+3. An NGO reviews and claims a suitable donation.
+4. Pickup arrangements are coordinated.
+5. The handover process supports digital OTP verification.
+6. The receiving organization records delivery completion.
+7. The completed record contributes to applicable impact metrics.
+8. Food quality concerns can be reported through the platform.
 
 ---
 
 ## 🛠️ Technology Stack
 
-FoodWise uses modern web technologies to deliver its user interface, application logic, database integration, and AI-assisted functionality.
-
 | Technology | Purpose |
 |---|---|
-| Next.js 16 | Full-stack React framework and API routes |
-| React 19 | Interactive user interface |
-| TypeScript | Type safety and maintainable code |
-| Tailwind CSS v4 | Responsive styling |
+| Next.js | Full-stack web framework and API routes |
+| React | Interactive user interface |
+| TypeScript | Type safety and maintainability |
+| Tailwind CSS | Responsive styling |
 | MongoDB Atlas | Cloud database and persistent storage |
 | MongoDB Node.js Driver | Database connectivity and operations |
 | Groq SDK | AI assistant integration |
-| Motion | UI animations and transitions |
+| Motion | Interface animations and transitions |
 | Recharts | Data visualization |
 | jsPDF | PDF document generation |
 | Lucide React | Interface icons |
@@ -313,18 +326,18 @@ FoodWise uses modern web technologies to deliver its user interface, application
 
 ## 🏗️ Project Architecture
 
-FoodWise separates its user interface, shared application state, business logic, and database access into organized modules.
+FoodWise separates its interface, application state, business logic, and database access into organized modules.
 
 ```text
 FoodWise/
 │
-├── public/
-│   └── Static assets
+├── public/                       # Static assets
 │
 ├── src/
 │   ├── app/
-│   │   ├── api/
+│   │   ├── api/                  # Backend API routes
 │   │   │   ├── complaints/
+│   │   │   ├── data/
 │   │   │   ├── donors/
 │   │   │   ├── feedback/
 │   │   │   ├── foodie-ai/
@@ -334,56 +347,64 @@ FoodWise/
 │   │   │   ├── push/
 │   │   │   └── surplus/
 │   │   │
-│   │   ├── household/
-│   │   ├── hotel/
-│   │   ├── ngo/
+│   │   ├── household/            # Household donor portal
+│   │   ├── hotel/                # Restaurant and hotel portal
+│   │   ├── ngo/                  # NGO operations portal
 │   │   ├── login/
 │   │   ├── settings/
 │   │   ├── layout.tsx
 │   │   └── page.tsx
 │   │
-│   ├── components/
-│   │   ├── common/
-│   │   ├── layout/
-│   │   ├── ngo/
-│   │   └── providers/
-│   │
-│   ├── context/
-│   │   ├── AppContext.tsx
-│   │   ├── LanguageContext.tsx
-│   │   └── locales/
-│   │
+│   ├── components/               # Reusable UI components
+│   ├── context/                  # Shared application state
 │   ├── lib/
-│   │   ├── dataService.ts
-│   │   ├── mongodb.ts
-│   │   ├── mockData.ts
-│   │   ├── smartMatching.ts
-│   │   ├── pdfGenerator.ts
-│   │   ├── pushNotifications.ts
-│   │   └── types.ts
+│   │   ├── dataService.ts        # Data access layer
+│   │   ├── mongodb.ts            # MongoDB connection utility
+│   │   ├── mockData.ts           # Demonstration data
+│   │   ├── smartMatching.ts      # Donation matching logic
+│   │   ├── pdfGenerator.ts       # PDF generation
+│   │   ├── pushNotifications.ts  # Push notification utilities
+│   │   └── types.ts              # Shared TypeScript types
 │   │
-│   └── types/
+│   └── types/                    # Additional type declarations
 │
-├── .env.example
+├── .env.example                  # Environment template
 ├── .gitignore
 ├── package.json
 ├── package-lock.json
 └── README.md
 ```
 
-*This is a simplified overview. The actual directory structure may change as development continues.*
+*This is a simplified overview of the project structure. Individual files and directories may evolve during development.*
+
+### Application Data Flow
+
+```text
+           User Interface
+                 │
+                 ▼
+         Next.js API Routes
+                 │
+                 ▼
+           Data Service
+                 │
+                 ▼
+           MongoDB Atlas
+```
+
+The MongoDB connection and private credentials must remain on the server. Client components should access shared data through the application's API and state-management layers.
 
 ---
 
 ## 🚀 Getting Started
 
-Follow the instructions below to run FoodWise on your local machine.
+Follow these steps to run FoodWise locally.
 
 ### Prerequisites
 
-Ensure that you have installed:
+Install the following:
 
-- Node.js compatible with the project's Next.js version.
+- Node.js compatible with the project's Next.js requirements.
 - npm.
 - Git.
 - A MongoDB Atlas account for database persistence.
@@ -397,7 +418,7 @@ A code editor such as Visual Studio Code or Antigravity is recommended.
 git clone https://github.com/nabeel05-ship-it/FoodWise.git
 ```
 
-### 2. Navigate to the Project
+### 2. Navigate to the Project Directory
 
 ```bash
 cd FoodWise
@@ -411,9 +432,9 @@ npm install
 
 ### 4. Configure Environment Variables
 
-Create a `.env.local` file in the root directory of the project.
+Create a `.env.local` file in the root directory.
 
-Add the following configuration:
+Add the following variables:
 
 ```env
 # MongoDB
@@ -429,50 +450,48 @@ NEXT_PUBLIC_VAPID_PUBLIC_KEY=
 VAPID_PRIVATE_KEY=
 ```
 
-#### MongoDB Setup
+#### MongoDB Configuration
 
 1. Create a MongoDB Atlas project and cluster.
 2. Create a database user with appropriate permissions.
-3. Configure network access for your development environment.
-4. Copy your MongoDB connection string.
-5. Set it as the value of `MONGODB_URI`.
+3. Configure network access.
+4. Obtain the MongoDB Node.js driver connection string.
+5. Set the connection string as the value of `MONGODB_URI`.
 
-Use the following format as a reference:
+Example format:
 
 ```env
 MONGODB_URI=mongodb+srv://<username>:<password>@<cluster-host>/foodwise?retryWrites=true&w=majority
 ```
 
-Replace the placeholders with your actual database credentials.
+Replace the placeholders with your actual Atlas connection details.
 
-#### Foodie AI Setup
+#### Foodie AI Configuration
 
-1. Create or access your Groq Cloud account.
+1. Access your Groq Cloud account.
 2. Generate an API key.
-3. Add the key to `GROQ_API_KEY`.
-4. Ensure that the configured model identifier is supported by your Groq account.
+3. Set it as `GROQ_API_KEY`.
+4. Ensure `GROQ_MODEL` uses a model identifier supported by your account.
 
-#### Push Notifications
+#### Push Notification Configuration
 
 Browser push functionality requires a valid VAPID public/private key pair when enabled.
 
-Keep `VAPID_PRIVATE_KEY` secret. Never commit your actual environment values to GitHub.
+Keep the private key secret. Never commit `.env.local` or actual environment values to GitHub.
 
-### 5. Start the Development Server
+### 5. Run the Development Server
 
 ```bash
 npm run dev
 ```
 
-Open:
+Open the application at:
 
 **http://localhost:3000**
 
-The application should now be accessible locally.
+### 6. Run Code Quality Checks
 
-### 6. Run Quality Checks
-
-Run ESLint:
+Run lint:
 
 ```bash
 npm run lint
@@ -484,120 +503,120 @@ Build the application:
 npm run build
 ```
 
-Resolve build errors before deploying the application.
+Resolve build errors before deploying.
 
 ---
 
 ## 🧪 Testing and Verification
 
-Before sharing a deployment, verify the main application workflows.
+Before sharing a deployment, verify the application's main workflows.
 
 ### Recommended Checklist
 
-- [ ] Household donation creation.
-- [ ] Restaurant and hotel donation creation.
-- [ ] NGO donation discovery.
-- [ ] Donation claiming and status transitions.
-- [ ] Pickup coordination.
-- [ ] Digital handover OTP workflow.
-- [ ] Delivery completion.
-- [ ] Food quality issue reporting.
-- [ ] Impact dashboard calculations.
-- [ ] PDF generation.
-- [ ] Language switching.
-- [ ] Foodie AI functionality.
-- [ ] Notifications.
-- [ ] MongoDB persistence.
-- [ ] Responsive layout.
-- [ ] Production build.
+- [ ] Create a household donation.
+- [ ] Create a restaurant or hotel donation.
+- [ ] View available donations as an NGO.
+- [ ] Claim an available donation.
+- [ ] Coordinate a pickup.
+- [ ] Complete the handover workflow.
+- [ ] Record delivery completion.
+- [ ] Submit a food quality report.
+- [ ] Verify notification behavior.
+- [ ] Verify impact dashboard calculations.
+- [ ] Test PDF generation.
+- [ ] Test English, Hindi, and Kannada language switching.
+- [ ] Test Foodie AI with a valid Groq API key.
+- [ ] Verify MongoDB persistence after a page refresh.
+- [ ] Verify persisted records after restarting the local server.
+- [ ] Run `npm run lint`.
+- [ ] Run `npm run build`.
 
-### Application Health Check
+### Health Check
 
-The application includes a health-check endpoint.
+FoodWise includes a health-check endpoint.
 
-When the local application is running, visit:
+When running locally, visit:
 
 ```text
 http://localhost:3000/api/health
 ```
 
-Review the response to check application health and database connectivity.
+For the deployed application, visit:
 
-A successful health check does not, by itself, guarantee that every feature is working correctly.
+**https://food-wise-henna.vercel.app/api/health**
+
+Review the response to check application health and MongoDB connectivity.
+
+A successful health check does not guarantee that every user workflow works correctly.
 
 ---
 
 ## ☁️ Deployment
 
-FoodWise can be deployed on [Vercel](https://vercel.com/).
+FoodWise is deployed on **Vercel**.
 
-### Deployment Steps
+### 🌐 Live URL
+
+**https://food-wise-henna.vercel.app**
+
+### Deployment Configuration
+
+To deploy your own instance:
 
 1. Push the project to GitHub.
-2. Sign in to Vercel.
-3. Import the FoodWise repository.
-4. Configure the required environment variables.
-5. Verify MongoDB Atlas connectivity.
-6. Deploy the application.
-7. Inspect the deployment logs.
-8. Test the main donation workflows on the deployed URL.
+2. Import the repository into Vercel.
+3. Configure the required environment variables.
+4. Verify MongoDB Atlas connectivity.
+5. Deploy the application.
+6. Review build and runtime logs.
+7. Test the main donation workflows on the deployed URL.
 
-### Environment Variables
+### Required Environment Variables
 
-Configure the applicable variables in:
+Configure applicable variables under:
 
 **Vercel → Project Settings → Environment Variables**
 
 | Variable | Purpose |
 |---|---|
-| `MONGODB_URI` | MongoDB connection |
-| `MONGODB_DB_NAME` | Optional database name |
-| `GROQ_API_KEY` | Foodie AI |
-| `GROQ_MODEL` | AI model configuration |
+| `MONGODB_URI` | MongoDB connection string |
+| `MONGODB_DB_NAME` | Optional database name override |
+| `GROQ_API_KEY` | Foodie AI authentication |
+| `GROQ_MODEL` | Optional AI model override |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Browser push subscriptions |
 | `VAPID_PRIVATE_KEY` | Server-side push signing |
 
-Use real provider credentials in the deployment settings, not in this README.
+Use actual provider credentials in deployment settings. Never add secrets to this README.
 
-After deployment, verify the health endpoint:
-
-```text
-https://YOUR-DOMAIN.vercel.app/api/health
-```
-
-Replace `YOUR-DOMAIN` with your actual deployment domain.
+MongoDB Atlas network access must also permit the deployed application to connect to the database.
 
 ---
 
 ## 🔐 Security and Limitations
 
-FoodWise is a software prototype intended for demonstration, evaluation, and further development.
+FoodWise is a software prototype intended for demonstration, evaluation, and continued development.
 
-### Authentication
+### Authentication and Authorization
 
-The current authentication approach uses client-side role/session state and local storage rather than a complete production-grade authentication system with cryptographically verified server sessions.
+The current authentication/session approach uses client-side role state and local storage rather than a complete production-grade authentication system with cryptographically verified server sessions.
 
-Additional server-side authentication and authorization controls are needed before the platform is used for sensitive real-world operations.
+Additional server-side authentication and authorization controls are necessary before using the platform for sensitive real-world operations.
 
 ### Data Persistence
 
-MongoDB-backed persistence requires a valid connection string and correct database configuration.
+MongoDB-backed persistence requires a valid connection string and correct configuration.
 
-When the in-memory fallback is used, data may be lost when the server process restarts. Do not assume that all application data is persistent unless the relevant workflow has been verified against MongoDB.
+If the application uses its in-memory fallback, data may be lost when the server process restarts. Shared application data should be verified against MongoDB before relying on its persistence.
 
 ### Food Safety
 
-FoodWise facilitates coordination; it does not guarantee that donated food is safe to consume.
+FoodWise facilitates donation coordination but does not guarantee that donated food is safe to consume.
 
 Donors and recipient organizations must follow applicable food safety, storage, transportation, and handling requirements.
 
 ### AI Limitations
 
-Foodie AI provides informational assistance and may produce inaccurate responses. Its output should not be treated as professional food safety advice.
-
-### Demonstration Data
-
-Sample records, where present, are intended for demonstration. They should not be interpreted as verified real-world donation transactions.
+Foodie AI may produce inaccurate responses. Its output should not be treated as professional food safety advice.
 
 ### Production Readiness
 
@@ -609,18 +628,18 @@ Before production use, the application should undergo a security review, stronge
 
 Potential future improvements include:
 
-- Stronger authentication and secure session management.
-- More comprehensive server-side access controls.
-- Enhanced donation matching and recommendation capabilities.
+- Secure authentication and session management.
+- More comprehensive server-side authorization.
+- Enhanced donation matching and recommendations.
 - Improved food quality traceability.
-- Expanded reporting and analytics.
+- Advanced reporting and analytics.
 - More reliable notification delivery.
 - Accessibility improvements.
-- Additional automated tests.
-- Institutional kitchen and food service integrations.
-- Improved monitoring, backups, and recovery procedures.
+- Expanded automated testing.
+- Integrations with institutional kitchens and food service systems.
+- Improved monitoring, backup, and recovery procedures.
 
-These are potential enhancements, not claims that the functionality is already implemented.
+These are potential enhancements and are not claims of already implemented functionality.
 
 ---
 
@@ -628,17 +647,17 @@ These are potential enhancements, not claims that the functionality is already i
 
 FoodWise aims to support a more efficient and coordinated approach to surplus food redistribution.
 
-By connecting food donors with NGOs, the platform seeks to:
+The platform seeks to:
 
 - Reduce avoidable food waste.
-- Improve the discoverability of available surplus food.
+- Improve the visibility of available surplus food.
 - Simplify donation and collection coordination.
 - Support timely food redistribution.
-- Improve visibility into donation activities.
+- Improve transparency in donation workflows.
 - Encourage responsible food management.
-- Support community organizations working to address food insecurity.
+- Support NGOs working to address food insecurity.
 
-The actual impact depends on adoption, operational execution, food suitability, and successful completion of donation workflows.
+Actual impact depends on user adoption, operational execution, food suitability, and successful completion of donation workflows.
 
 ---
 
@@ -649,10 +668,10 @@ Contributions, suggestions, and improvements are welcome.
 To contribute:
 
 1. Fork the repository.
-2. Create a new feature branch.
-3. Implement your changes.
+2. Create a feature branch.
+3. Make your changes.
 4. Run the available lint and build checks.
-5. Submit a pull request describing your changes.
+5. Submit a pull request with a clear description of your changes.
 
 Please avoid committing secrets, confidential information, or unrelated generated files.
 
@@ -663,26 +682,30 @@ Please avoid committing secrets, confidential information, or unrelated generate
 | Field | Details |
 |---|---|
 | Project Name | FoodWise |
-| Official Problem Statement Title | Food Waste Reduction and Food Donation Platform |
-| Problem Statement | Develop a platform connecting restaurants, hotels, and households with NGOs to donate surplus food before it is wasted. |
+| Official Problem Statement | Food Waste Reduction and Food Donation Platform |
+| Problem Description | Develop a platform connecting restaurants, hotels, and households with NGOs to donate surplus food before it is wasted. |
 | Domain | Food Waste Reduction and Food Donation |
 | Application Type | Full-Stack Web Application |
 | Frontend | Next.js, React, TypeScript, Tailwind CSS |
 | Database | MongoDB |
 | AI Integration | Groq |
-| Deployment Platform | Vercel |
+| Deployment | Vercel |
 
-### Repository
+### 🔗 Important Links
 
-[**FoodWise — GitHub Repository**](https://github.com/nabeel05-ship-it/FoodWise)
+- **Live Application:** https://food-wise-henna.vercel.app
+- **GitHub Repository:** https://github.com/nabeel05-ship-it/FoodWise
+- **MongoDB Atlas:** https://www.mongodb.com/atlas
+- **Groq Cloud:** https://console.groq.com/
+- **Vercel:** https://vercel.com/
 
 ---
 
 ## 📄 License
 
-No open-source license has been specified in this repository's README.
+No open-source license has been specified in this README.
 
-Unless a license is added, users should not assume that the project is available for unrestricted reuse, redistribution, or commercial use.
+Unless a license is added to the repository, users should not assume that the project is available for unrestricted reuse, redistribution, or commercial use.
 
 ---
 
@@ -690,8 +713,10 @@ Unless a license is added, users should not assume that the project is available
 
 ## 🌱 FoodWise
 
-**Reducing Food Waste. Connecting Donors. Supporting Communities.**
+### Less Waste. More Nourishment. Stronger Communities.
 
-*A digital approach to making surplus food donation more accessible and coordinated.*
+**Connecting surplus food with the organizations working to get it to people in need.**
+
+[**Visit FoodWise →**](https://food-wise-henna.vercel.app)
 
 </div>
