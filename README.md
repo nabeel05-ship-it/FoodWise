@@ -1,4 +1,7 @@
 <div align="center">
+  <img src="./public/logo.png" alt="FoodWise Logo" width="250"/>
+</div>
+<div align="center">
 
 # 🌱 FoodWise
 
