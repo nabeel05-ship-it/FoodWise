@@ -3,7 +3,7 @@
 </div>
 <div align="center">
 
-# 🌱 FoodWise
+# FoodWise
 
 ### Food Waste Reduction and Food Donation Platform
 
