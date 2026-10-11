@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Bell, X, CheckCircle2, BellRing } from "lucide-react";
 import { useLang } from "@/context/LanguageContext";
+import { motion, AnimatePresence } from "motion/react";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -102,73 +103,75 @@ export default function PushNotificationPrompt() {
     } catch {}
   };
 
-  // Don't show anything while loading, if hidden, or if unsupported
-  if (status === "loading" || status === "hidden" || status === "unsupported") return null;
-
   return (
-    <div className="fixed bottom-4 right-4 z-[45] w-[320px] max-w-[calc(100vw-2rem)]" style={{ animation: "slideUp 0.3s ease-out" }}>
-      <style>{`
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(16px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
-      <div className="bg-white rounded-2xl shadow-2xl border border-[#E8ECF3] p-4">
-        {status === "granted" ? (
-          <div className="flex items-center gap-3 text-emerald-600">
-            <CheckCircle2 className="w-6 h-6 shrink-0" />
-            <div>
-              <p className="text-sm font-bold">{t("push.enabled")}</p>
-              <p className="text-xs text-[#6B7280]">{t("push.enabled_desc")}</p>
-            </div>
-          </div>
-        ) : status === "denied" ? (
-          <div className="flex items-center gap-3">
-            <Bell className="w-6 h-6 shrink-0 text-[#9CA3AF]" />
-            <div>
-              <p className="text-sm font-bold text-[#374151]">{t("push.blocked")}</p>
-              <p className="text-xs text-[#6B7280]">{t("push.blocked_desc")}</p>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0">
-                <BellRing className="w-5 h-5 text-emerald-600" />
+    <AnimatePresence>
+      {status !== "loading" && status !== "hidden" && status !== "unsupported" && (
+        <motion.div
+          key="push-prompt"
+          initial={{ opacity: 0, y: 16, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 12, scale: 0.95 }}
+          transition={{ type: "spring", stiffness: 400, damping: 30 }}
+          className="fixed bottom-4 right-4 z-[45] w-[320px] max-w-[calc(100vw-2rem)]"
+        >
+          <div className="bg-white rounded-2xl shadow-2xl border border-[#E8ECF3] p-4">
+            {status === "granted" ? (
+              <div className="flex items-center gap-3 text-emerald-600">
+                <CheckCircle2 className="w-6 h-6 shrink-0" />
+                <div>
+                  <p className="text-sm font-bold">{t("push.enabled")}</p>
+                  <p className="text-xs text-[#6B7280]">{t("push.enabled_desc")}</p>
+                </div>
               </div>
-              <div className="flex-1">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="text-sm font-bold text-[#111827]">{t("push.title")}</h3>
+            ) : status === "denied" ? (
+              <div className="flex items-center gap-3">
+                <Bell className="w-6 h-6 shrink-0 text-[#9CA3AF]" />
+                <div>
+                  <p className="text-sm font-bold text-[#374151]">{t("push.blocked")}</p>
+                  <p className="text-xs text-[#6B7280]">{t("push.blocked_desc")}</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0">
+                    <BellRing className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="text-sm font-bold text-[#111827]">{t("push.title")}</h3>
+                      <button
+                        onClick={handleDismiss}
+                        aria-label="Dismiss"
+                        className="p-1 rounded-lg text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] transition-colors -mt-0.5 cursor-pointer"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <p className="text-xs text-[#6B7280] mt-1 leading-relaxed">
+                      {t("push.desc")}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 mt-3 ml-[52px]">
+                  <button
+                    onClick={handleEnable}
+                    className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold shadow-sm transition-all active:scale-95 cursor-pointer"
+                  >
+                    {t("common.enable")}
+                  </button>
                   <button
                     onClick={handleDismiss}
-                    aria-label="Dismiss"
-                    className="p-1 rounded-lg text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] transition-colors -mt-0.5"
+                    className="px-4 py-2 rounded-xl border border-[#E5E7EB] text-xs font-medium text-[#6B7280] hover:bg-[#F3F4F6] transition-colors cursor-pointer"
                   >
-                    <X className="w-4 h-4" />
+                    {t("common.not_now")}
                   </button>
                 </div>
-                <p className="text-xs text-[#6B7280] mt-1 leading-relaxed">
-                  {t("push.desc")}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 mt-3 ml-[52px]">
-              <button
-                onClick={handleEnable}
-                className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
-              >
-                {t("common.enable")}
-              </button>
-              <button
-                onClick={handleDismiss}
-                className="px-4 py-2 rounded-xl border border-[#E5E7EB] text-xs font-medium text-[#6B7280] hover:bg-[#F3F4F6] transition-colors cursor-pointer"
-              >
-                {t("common.not_now")}
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+              </>
+            )}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

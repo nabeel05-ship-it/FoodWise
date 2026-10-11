@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useLang } from "@/context/LanguageContext";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { MOTION_SPRINGS, fireMilestoneConfetti } from "@/lib/motion";
 
 const HOUSEHOLD_CATEGORIES = [
   "Cooked Home Meal",
@@ -38,6 +40,7 @@ export default function HouseholdDonatePage() {
   const router = useRouter();
   const { addDonation, activeDonor } = useApp();
   const { t } = useLang();
+  const prefersReduced = useReducedMotion();
 
   const [foodName, setFoodName] = useState("Vegetable Pulao & Dal");
   const [foodCategory, setFoodCategory] = useState(HOUSEHOLD_CATEGORIES[0]);
@@ -137,46 +140,66 @@ export default function HouseholdDonatePage() {
 
       setIsSubmitting(false);
       setIsSuccess(true);
+      fireMilestoneConfetti();
     }, 500);
   };
 
-  if (isSuccess) {
-    return (
-      <div className="max-w-xl mx-auto py-12 text-center space-y-5">
-        <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto border border-emerald-300">
-          <CheckCircle2 className="w-10 h-10" />
-        </div>
-        <div className="space-y-2">
-          <h1 className="text-2xl font-black text-gray-950">{t("Food Donation Listed!")}</h1>
-          <p className="text-sm text-gray-600">
-            {t("Thank you for sharing with your community. Nearby verified volunteers have been notified to collect your food.")}
-          </p>
-        </div>
-        <div className="flex justify-center gap-3 pt-3">
-          <Link
-            href="/household/dashboard"
-            className="px-5 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold transition-all"
-          >
-            {t("Go to Home")}
-          </Link>
-          <button
-            onClick={() => {
-              setFoodName("");
-              setDescription("");
-              setIsSuccess(false);
-            }}
-            className="px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all hover:brightness-110"
-            style={{ background: "#164A31" }}
-          >
-            {t("Donate Another Item")}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <AnimatePresence mode="wait">
+      {isSuccess ? (
+        <motion.div
+          key="success"
+          initial={prefersReduced ? false : { opacity: 0, scale: 0.94, y: 15 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.94 }}
+          transition={MOTION_SPRINGS.natural}
+          className="max-w-xl mx-auto py-12 text-center space-y-5"
+        >
+          <motion.div
+            initial={prefersReduced ? false : { scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={MOTION_SPRINGS.playful}
+            className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto border border-emerald-300"
+          >
+            <CheckCircle2 className="w-10 h-10" />
+          </motion.div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-black text-gray-950">{t("Food Donation Listed!")}</h1>
+            <p className="text-sm text-gray-600">
+              {t("Thank you for sharing with your community. Nearby verified volunteers have been notified to collect your food.")}
+            </p>
+          </div>
+          <div className="flex justify-center gap-3 pt-3">
+            <Link
+              href="/household/dashboard"
+              className="px-5 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold transition-all hover-lift"
+            >
+              {t("Go to Home")}
+            </Link>
+            <motion.button
+              whileHover={prefersReduced ? undefined : { scale: 1.02 }}
+              whileTap={prefersReduced ? undefined : { scale: 0.98 }}
+              onClick={() => {
+                setFoodName("");
+                setDescription("");
+                setIsSuccess(false);
+              }}
+              className="px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all hover:brightness-110 cursor-pointer shadow-sm"
+              style={{ background: "#164A31" }}
+            >
+              {t("Donate Another Item")}
+            </motion.button>
+          </div>
+        </motion.div>
+      ) : (
+        <motion.div
+          key="form"
+          initial={prefersReduced ? false : { opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={MOTION_SPRINGS.natural}
+          className="max-w-2xl mx-auto space-y-6"
+        >
       {/* Back button & Header */}
       <div>
         <Link
@@ -493,6 +516,8 @@ export default function HouseholdDonatePage() {
           )}
         </button>
       </form>
-    </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

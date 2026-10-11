@@ -2,8 +2,8 @@
 
 import React from "react";
 import { useLang } from "@/context/LanguageContext";
-import * as motion from "motion/react-client";
-import { DonationItem, DonorType } from "@/lib/types";
+import { motion, useReducedMotion } from "motion/react";
+import { DonationItem } from "@/lib/types";
 import {
   Clock,
   MapPin,
@@ -14,14 +14,13 @@ import {
   CheckCircle2,
   Key,
   HeartHandshake,
-  ArrowRight,
   RotateCcw,
   AlertTriangle,
   Flame,
   ThermometerSnowflake,
-  Sparkles,
 } from "lucide-react";
-import { calculateUrgency, calculateSmartDonationMatch } from "@/lib/smartMatching";
+import { calculateUrgency } from "@/lib/smartMatching";
+import { MOTION_SPRINGS, MOTION_DURATIONS } from "@/lib/motion";
 
 interface DonationCardProps {
   donation: DonationItem;
@@ -43,6 +42,7 @@ export default function DonationCard({
   onDonateAgain,
 }: DonationCardProps) {
   const { t } = useLang();
+  const prefersReduced = useReducedMotion();
   const isAvailable = donation.status === "AVAILABLE";
   const isAccepted = donation.status === "ACCEPTED" || donation.status === "PICKUP";
   const isCompleted = donation.status === "COMPLETED";
@@ -62,13 +62,24 @@ export default function DonationCard({
   return (
     <motion.div
       onClick={() => onViewDetails(donation)}
-      whileHover={{ y: -4, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)" }}
-      whileTap={{ scale: 0.98 }}
-      className={`bg-white rounded-2xl p-5 border transition-all cursor-pointer flex flex-col justify-between ${
+      initial={prefersReduced ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={MOTION_SPRINGS.natural}
+      whileHover={
+        prefersReduced
+          ? undefined
+          : {
+              y: -3,
+              boxShadow: "0 12px 28px -6px rgba(7, 43, 30, 0.09), 0 4px 10px -2px rgba(7, 43, 30, 0.04)",
+              transition: { duration: MOTION_DURATIONS.fast },
+            }
+      }
+      whileTap={prefersReduced ? undefined : { scale: 0.985 }}
+      className={`bg-white rounded-2xl p-5 border transition-colors cursor-pointer flex flex-col justify-between ${
         isFlagged
           ? "border-amber-300 hover:border-amber-400 bg-amber-50/20"
           : isAvailable
-          ? "border-emerald-200 hover:border-emerald-400"
+          ? "border-emerald-200 hover:border-emerald-400 shadow-2xs"
           : isAccepted
           ? "border-blue-200 hover:border-blue-400 bg-blue-50/15"
           : "border-gray-200 opacity-90"
@@ -250,7 +261,7 @@ export default function DonationCard({
           {!isNgo && isAccepted && onCompleteHandover && (
             <button
               onClick={() => onCompleteHandover(donation)}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-blue-700 hover:bg-blue-800 transition-all cursor-pointer flex items-center gap-1 shadow-xs"
+              className="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-blue-700 hover:bg-blue-800 transition-all cursor-pointer flex items-center gap-1 shadow-xs active:scale-95"
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>{t("dash.card_verify")}</span>
@@ -260,7 +271,7 @@ export default function DonationCard({
           {!isNgo && isCompleted && onDonateAgain && (
             <button
               onClick={() => onDonateAgain(donation)}
-              className="px-2.5 py-1.5 rounded-xl text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 transition-all cursor-pointer flex items-center gap-1 border border-emerald-200"
+              className="px-2.5 py-1.5 rounded-xl text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 transition-all cursor-pointer flex items-center gap-1 border border-emerald-200 active:scale-95"
               title="Post similar surplus donation"
             >
               <RotateCcw className="w-3 h-3" />
@@ -270,7 +281,7 @@ export default function DonationCard({
 
           <button
             onClick={() => onViewDetails(donation)}
-            className="text-xs font-bold text-gray-600 hover:text-gray-900 px-2 py-1 cursor-pointer"
+            className="text-xs font-bold text-gray-600 hover:text-gray-900 px-2 py-1 cursor-pointer hover:underline"
           >
             {t("common.details")} →
           </button>

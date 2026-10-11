@@ -25,6 +25,7 @@ import {
   Check,
   Copy,
 } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 
 interface OperationalPickupHubProps {
   selectedItem: DonationItem | null;
@@ -40,6 +41,7 @@ export default function OperationalPickupHub({
   onRequestClaim,
 }: OperationalPickupHubProps) {
   const { activeNgo, completeDonation } = useApp();
+  const prefersReduced = useReducedMotion();
   const [showMatchReasons, setShowMatchReasons] = useState(false);
   const [copiedOtp, setCopiedOtp] = useState(false);
 
@@ -381,9 +383,11 @@ export default function OperationalPickupHub({
 
           <div className="flex items-center gap-2 ml-auto">
             {isAvailable && (
-              <button
+              <motion.button
                 type="button"
                 disabled={urgency.isExpired}
+                whileHover={prefersReduced || urgency.isExpired ? undefined : { scale: 1.02 }}
+                whileTap={prefersReduced || urgency.isExpired ? undefined : { scale: 0.98 }}
                 onClick={() => onRequestClaim(activeItem)}
                 className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 cursor-pointer ${
                   urgency.isExpired
@@ -393,18 +397,20 @@ export default function OperationalPickupHub({
               >
                 <PackageCheck className="w-4 h-4" />
                 <span>{urgency.isExpired ? "Window Expired" : "Claim & Assign Volunteer Fleet"}</span>
-              </button>
+              </motion.button>
             )}
 
             {isClaimed && (
-              <button
+              <motion.button
                 type="button"
+                whileHover={prefersReduced ? undefined : { scale: 1.02 }}
+                whileTap={prefersReduced ? undefined : { scale: 0.98 }}
                 onClick={() => completeDonation(activeItem.id)}
                 className="px-4 py-2 rounded-xl text-xs font-extrabold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/20 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span>Confirm Handover & Delivery</span>
-              </button>
+              </motion.button>
             )}
 
             {isCompleted && (

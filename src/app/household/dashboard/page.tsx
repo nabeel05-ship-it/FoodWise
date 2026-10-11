@@ -7,13 +7,13 @@ import { useLang } from "@/context/LanguageContext";
 import { DonationItem } from "@/lib/types";
 import DonationCard from "@/components/common/DonationCard";
 import DonationDetailsModal from "@/components/common/DonationDetailsModal";
+import CountUp from "@/components/common/CountUp";
+import { motion, useReducedMotion } from "motion/react";
+import { MOTION_SPRINGS } from "@/lib/motion";
 import {
   Home,
   PlusCircle,
-  PackageCheck,
   CheckCircle2,
-  Users,
-  Clock,
   HeartHandshake,
   ArrowRight,
   ShieldCheck,
@@ -23,6 +23,7 @@ import {
 export default function HouseholdDashboard() {
   const { donations, activeDonor } = useApp();
   const { t } = useLang();
+  const prefersReduced = useReducedMotion();
   const [selectedDonation, setSelectedDonation] = useState<DonationItem | null>(null);
 
   // Filter household donations
@@ -50,7 +51,12 @@ export default function HouseholdDashboard() {
   return (
     <div className="space-y-6">
       {/* ═══ HOUSEHOLD HEADER ═══ */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[#E8ECF3]">
+      <motion.div
+        initial={prefersReduced ? false : { opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={MOTION_SPRINGS.natural}
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[#E8ECF3]"
+      >
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
@@ -78,57 +84,82 @@ export default function HouseholdDashboard() {
             <span>{t("household.donate_btn")}</span>
           </Link>
         </div>
-      </div>
+      </motion.div>
 
       {/* ═══ 4 LIGHTWEIGHT KPI CARDS ═══ */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-emerald-100 shadow-xs">
+        <motion.div
+          initial={prefersReduced ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...MOTION_SPRINGS.natural, delay: 0.05 }}
+          whileHover={prefersReduced ? undefined : { y: -2 }}
+          className="bg-white rounded-2xl p-4 sm:p-5 border border-emerald-100 shadow-xs hover:border-emerald-300 transition-colors"
+        >
           <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">
             {t("dash.active_donations")}
           </span>
           <div className="text-2xl sm:text-3xl font-extrabold text-emerald-700 mt-1 font-mono">
-            {activeDonations.length}
+            <CountUp end={activeDonations.length} duration={800} />
           </div>
           <span className="text-[11px] text-gray-500 font-medium mt-1 block">
             {t("dash.available_scheduled")}
           </span>
-        </div>
+        </motion.div>
 
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-emerald-100 shadow-xs">
+        <motion.div
+          initial={prefersReduced ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...MOTION_SPRINGS.natural, delay: 0.1 }}
+          whileHover={prefersReduced ? undefined : { y: -2 }}
+          className="bg-white rounded-2xl p-4 sm:p-5 border border-emerald-100 shadow-xs hover:border-emerald-300 transition-colors"
+        >
           <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">
             {t("dash.completed_rescues")}
           </span>
           <div className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-1 font-mono">
-            {completedDonations.length}
+            <CountUp end={completedDonations.length} duration={800} />
           </div>
           <span className="text-[11px] text-emerald-700 font-medium mt-1 block">
             {t("dash.collected_volunteers")}
           </span>
-        </div>
+        </motion.div>
 
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-emerald-100 shadow-xs">
+        <motion.div
+          initial={prefersReduced ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...MOTION_SPRINGS.natural, delay: 0.15 }}
+          whileHover={prefersReduced ? undefined : { y: -2 }}
+          className="bg-white rounded-2xl p-4 sm:p-5 border border-emerald-100 shadow-xs hover:border-emerald-300 transition-colors"
+        >
           <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">
             {t("dash.food_donated")}
           </span>
           <div className="text-2xl sm:text-3xl font-extrabold text-gray-950 mt-1 font-mono">
-            {totalKg} <span className="text-xs font-semibold text-gray-500">{t("common.kg")}</span>
+            <CountUp end={totalKg} decimals={totalKg % 1 !== 0 ? 1 : 0} duration={900} />{" "}
+            <span className="text-xs font-semibold text-gray-500">{t("common.kg")}</span>
           </div>
           <span className="text-[11px] text-gray-500 font-medium mt-1 block">
             {t("dash.surplus_saved")}
           </span>
-        </div>
+        </motion.div>
 
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-emerald-100 shadow-xs">
+        <motion.div
+          initial={prefersReduced ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...MOTION_SPRINGS.natural, delay: 0.2 }}
+          whileHover={prefersReduced ? undefined : { y: -2 }}
+          className="bg-white rounded-2xl p-4 sm:p-5 border border-emerald-100 shadow-xs hover:border-emerald-300 transition-colors"
+        >
           <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">
             {t("dash.people_helped")}
           </span>
           <div className="text-2xl sm:text-3xl font-extrabold text-emerald-900 mt-1 font-mono">
-            {totalServings}
+            <CountUp end={totalServings} duration={900} />
           </div>
           <span className="text-[11px] text-emerald-700 font-medium mt-1 block">
             {t("dash.nutritious_portions")}
           </span>
-        </div>
+        </motion.div>
       </div>
 
       {/* ═══ ACTIVE DONATIONS SECTION ═══ */}
@@ -141,10 +172,10 @@ export default function HouseholdDashboard() {
             </h2>
             <Link
               href="/household/donations"
-              className="text-xs text-emerald-800 hover:text-emerald-950 font-bold inline-flex items-center gap-1"
+              className="text-xs text-emerald-800 hover:text-emerald-950 font-bold inline-flex items-center gap-1 group"
             >
               <span>{t("common.view_all")}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </Link>
           </div>
 
@@ -173,7 +204,7 @@ export default function HouseholdDashboard() {
               <div className="pt-2">
                 <Link
                   href="/household/donate"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-xs font-bold transition-all hover:brightness-110"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-xs font-bold transition-all hover:brightness-110 active:scale-95 cursor-pointer"
                   style={{ background: "#164A31" }}
                 >
                   <PlusCircle className="w-3.5 h-3.5 text-emerald-400" />

@@ -6,6 +6,8 @@ import { DonationItem } from "@/lib/types";
 import DonationDetailsModal from "@/components/common/DonationDetailsModal";
 import { useLang } from "@/context/LanguageContext";
 import { downloadDonationRecordPdf } from "@/lib/pdfGenerator";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { MOTION_SPRINGS } from "@/lib/motion";
 import {
   Truck,
   CheckCircle2,
@@ -24,6 +26,7 @@ import {
 export default function HotelPickupsPage() {
   const { donations, activeDonor, completeDonation } = useApp();
   const { t } = useLang();
+  const prefersReduced = useReducedMotion();
   const [selectedDonation, setSelectedDonation] = useState<DonationItem | null>(null);
   const [copiedOtpId, setCopiedOtpId] = useState<string | null>(null);
 
@@ -290,14 +293,13 @@ export default function HotelPickupsPage() {
         </div>
       )}
 
-      {selectedDonation && (
-        <DonationDetailsModal
-          donation={selectedDonation}
-          userRole="HOTEL"
-          onClose={() => setSelectedDonation(null)}
-          onCompleteDonation={(id) => completeDonation(id)}
-        />
-      )}
+      <DonationDetailsModal
+        isOpen={!!selectedDonation}
+        donation={selectedDonation}
+        userRole="HOTEL"
+        onClose={() => setSelectedDonation(null)}
+        onCompleteDonation={(id) => completeDonation(id)}
+      />
     </div>
   );
 }

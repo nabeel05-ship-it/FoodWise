@@ -37,7 +37,9 @@ import {
   Phone,
   User,
 } from "lucide-react";
-import confetti from "canvas-confetti";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { MOTION_SPRINGS, fireMilestoneConfetti } from "@/lib/motion";
+import CountUp from "@/components/common/CountUp";
 
 interface SurplusFeedItem {
   id: string;
@@ -373,6 +375,7 @@ function NgoDashboardContent() {
     qualityReports,
   } = useApp();
   const { t } = useLang();
+  const prefersReduced = useReducedMotion();
   const [filterType, setFilterType] = useState<string>("All");
   const [selectedPickup, setSelectedPickup] = useState<SurplusFeedItem | null>(null);
   const [selectedDonationId, setSelectedDonationId] = useState<string | null>(null);
@@ -550,12 +553,7 @@ function NgoDashboardContent() {
       institution: item.institution,
     });
 
-    confetti({
-      particleCount: 75,
-      spread: 70,
-      origin: { y: 0.65 },
-      colors: ["#10B981", "#059669", "#34D399"],
-    });
+    fireMilestoneConfetti();
 
     setTimeout(() => setScheduleSuccess(null), 8000);
   };
@@ -598,12 +596,7 @@ function NgoDashboardContent() {
       method: "DELETE",
     }).catch((err) => console.warn("Failed to remove scheduled pickup from MongoDB:", err));
 
-    confetti({
-      particleCount: 50,
-      spread: 50,
-      origin: { y: 0.7 },
-      colors: ["#10B981", "#60A5FA"],
-    });
+    fireMilestoneConfetti();
   };
 
   const isItemAccepted = (itemId: string) => {
@@ -797,59 +790,78 @@ function NgoDashboardContent() {
       {activeTabFromUrl === "overview" && (
         <div className="space-y-6">
           {/* KPI Stat Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div className="stat-card stat-card-green p-5 flex flex-col justify-between h-full">
+          <motion.div
+            initial={prefersReduced ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={MOTION_SPRINGS.natural}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
+          >
+            <motion.div
+              whileHover={prefersReduced ? undefined : { y: -2, transition: { duration: 0.18 } }}
+              className="stat-card stat-card-green p-5 flex flex-col justify-between h-full transition-shadow hover:shadow-md"
+            >
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[13px] font-medium text-gray-500">{t("ngo.available_surplus")}</span>
                 <div className="icon-container icon-container-green"><Utensils className="w-5 h-5" /></div>
               </div>
               <div>
-                <div className="text-[28px] font-extrabold font-mono-data text-gray-900 leading-none mb-1.5">{dynamicFeed.length} {t("ngo.dash.batches")}</div>
+                <div className="text-[28px] font-extrabold font-mono-data text-gray-900 leading-none mb-1.5">
+                  <CountUp value={dynamicFeed.length} /> {t("ngo.dash.batches")}
+                </div>
                 <div className="text-[12px] font-medium text-emerald-600">
-                  {dynamicFeed.reduce((acc, i) => acc + i.quantityKg, 0)} {t("ngo.kg")}{t("ngo.dash.verified_food_desc")}
+                  <CountUp value={dynamicFeed.reduce((acc, i) => acc + i.quantityKg, 0)} /> {t("ngo.kg")}{t("ngo.dash.verified_food_desc")}
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="stat-card stat-card-amber p-5 flex flex-col justify-between h-full">
+            <motion.div
+              whileHover={prefersReduced ? undefined : { y: -2, transition: { duration: 0.18 } }}
+              className="stat-card stat-card-amber p-5 flex flex-col justify-between h-full transition-shadow hover:shadow-md"
+            >
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[13px] font-medium text-gray-500">{t("ngo.dash.urgent_label")}</span>
                 <div className="icon-container icon-container-amber"><Timer className="w-5 h-5" /></div>
               </div>
               <div>
                 <div className="text-[28px] font-extrabold font-mono-data text-gray-900 leading-none mb-1.5">
-                  {dynamicFeed.filter((i) => i.hoursLeft <= 4).length} {t("ngo.dash.batches")}
+                  <CountUp value={dynamicFeed.filter((i) => i.hoursLeft <= 4).length} /> {t("ngo.dash.batches")}
                 </div>
                 <div className="text-[12px] font-medium text-amber-600">{t("ngo.dash.rapid_dispatch")}</div>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="stat-card stat-card-emerald p-5 flex flex-col justify-between h-full">
+            <motion.div
+              whileHover={prefersReduced ? undefined : { y: -2, transition: { duration: 0.18 } }}
+              className="stat-card stat-card-emerald p-5 flex flex-col justify-between h-full transition-shadow hover:shadow-md"
+            >
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[13px] font-medium text-gray-500">Active Collections</span>
                 <div className="icon-container icon-container-green"><Truck className="w-5 h-5" /></div>
               </div>
               <div>
                 <div className="text-[28px] font-extrabold font-mono-data text-gray-900 leading-none mb-1.5">
-                  {scheduledPickups.length} Batches
+                  <CountUp value={scheduledPickups.length} /> Batches
                 </div>
                 <div className="text-[12px] font-medium text-emerald-600">Assigned & in dispatch transit</div>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="stat-card stat-card-blue p-5 flex flex-col justify-between h-full">
+            <motion.div
+              whileHover={prefersReduced ? undefined : { y: -2, transition: { duration: 0.18 } }}
+              className="stat-card stat-card-blue p-5 flex flex-col justify-between h-full transition-shadow hover:shadow-md"
+            >
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[13px] font-medium text-gray-500">Completed Handover</span>
                 <div className="icon-container icon-container-blue"><CheckCircle2 className="w-5 h-5" /></div>
               </div>
               <div>
                 <div className="text-[28px] font-extrabold font-mono-data text-gray-900 leading-none mb-1.5">
-                  {pickupHistory.length} Delivered
+                  <CountUp value={pickupHistory.length} /> Delivered
                 </div>
                 <div className="text-[12px] font-medium text-blue-600">Verified shelter distributions</div>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Quality Reporting Alert Banner */}
           {qualityReports.length > 0 && (

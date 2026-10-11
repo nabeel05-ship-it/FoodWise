@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useApp } from "@/context/AppContext";
 import { usePathname } from "next/navigation";
-import { Sparkles } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { Sparkles, Send, X, Bot } from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { MOTION_SPRINGS, MOTION_DURATIONS } from "@/lib/motion";
 
 interface Message {
   role: "user" | "assistant";
@@ -14,7 +15,8 @@ interface Message {
 export default function FoodieAIWidget() {
   const { userRole } = useApp();
   const pathname = usePathname();
-  
+  const prefersReduced = useReducedMotion();
+
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", content: "Hi! I'm Foodie AI. I can help you understand FoodWise and answer questions related to your role." }
@@ -22,7 +24,7 @@ export default function FoodieAIWidget() {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,6 +32,15 @@ export default function FoodieAIWidget() {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
 
   const toggleDrawer = () => setIsOpen(!isOpen);
 
@@ -92,146 +103,165 @@ export default function FoodieAIWidget() {
   return (
     <>
       <AnimatePresence>
-      {!isOpen && (
-        <motion.button
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.8 }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={toggleDrawer}
-          aria-label="Open Foodie AI"
-          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-white border border-gray-200 shadow-lg hover:shadow-xl rounded-full p-2 pr-4 text-sm font-semibold text-gray-700 flex items-center gap-2.5 transition-all duration-300 hover:border-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 z-50 group"
-        >
-          <div className="relative flex items-center justify-center bg-emerald-50 group-hover:bg-emerald-100 text-emerald-600 p-2 rounded-full transition-colors">
-            <Sparkles className="w-4 h-4" />
-            <span className="absolute top-0 right-0 w-2 h-2 bg-emerald-500 rounded-full border-2 border-white" />
-          </div>
-          <span className="tracking-wide">Foodie AI</span>
-        </motion.button>
-      )}
+        {!isOpen && (
+          <motion.button
+            key="foodie-ai-trigger"
+            initial={prefersReduced ? { opacity: 0 } : { opacity: 0, scale: 0.8, y: 10 }}
+            animate={prefersReduced ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+            exit={prefersReduced ? { opacity: 0 } : { opacity: 0, scale: 0.85, y: 8 }}
+            transition={MOTION_SPRINGS.natural}
+            whileHover={
+              prefersReduced
+                ? undefined
+                : {
+                    scale: 1.04,
+                    boxShadow: "0 14px 30px -4px rgba(16, 185, 129, 0.28), 0 6px 14px -2px rgba(0, 0, 0, 0.08)",
+                  }
+            }
+            whileTap={prefersReduced ? undefined : { scale: 0.95 }}
+            onClick={toggleDrawer}
+            aria-label="Open Foodie AI"
+            className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-white border border-emerald-200/80 shadow-lg rounded-full p-2 pr-4 text-sm font-semibold text-gray-800 flex items-center gap-2.5 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/50 z-50 group cursor-pointer"
+          >
+            <div className="relative flex items-center justify-center bg-emerald-50 group-hover:bg-emerald-100 text-emerald-600 p-2 rounded-full transition-colors">
+              <Sparkles className="w-4 h-4" />
+              <span className="absolute top-0 right-0 w-2 h-2 bg-emerald-500 rounded-full border-2 border-white" />
+            </div>
+            <span className="tracking-wide font-bold text-xs sm:text-sm text-emerald-950">Foodie AI</span>
+          </motion.button>
+        )}
       </AnimatePresence>
 
       <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 20, scale: 0.95 }}
-          transition={{ type: "spring", bounce: 0, duration: 0.3 }}
-          className="fixed bottom-6 right-6 w-[350px] bg-white border border-gray-200 rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50"
-        >
-          {/* Header */}
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-5 text-white flex justify-between items-center shrink-0 shadow-md z-10 relative">
-            <div>
-              <h3 className="font-extrabold text-lg flex items-center gap-2 drop-shadow-sm">
-                <Sparkles className="w-5 h-5 text-emerald-100" /> Foodie AI
-              </h3>
-              <p className="text-emerald-50 text-xs font-medium mt-0.5 opacity-90">Your smart FoodWise assistant</p>
-            </div>
-            <button
-              onClick={toggleDrawer}
-              className="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-2 transition-all duration-200"
+        {isOpen && (
+          <motion.div
+            key="foodie-ai-panel"
+            initial={prefersReduced ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.94 }}
+            animate={prefersReduced ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+            exit={prefersReduced ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.95 }}
+            transition={prefersReduced ? { duration: MOTION_DURATIONS.fast } : MOTION_SPRINGS.natural}
+            className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-[360px] max-w-[calc(100vw-2rem)] bg-white border border-gray-200 rounded-3xl shadow-2xl flex flex-col overflow-hidden z-50 max-h-[85vh]"
+          >
+            {/* Header */}
+            <div
+              className="p-4 text-white flex justify-between items-center shrink-0 shadow-md z-10 relative"
+              style={{ background: "linear-gradient(135deg, #072B1E 0%, #164A31 60%, #10B981 100%)" }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Chat Area */}
-          <div className="flex-1 p-4 overflow-y-auto bg-gray-50 flex flex-col space-y-4 max-h-[400px] min-h-[300px]">
-            {messages.map((msg, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: msg.role === "user" ? 10 : -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ type: "spring", bounce: 0, duration: 0.3 }}
-                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm ${
-                    msg.role === "user"
-                      ? "bg-emerald-600 text-white rounded-br-none"
-                      : "bg-white text-gray-800 border border-gray-200 shadow-sm rounded-bl-none"
-                  }`}
-                >
-                  <p className="whitespace-pre-wrap">{msg.content}</p>
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-2xl bg-white/10 backdrop-blur-xs flex items-center justify-center text-emerald-300 border border-white/15">
+                  <Bot className="w-5 h-5" />
                 </div>
-              </motion.div>
-            ))}
-            
-            {messages.length === 1 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="flex flex-col space-y-2 mt-4"
-              >
-                <p className="text-xs text-gray-500 font-medium px-2">Suggested questions:</p>
-                {getSuggestions().map((suggestion, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleSend(suggestion)}
-                    className="text-left text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 rounded-lg px-3 py-2 transition-colors"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </motion.div>
-            )}
-            
-            {isLoading && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-                <div className="bg-white border border-gray-200 shadow-sm rounded-2xl rounded-bl-none px-4 py-3 flex space-x-1">
-                  <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce" />
-                  <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: "0.15s" }} />
-                  <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: "0.3s" }} />
-                </div>
-              </motion.div>
-            )}
-            
-            {errorMsg && (
-              <div className="flex justify-center my-2">
-                <div className="bg-red-50 text-red-600 text-xs px-3 py-2 rounded-lg border border-red-100 text-center">
-                  {errorMsg}
+                <div>
+                  <h3 className="font-extrabold text-base flex items-center gap-1.5 leading-tight">
+                    Foodie AI <Sparkles className="w-3.5 h-3.5 text-emerald-300" />
+                  </h3>
+                  <p className="text-emerald-100/90 text-[11px] font-medium">Role-aware assistant • {userRole || "FoodWise"}</p>
                 </div>
               </div>
-            )}
-            
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input Area */}
-          <div className="p-3 bg-white border-t border-gray-100 shrink-0">
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Ask Foodie AI..."
-                className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                disabled={isLoading}
-              />
               <button
-                onClick={() => handleSend(inputValue)}
-                disabled={!inputValue.trim() || isLoading}
-                className="bg-emerald-600 text-white rounded-full p-2 h-10 w-10 flex items-center justify-center shrink-0 disabled:opacity-50 disabled:bg-gray-300 transition-colors"
+                onClick={toggleDrawer}
+                aria-label="Close Foodie AI"
+                className="text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-2 transition-all cursor-pointer"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                  <path d="M3.478 2.404a.75.75 0 00-.926.941l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.404z" />
-                </svg>
+                <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="text-center mt-3 mb-1 px-2">
-               <span className="text-[10px] leading-tight text-gray-500 font-medium block bg-gray-50 py-1 rounded border border-gray-100">
-                 ⚠️ This is AI-generated and may contain mistakes.
-               </span>
+
+            {/* Chat Area */}
+            <div className="flex-1 p-4 overflow-y-auto bg-[#F9FAFB] flex flex-col space-y-3.5 max-h-[380px] min-h-[260px]">
+              {messages.map((msg, index) => (
+                <motion.div
+                  key={index}
+                  initial={prefersReduced ? false : { opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: MOTION_DURATIONS.fast }}
+                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-xs leading-relaxed ${
+                      msg.role === "user"
+                        ? "text-white rounded-br-xs shadow-xs"
+                        : "bg-white text-gray-800 border border-gray-200 shadow-2xs rounded-bl-xs"
+                    }`}
+                    style={msg.role === "user" ? { background: "#164A31" } : undefined}
+                  >
+                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                  </div>
+                </motion.div>
+              ))}
+
+              {messages.length === 1 && (
+                <motion.div
+                  initial={prefersReduced ? false : { opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="flex flex-col space-y-1.5 mt-2"
+                >
+                  <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider px-1">Suggested questions:</p>
+                  {getSuggestions().map((suggestion, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleSend(suggestion)}
+                      className="text-left text-xs text-emerald-900 bg-emerald-50/80 hover:bg-emerald-100 border border-emerald-200/80 rounded-xl px-3 py-2 transition-all cursor-pointer active:scale-98"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+
+              {isLoading && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
+                  <div className="bg-white border border-gray-200 shadow-2xs rounded-2xl rounded-bl-xs px-3.5 py-2.5 flex items-center space-x-1.5">
+                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce" />
+                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: "0.15s" }} />
+                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: "0.3s" }} />
+                    <span className="text-[11px] text-gray-400 font-medium ml-1">Thinking...</span>
+                  </div>
+                </motion.div>
+              )}
+
+              {errorMsg && (
+                <div className="flex justify-center my-1">
+                  <div className="bg-rose-50 text-rose-700 text-xs px-3 py-2 rounded-xl border border-rose-200 text-center">
+                    {errorMsg}
+                  </div>
+                </div>
+              )}
+
+              <div ref={messagesEndRef} />
             </div>
-          </div>
-        </motion.div>
-      )}
+
+            {/* Input Area */}
+            <div className="p-3 bg-white border-t border-gray-100 shrink-0">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Ask Foodie AI..."
+                  className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs text-gray-900 focus:outline-none focus:border-emerald-600 focus:bg-white transition-colors"
+                  disabled={isLoading}
+                />
+                <button
+                  onClick={() => handleSend(inputValue)}
+                  disabled={!inputValue.trim() || isLoading}
+                  aria-label="Send message"
+                  className="text-white rounded-xl p-2 h-9 w-9 flex items-center justify-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer active:scale-95"
+                  style={{ background: "#164A31" }}
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="text-center mt-2 px-1">
+                <span className="text-[10px] leading-tight text-gray-500 font-medium block bg-gray-50 py-1 rounded border border-gray-100">
+                  Foodie AI provides guidance. For food quality issues, use &ldquo;Report Food Issue&rdquo;.
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </>
   );

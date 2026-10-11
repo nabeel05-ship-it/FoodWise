@@ -497,3 +497,59 @@
   border-radius: 12px !important;
   box-shadow: var(--shadow-lg) !important;
 }
+
+/* ─── Apple-inspired Motion Tokens & Micro-interactions ─── */
+:root {
+  --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-apple-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --duration-fast: 180ms;
+  --duration-normal: 280ms;
+  --duration-smooth: 380ms;
+}
+
+.hover-lift {
+  transition: transform var(--duration-fast) var(--ease-apple),
+              box-shadow var(--duration-fast) var(--ease-apple),
+              border-color var(--duration-fast) var(--ease-apple);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+.tap-feedback {
+  transition: transform var(--duration-fast) var(--ease-apple),
+              filter var(--duration-fast) var(--ease-apple);
+}
+
+.tap-feedback:active {
+  transform: scale(0.97);
+}
+
+/* ─── Accessibility: Operating System Reduced Motion Support ─── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .pulse-dot,
+  .animate-pulse,
+  .animate-bounce,
+  .animate-spin {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .stat-card:hover,
+  .glass-card-hover:hover,
+  .btn-primary:hover,
+  .hover-lift:hover {
+    transform: none !important;
+  }
+}
+

@@ -8,7 +8,10 @@ import { useLang } from "@/context/LanguageContext";
 import { DonationItem } from "@/lib/types";
 import DonationCard from "@/components/common/DonationCard";
 import DonationDetailsModal from "@/components/common/DonationDetailsModal";
+import CountUp from "@/components/common/CountUp";
 import { downloadDonationImpactReportPdf, downloadDonationRecordPdf } from "@/lib/pdfGenerator";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { MOTION_SPRINGS, MOTION_DURATIONS } from "@/lib/motion";
 import {
   Hotel,
   Utensils,
@@ -33,6 +36,7 @@ export default function HotelDashboard() {
   const router = useRouter();
   const { donations, activeDonor, completeDonation, cancelDonation } = useApp();
   const { t } = useLang();
+  const prefersReduced = useReducedMotion();
   const [selectedDonation, setSelectedDonation] = useState<DonationItem | null>(null);
   const [activeTab, setActiveTab] = useState<"ALL" | "AVAILABLE" | "EN_ROUTE">("ALL");
   const [copiedOtpId, setCopiedOtpId] = useState<string | null>(null);
@@ -172,67 +176,87 @@ export default function HotelDashboard() {
       </div>
 
       {/* ═══ 5 FOCUSED COMMERCIAL STATS ═══ */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-emerald-100 shadow-xs">
+      <motion.div
+        className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4"
+        initial={prefersReduced ? false : { opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={MOTION_SPRINGS.natural}
+      >
+        <motion.div
+          whileHover={prefersReduced ? undefined : { y: -2, transition: { duration: 0.18 } }}
+          className="bg-white rounded-2xl p-4 sm:p-5 border border-emerald-100 shadow-xs transition-shadow hover:shadow-md"
+        >
           <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">
             {t("Total Surplus Listed")}
           </span>
           <div className="text-2xl sm:text-3xl font-extrabold text-gray-950 mt-1 font-mono">
-            {totalKg} <span className="text-xs font-semibold text-gray-500">{t("common.kg")}</span>
+            <CountUp value={totalKg} /> <span className="text-xs font-semibold text-gray-500">{t("common.kg")}</span>
           </div>
           <span className="text-[11px] text-emerald-700 font-medium mt-1 block">
             {t("Banquet & Kitchen Volume")}
           </span>
-        </div>
+        </motion.div>
 
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-emerald-100 shadow-xs">
+        <motion.div
+          whileHover={prefersReduced ? undefined : { y: -2, transition: { duration: 0.18 } }}
+          className="bg-white rounded-2xl p-4 sm:p-5 border border-emerald-100 shadow-xs transition-shadow hover:shadow-md"
+        >
           <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">
             {t("Active Listings")}
           </span>
           <div className="text-2xl sm:text-3xl font-extrabold text-emerald-700 mt-1 font-mono">
-            {activeDonations.length}
+            <CountUp value={activeDonations.length} />
           </div>
           <span className="text-[11px] text-gray-500 font-medium mt-1 block">
             {t("Ready at Loading Bay")}
           </span>
-        </div>
+        </motion.div>
 
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-blue-100 shadow-xs">
+        <motion.div
+          whileHover={prefersReduced ? undefined : { y: -2, transition: { duration: 0.18 } }}
+          className="bg-white rounded-2xl p-4 sm:p-5 border border-blue-100 shadow-xs transition-shadow hover:shadow-md"
+        >
           <span className="text-[11px] font-bold uppercase tracking-wider text-blue-700 block">
             {t("Scheduled Pickups")}
           </span>
           <div className="text-2xl sm:text-3xl font-extrabold text-blue-800 mt-1 font-mono">
-            {upcomingPickups.length}
+            <CountUp value={upcomingPickups.length} />
           </div>
           <span className="text-[11px] text-blue-700 font-medium mt-1 block">
             {t("NGO Fleet In Transit")}
           </span>
-        </div>
+        </motion.div>
 
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-emerald-100 shadow-xs">
+        <motion.div
+          whileHover={prefersReduced ? undefined : { y: -2, transition: { duration: 0.18 } }}
+          className="bg-white rounded-2xl p-4 sm:p-5 border border-emerald-100 shadow-xs transition-shadow hover:shadow-md"
+        >
           <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">
             {t("Completed Rescues")}
           </span>
           <div className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-1 font-mono">
-            {completedDonations.length}
+            <CountUp value={completedDonations.length} />
           </div>
           <span className="text-[11px] text-gray-500 font-medium mt-1 block">
             {t("Delivered to Shelters")}
           </span>
-        </div>
+        </motion.div>
 
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-emerald-100 shadow-xs col-span-2 lg:col-span-1">
+        <motion.div
+          whileHover={prefersReduced ? undefined : { y: -2, transition: { duration: 0.18 } }}
+          className="bg-white rounded-2xl p-4 sm:p-5 border border-emerald-100 shadow-xs col-span-2 lg:col-span-1 transition-shadow hover:shadow-md"
+        >
           <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">
             {t("People Nourished")}
           </span>
           <div className="text-2xl sm:text-3xl font-extrabold text-emerald-900 mt-1 font-mono">
-            {totalPeopleServed || activeDonor.peopleServed || 0}+
+            <CountUp value={totalPeopleServed || activeDonor.peopleServed || 0} />+
           </div>
           <span className="text-[11px] text-emerald-700 font-medium mt-1 block">
             {t("Zero Landfill Waste")}
           </span>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* ═══ OPERATIONAL SHIFT & FOOD SAFETY PROTOCOL BANNER ═══ */}
       <div className="rounded-2xl p-4 sm:p-5 bg-linear-to-r from-emerald-900 to-[#072B1E] text-white shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -488,15 +512,14 @@ export default function HotelDashboard() {
         </div>
       )}
 
-      {selectedDonation && (
-        <DonationDetailsModal
-          donation={selectedDonation}
-          userRole="HOTEL"
-          onClose={() => setSelectedDonation(null)}
-          onCancelDonation={(id) => cancelDonation(id)}
-          onCompleteDonation={(id) => completeDonation(id)}
-        />
-      )}
+      <DonationDetailsModal
+        isOpen={!!selectedDonation}
+        donation={selectedDonation}
+        userRole="HOTEL"
+        onClose={() => setSelectedDonation(null)}
+        onCancelDonation={(id) => cancelDonation(id)}
+        onCompleteDonation={(id) => completeDonation(id)}
+      />
     </div>
   );
 }

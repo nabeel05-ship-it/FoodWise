@@ -4,7 +4,9 @@ import React, { useState } from "react";
 import { downloadFoodDonationCertificatePdf } from "@/lib/pdfGenerator";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
-import * as motion from "motion/react-client";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { MOTION_SPRINGS } from "@/lib/motion";
+import CountUp from "@/components/common/CountUp";
 import {
   HeartHandshake,
   Users,
@@ -43,6 +45,7 @@ const MONTHLY_COMMUNITY_TREND = [
 export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAURANT" | "HOTEL" | "NGO" }) {
   const { activeDonor, activeNgo, donations, communityMetrics } = useApp();
   const { t } = useLang();
+  const prefersReduced = useReducedMotion();
   const [viewMode, setViewMode] = useState<"role" | "community">("role");
 
   const isHousehold = role === "HOUSEHOLD";
@@ -79,9 +82,9 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
+      initial={prefersReduced ? false : { opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+      transition={MOTION_SPRINGS.natural}
       className="space-y-8 pb-12"
     >
       {/* ═══ HEADER ═══ */}
@@ -169,12 +172,15 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
         <div className="space-y-6">
           {/* 4 Realistic Metrics */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <motion.div whileHover={{ y: -4 }} className="p-5 rounded-2xl bg-white border border-emerald-100 shadow-xs">
+            <motion.div
+              whileHover={prefersReduced ? undefined : { y: -4, transition: { duration: 0.18 } }}
+              className="p-5 rounded-2xl bg-white border border-emerald-100 shadow-xs transition-shadow hover:shadow-md"
+            >
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 {isNgo ? t("impact.food_received") : t("impact.food_donated")}
               </span>
               <div className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-800 mt-1">
-                {roleFoodKg} <span className="text-xs font-semibold text-gray-500">kg</span>
+                <CountUp value={roleFoodKg} /> <span className="text-xs font-semibold text-gray-500">kg</span>
               </div>
               <span className="text-[11px] text-gray-500 mt-1 block">
                 {isHousehold
@@ -187,36 +193,45 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
               </span>
             </motion.div>
 
-            <motion.div whileHover={{ y: -4 }} className="p-5 rounded-2xl bg-white border border-emerald-100 shadow-xs">
+            <motion.div
+              whileHover={prefersReduced ? undefined : { y: -4, transition: { duration: 0.18 } }}
+              className="p-5 rounded-2xl bg-white border border-emerald-100 shadow-xs transition-shadow hover:shadow-md"
+            >
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 {isNgo ? t("impact.completed_pickups") : t("impact.completed_donations")}
               </span>
               <div className="text-2xl sm:text-3xl font-extrabold font-mono text-gray-900 mt-1">
-                {roleCompletedCount}
+                <CountUp value={roleCompletedCount} />
               </div>
               <span className="text-[11px] text-gray-500 mt-1 block">
                 {isNgo ? t("impact.safe_handovers") : t("impact.delivered_verified")}
               </span>
             </motion.div>
 
-            <motion.div whileHover={{ y: -4 }} className="p-5 rounded-2xl bg-white border border-emerald-100 shadow-xs">
+            <motion.div
+              whileHover={prefersReduced ? undefined : { y: -4, transition: { duration: 0.18 } }}
+              className="p-5 rounded-2xl bg-white border border-emerald-100 shadow-xs transition-shadow hover:shadow-md"
+            >
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 {isHousehold ? t("impact.people_helped") : isNgo ? t("impact.people_served") : t("impact.people_served")}
               </span>
               <div className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-900 mt-1">
-                ~{rolePeopleServed}
+                ~<CountUp value={rolePeopleServed} />
               </div>
               <span className="text-[11px] text-emerald-700 mt-1 block">
                 Nutritious portions provided
               </span>
             </motion.div>
 
-            <motion.div whileHover={{ y: -4 }} className="p-5 rounded-2xl bg-white border border-emerald-100 shadow-xs">
+            <motion.div
+              whileHover={prefersReduced ? undefined : { y: -4, transition: { duration: 0.18 } }}
+              className="p-5 rounded-2xl bg-white border border-emerald-100 shadow-xs transition-shadow hover:shadow-md"
+            >
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 {isNgo ? t("impact.active_donors") : t("impact.food_waste_prevented")}
               </span>
               <div className="text-2xl sm:text-3xl font-extrabold font-mono text-amber-700 mt-1">
-                {isNgo ? t("impact.three_donors") : `${roleFoodKg} kg`}
+                {isNgo ? t("impact.three_donors") : <><CountUp value={roleFoodKg} /> kg</>}
               </div>
               <span className="text-[11px] text-gray-500 mt-1 block">
                 {isNgo ? t("impact.restaurants_hotels") : t("impact.kept_out_waste")}
@@ -310,42 +325,54 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
         <div className="space-y-6">
           {/* Aggregate 4 Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <motion.div whileHover={{ y: -4 }} className="p-5 rounded-2xl bg-white border border-emerald-100 shadow-xs">
+            <motion.div
+              whileHover={prefersReduced ? undefined : { y: -4, transition: { duration: 0.18 } }}
+              className="p-5 rounded-2xl bg-white border border-emerald-100 shadow-xs transition-shadow hover:shadow-md"
+            >
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 Total Food Donated
               </span>
               <div className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-800 mt-1">
-                {totalCommunityKg} <span className="text-xs font-semibold text-gray-500">kg</span>
+                <CountUp value={totalCommunityKg} /> <span className="text-xs font-semibold text-gray-500">kg</span>
               </div>
               <span className="text-[11px] text-gray-500 mt-1 block">{t("impact.across_donors")}</span>
             </motion.div>
 
-            <motion.div whileHover={{ y: -4 }} className="p-5 rounded-2xl bg-white border border-rose-100 shadow-xs">
+            <motion.div
+              whileHover={prefersReduced ? undefined : { y: -4, transition: { duration: 0.18 } }}
+              className="p-5 rounded-2xl bg-white border border-rose-100 shadow-xs transition-shadow hover:shadow-md"
+            >
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 People Fed / Servings
               </span>
               <div className="text-2xl sm:text-3xl font-extrabold font-mono text-rose-700 mt-1">
-                ~{totalCommunityServings}
+                ~<CountUp value={totalCommunityServings} />
               </div>
               <span className="text-[11px] text-gray-500 mt-1 block">{t("impact.meals_distributed")}</span>
             </motion.div>
 
-            <motion.div whileHover={{ y: -4 }} className="p-5 rounded-2xl bg-white border border-amber-100 shadow-xs">
+            <motion.div
+              whileHover={prefersReduced ? undefined : { y: -4, transition: { duration: 0.18 } }}
+              className="p-5 rounded-2xl bg-white border border-amber-100 shadow-xs transition-shadow hover:shadow-md"
+            >
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 {t("impact.food_waste_prevented")}
               </span>
               <div className="text-2xl sm:text-3xl font-extrabold font-mono text-amber-700 mt-1">
-                {totalCommunityKg} <span className="text-xs font-semibold text-gray-500">kg</span>
+                <CountUp value={totalCommunityKg} /> <span className="text-xs font-semibold text-gray-500">kg</span>
               </div>
               <span className="text-[11px] text-gray-500 mt-1 block">{t("impact.diverted_landfills")}</span>
             </motion.div>
 
-            <motion.div whileHover={{ y: -4 }} className="p-5 rounded-2xl bg-white border border-blue-100 shadow-xs">
+            <motion.div
+              whileHover={prefersReduced ? undefined : { y: -4, transition: { duration: 0.18 } }}
+              className="p-5 rounded-2xl bg-white border border-blue-100 shadow-xs transition-shadow hover:shadow-md"
+            >
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 {t("impact.emissions_averted")}
               </span>
               <div className="text-2xl sm:text-3xl font-extrabold font-mono text-blue-700 mt-1">
-                {Math.round(totalCommunityKg * 2.5)} <span className="text-xs font-semibold text-gray-500">kg CO₂e</span>
+                <CountUp value={Math.round(totalCommunityKg * 2.5)} /> <span className="text-xs font-semibold text-gray-500">kg CO₂e</span>
               </div>
               <span className="text-[11px] text-gray-500 mt-1 block">{t("impact.co2_saved")}</span>
             </motion.div>
@@ -355,19 +382,19 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-[#F8FAFC] border border-gray-200 text-center">
             <div>
               <div className="text-xs text-gray-500 font-semibold">Completed Batches</div>
-              <div className="text-lg font-bold font-mono text-gray-900 mt-0.5">{totalCommunityCompletedCount}</div>
+              <div className="text-lg font-bold font-mono text-gray-900 mt-0.5"><CountUp value={totalCommunityCompletedCount} /></div>
             </div>
             <div>
               <div className="text-xs text-gray-500 font-semibold">Active Donors</div>
-              <div className="text-lg font-bold font-mono text-gray-900 mt-0.5">{uniqueDonorsCount}</div>
+              <div className="text-lg font-bold font-mono text-gray-900 mt-0.5"><CountUp value={uniqueDonorsCount} /></div>
             </div>
             <div>
               <div className="text-xs text-gray-500 font-semibold">Partner NGOs</div>
-              <div className="text-lg font-bold font-mono text-gray-900 mt-0.5">{uniqueNgosCount}</div>
+              <div className="text-lg font-bold font-mono text-gray-900 mt-0.5"><CountUp value={uniqueNgosCount} /></div>
             </div>
             <div>
               <div className="text-xs text-gray-500 font-semibold">Completion Rate</div>
-              <div className="text-lg font-bold font-mono text-emerald-700 mt-0.5">{completionRate}%</div>
+              <div className="text-lg font-bold font-mono text-emerald-700 mt-0.5"><CountUp value={completionRate} />%</div>
             </div>
           </div>
 

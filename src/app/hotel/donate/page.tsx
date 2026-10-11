@@ -18,14 +18,16 @@ import {
   PackageCheck,
   CheckCircle2,
 } from "lucide-react";
-import confetti from "canvas-confetti";
 import { calculateUrgency } from "@/lib/smartMatching";
+import { motion, useReducedMotion } from "motion/react";
+import { MOTION_SPRINGS, fireMilestoneConfetti } from "@/lib/motion";
 
 function HotelDonateForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addDonation, activeDonor } = useApp();
   const { t } = useLang();
+  const prefersReduced = useReducedMotion();
 
   const [establishmentType, setEstablishmentType] = useState("Restaurant & Commercial Kitchen");
   const [mealType, setMealType] = useState(searchParams.get("repeatCategory") || "Banquet / Event Surplus");
@@ -179,15 +181,18 @@ function HotelDonateForm() {
       foodCondition: `Fresh commercial food. ${holdingMethod}. Packaged in ${packagingType}.`,
     });
 
-    try {
-      confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
-    } catch { }
+    fireMilestoneConfetti();
 
     router.push("/hotel/donations");
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <motion.div
+      initial={prefersReduced ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={MOTION_SPRINGS.natural}
+      className="max-w-3xl mx-auto space-y-6"
+    >
       {/* Header */}
       <div className="pb-4 border-b border-[#E8ECF3]">
         <div className="flex items-center gap-2 mb-1.5 flex-wrap">
@@ -622,7 +627,7 @@ function HotelDonateForm() {
           </button>
         </div>
       </form>
-    </div>
+    </motion.div>
   );
 }
 

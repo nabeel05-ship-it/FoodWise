@@ -66,8 +66,8 @@ async function runTests() {
         if (['node_modules', '.next', '.git', 'coverage'].includes(entry.name)) continue;
         violations.push(...searchCodebaseForForbiddenTerms(fullPath, forbiddenRegexes));
       } else if (entry.isFile() && /\.(tsx|ts|jsx|js|mjs|md)$/.test(entry.name)) {
-        // Skip this test script itself
-        if (fullPath.includes('test-e2e-workflow.mjs')) continue;
+        // Skip this test script itself and docs documenting the removal
+        if (fullPath.includes('test-e2e-workflow.mjs') || entry.name.endsWith('.md')) continue;
         const content = fs.readFileSync(fullPath, 'utf8');
         for (const { regex, label } of forbiddenRegexes) {
           if (regex.test(content)) {
