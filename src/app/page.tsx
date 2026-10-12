@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { flushSync } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
@@ -40,8 +41,16 @@ export default function LoginPage() {
   const { t: _t } = useLang();
   const prefersReduced = useReducedMotion();
 
-  // Scroll smoothly to the interactive redistribution workflow section
+  // Redistribution workflow visibility state
+  const [isWorkflowRevealed, setIsWorkflowRevealed] = useState(false);
+
+  // Reveal workflow if hidden, then scroll smoothly to it
   const handleScrollToWorkflow = () => {
+    if (!isWorkflowRevealed) {
+      flushSync(() => {
+        setIsWorkflowRevealed(true);
+      });
+    }
     const target = document.getElementById("how-it-works");
     if (!target) return;
     target.scrollIntoView({
@@ -819,15 +828,17 @@ export default function LoginPage() {
       </div>
 
       {/* Interactive Food Redistribution Showcase */}
-      <motion.div
-        id="how-it-works"
-        initial={prefersReduced ? false : { opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ ...MOTION_SPRINGS.gentle, delay: 0.1 }}
-        className="w-full max-w-[1040px] mt-1 sm:mt-2 z-10 scroll-mt-6 sm:scroll-mt-8"
-      >
-        <FoodRedistributionWorkflow />
-      </motion.div>
+      {isWorkflowRevealed && (
+        <motion.div
+          id="how-it-works"
+          initial={prefersReduced ? false : { opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...MOTION_SPRINGS.gentle, delay: 0.1 }}
+          className="w-full max-w-[1040px] mt-1 sm:mt-2 z-10 scroll-mt-6 sm:scroll-mt-8"
+        >
+          <FoodRedistributionWorkflow />
+        </motion.div>
+      )}
 
       {/* Footer Branding */}
       <div className="mt-8 text-center text-xs text-emerald-300/80 font-medium">
