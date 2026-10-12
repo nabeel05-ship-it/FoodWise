@@ -33,6 +33,7 @@ import {
 import { INSTITUTIONS } from "@/lib/mockData";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
+import { tabSpringTransition, badgePopVariants } from "@/lib/motion";
 
 interface SidebarProps {
   type: "hotel" | "household" | "ngo" | "kitchen";
@@ -191,11 +192,20 @@ function SidebarContent({ type }: SidebarProps) {
             className="relative p-2 rounded-xl bg-emerald-900/50 text-emerald-300 border border-emerald-500/30 cursor-pointer"
           >
             <Bell className="w-4 h-4" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center leading-none shadow-xs">
-                {unreadCount}
-              </span>
-            )}
+            <AnimatePresence>
+              {unreadCount > 0 && (
+                <motion.span
+                  key={unreadCount}
+                  variants={badgePopVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center leading-none shadow-xs"
+                >
+                  {unreadCount}
+                </motion.span>
+              )}
+            </AnimatePresence>
           </button>
           <button
             onClick={() => setIsSettingsOpen(true)}
@@ -429,34 +439,21 @@ function SidebarContent({ type }: SidebarProps) {
                 collapsed ? "px-0 py-2.5 justify-center" : "px-3 py-2.5"
               }`}
               style={{
-                background: isActive
-                  ? "linear-gradient(90deg, rgba(16, 185, 129, 0.28) 0%, rgba(16, 185, 129, 0.1) 100%)"
-                  : item.highlight
-                  ? "rgba(239, 68, 68, 0.15)"
-                  : "transparent",
                 color: isActive
                   ? "#FFFFFF"
                   : item.highlight
                   ? "#FCA5A5"
                   : "#D1FAE5",
-                borderLeft: isActive ? "3px solid #10B981" : "3px solid transparent",
-                boxShadow: isActive ? "inset 0 0 12px rgba(16, 185, 129, 0.15)" : "none",
               }}
               title={collapsed ? item.label : undefined}
-              onMouseEnter={(e) => {
-                if (!isActive && !item.highlight) {
-                  (e.currentTarget as HTMLElement).style.background =
-                    "rgba(16, 185, 129, 0.18)";
-                  (e.currentTarget as HTMLElement).style.color = "#FFFFFF";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive && !item.highlight) {
-                  (e.currentTarget as HTMLElement).style.background = "transparent";
-                  (e.currentTarget as HTMLElement).style.color = "#D1FAE5";
-                }
-              }}
             >
+              {isActive && (
+                <motion.div
+                  layoutId="desktopSidebarActiveIndicator"
+                  transition={tabSpringTransition}
+                  className="absolute inset-0 rounded-xl bg-linear-to-r from-emerald-500/30 to-emerald-500/10 border-l-[3px] border-emerald-400 pointer-events-none shadow-xs -z-10"
+                />
+              )}
               <Icon
                 className="w-[18px] h-[18px] shrink-0 transition-transform group-hover:scale-110"
                 style={{
@@ -524,11 +521,20 @@ function SidebarContent({ type }: SidebarProps) {
           {!collapsed && (
             <div className="flex-1 flex items-center justify-between">
               <span>{t("common.notifications")}</span>
-              {unreadCount > 0 && (
-                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold leading-none bg-rose-500 text-white shadow-xs">
-                  {unreadCount}
-                </span>
-              )}
+              <AnimatePresence>
+                {unreadCount > 0 && (
+                  <motion.span
+                    key={unreadCount}
+                    variants={badgePopVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold leading-none bg-rose-500 text-white shadow-xs"
+                  >
+                    {unreadCount}
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </div>
           )}
         </button>

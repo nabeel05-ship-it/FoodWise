@@ -19,6 +19,7 @@ import {
 import Link from "next/link";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { MOTION_SPRINGS, MOTION_DURATIONS } from "@/lib/motion";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 function resolveNotificationActionUrl(url?: string, userRole?: string): string | undefined {
   if (!url) return undefined;
@@ -55,6 +56,7 @@ export default function NotificationDrawer() {
   const [now, setNow] = useState<number>(() => Date.now());
   const [isMarkingAllRead, setIsMarkingAllRead] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [notifListRef] = useAutoAnimate<HTMLDivElement>();
 
   const closeDrawer = useCallback(() => {
     setIsNotificationOpen(false);
@@ -241,7 +243,7 @@ export default function NotificationDrawer() {
             )}
 
             {/* List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <div ref={notifListRef} className="flex-1 overflow-y-auto p-4 space-y-3">
               {scopedNotifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <div className="w-14 h-14 rounded-2xl bg-[#F3F4F6] flex items-center justify-center mb-4">

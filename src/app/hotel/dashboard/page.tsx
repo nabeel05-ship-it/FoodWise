@@ -11,7 +11,8 @@ import DonationDetailsModal from "@/components/common/DonationDetailsModal";
 import CountUp from "@/components/common/CountUp";
 import { downloadDonationImpactReportPdf, downloadDonationRecordPdf } from "@/lib/pdfGenerator";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
-import { MOTION_SPRINGS, MOTION_DURATIONS } from "@/lib/motion";
+import { MOTION_SPRINGS, MOTION_DURATIONS, tabSpringTransition } from "@/lib/motion";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import {
   Hotel,
   Utensils,
@@ -40,6 +41,7 @@ export default function HotelDashboard() {
   const [selectedDonation, setSelectedDonation] = useState<DonationItem | null>(null);
   const [activeTab, setActiveTab] = useState<"ALL" | "AVAILABLE" | "EN_ROUTE">("ALL");
   const [copiedOtpId, setCopiedOtpId] = useState<string | null>(null);
+  const [cardsListRef] = useAutoAnimate<HTMLDivElement>();
 
   // Filter donations for commercial kitchen domain (Hotel + Restaurant)
   const commercialDonations = donations.filter(
@@ -375,31 +377,35 @@ export default function HotelDashboard() {
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 p-1 bg-gray-100 border border-gray-200 rounded-xl text-xs">
-              <button
-                onClick={() => setActiveTab("ALL")}
-                className={`px-3 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
-                  activeTab === "ALL" ? "bg-white text-emerald-950 shadow-xs font-bold" : "text-gray-600"
-                }`}
-              >
-                {t("All")} ({activeDonations.length})
-              </button>
-              <button
-                onClick={() => setActiveTab("AVAILABLE")}
-                className={`px-3 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
-                  activeTab === "AVAILABLE" ? "bg-white text-emerald-950 shadow-xs font-bold" : "text-gray-600"
-                }`}
-              >
-                {t("Awaiting Claim")} ({activeDonations.filter((d) => d.status === "AVAILABLE").length})
-              </button>
-              <button
-                onClick={() => setActiveTab("EN_ROUTE")}
-                className={`px-3 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
-                  activeTab === "EN_ROUTE" ? "bg-white text-emerald-950 shadow-xs font-bold" : "text-gray-600"
-                }`}
-              >
-                {t("Pickup En Route")} ({upcomingPickups.length})
-              </button>
+            <div className="flex items-center gap-1 p-1 bg-gray-100 border border-gray-200 rounded-xl text-xs relative">
+              {(["ALL", "AVAILABLE", "EN_ROUTE"] as const).map((tabKey) => {
+                const isSelected = activeTab === tabKey;
+                const label =
+                  tabKey === "ALL"
+                    ? `${t("All")} (${activeDonations.length})`
+                    : tabKey === "AVAILABLE"
+                    ? `${t("Awaiting Claim")} (${activeDonations.filter((d) => d.status === "AVAILABLE").length})`
+                    : `${t("Pickup En Route")} (${upcomingPickups.length})`;
+
+                return (
+                  <button
+                    key={tabKey}
+                    onClick={() => setActiveTab(tabKey)}
+                    className={`px-3 py-1 rounded-lg font-semibold transition-all cursor-pointer relative z-10 ${
+                      isSelected ? "text-emerald-950 font-bold" : "text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    {isSelected && (
+                      <motion.div
+                        layoutId="hotelDashActiveTabCapsule"
+                        transition={tabSpringTransition}
+                        className="absolute inset-0 bg-white rounded-lg shadow-xs -z-10"
+                      />
+                    )}
+                    {label}
+                  </button>
+                );
+              })}
             </div>
 
             <Link
@@ -429,7 +435,7 @@ export default function HotelDashboard() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div ref={cardsListRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredActiveDonations.map((item) => (
               <DonationCard
                 key={item.id}

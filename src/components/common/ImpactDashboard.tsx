@@ -5,7 +5,7 @@ import { downloadFoodDonationCertificatePdf } from "@/lib/pdfGenerator";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
-import { MOTION_SPRINGS } from "@/lib/motion";
+import { MOTION_SPRINGS, tabSpringTransition, fireMilestoneConfetti } from "@/lib/motion";
 import CountUp from "@/components/common/CountUp";
 import {
   HeartHandshake,
@@ -112,35 +112,48 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
         </div>
 
         <div className="flex items-center gap-2.5">
-          <div className="bg-white border border-gray-200 rounded-xl p-1 flex items-center shadow-2xs">
-            <motion.button
-              whileTap={{ scale: 0.95 }}
+          <div className="bg-white border border-gray-200 rounded-xl p-1 flex items-center shadow-2xs relative">
+            <button
               onClick={() => setViewMode("role")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer relative z-10 ${
                 viewMode === "role"
-                  ? "bg-[#164A31] text-white shadow-xs"
+                  ? "text-white"
                   : "text-gray-600 hover:text-gray-950"
               }`}
             >
+              {viewMode === "role" && (
+                <motion.div
+                  layoutId="impactViewTabCapsule"
+                  transition={tabSpringTransition}
+                  className="absolute inset-0 bg-[#164A31] rounded-lg shadow-xs -z-10"
+                />
+              )}
               My Impact
-            </motion.button>
-            <motion.button
-              whileTap={{ scale: 0.95 }}
+            </button>
+            <button
               onClick={() => setViewMode("community")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer relative z-10 ${
                 viewMode === "community"
-                  ? "bg-[#164A31] text-white shadow-xs"
+                  ? "text-white"
                   : "text-gray-600 hover:text-gray-950"
               }`}
             >
+              {viewMode === "community" && (
+                <motion.div
+                  layoutId="impactViewTabCapsule"
+                  transition={tabSpringTransition}
+                  className="absolute inset-0 bg-[#164A31] rounded-lg shadow-xs -z-10"
+                />
+              )}
               Community Overview
-            </motion.button>
+            </button>
           </div>
 
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() =>
+            whileHover={prefersReduced ? undefined : { scale: 1.02 }}
+            whileTap={prefersReduced ? undefined : { scale: 0.98 }}
+            onClick={() => {
+              fireMilestoneConfetti({ particleCount: 75, spread: 60 });
               downloadFoodDonationCertificatePdf({
                 recipientName: isNgo
                   ? activeNgo?.name || "Robin Hood Army (Delhi Chapter)"
@@ -156,8 +169,8 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
                 servings: viewMode === "role" ? rolePeopleServed : totalCommunityServings,
                 donorType: role,
                 donationDate: "October 2026",
-              })
-            }
+              });
+            }}
             className="px-4 py-2.5 rounded-xl text-white text-xs font-bold shadow-md shadow-emerald-950/20 transition-all flex items-center gap-2 cursor-pointer hover:brightness-110 active:scale-95"
             style={{ background: "#164A31" }}
           >

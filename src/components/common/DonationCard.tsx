@@ -244,47 +244,55 @@ export default function DonationCard({
         {/* Action Buttons */}
         <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
           {isNgo && isAvailable && handleRequest && (
-            <button
+            <motion.button
               disabled={calculateUrgency(donation.pickupDeadline).isExpired}
               onClick={() => handleRequest(donation)}
+              whileHover={prefersReduced || calculateUrgency(donation.pickupDeadline).isExpired ? undefined : { scale: 1.03 }}
+              whileTap={prefersReduced || calculateUrgency(donation.pickupDeadline).isExpired ? undefined : { scale: 0.95 }}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs ${
                 calculateUrgency(donation.pickupDeadline).isExpired
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "text-white bg-emerald-700 hover:bg-emerald-800 cursor-pointer active:scale-95"
+                  : "text-white bg-emerald-700 hover:bg-emerald-800 cursor-pointer"
               }`}
             >
               <HeartHandshake className="w-3.5 h-3.5" />
               <span>{calculateUrgency(donation.pickupDeadline).isExpired ? "Expired" : t("dash.card_request")}</span>
-            </button>
+            </motion.button>
           )}
 
           {!isNgo && isAccepted && onCompleteHandover && (
-            <button
+            <motion.button
               onClick={() => onCompleteHandover(donation)}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-blue-700 hover:bg-blue-800 transition-all cursor-pointer flex items-center gap-1 shadow-xs active:scale-95"
+              whileHover={prefersReduced ? undefined : { scale: 1.03 }}
+              whileTap={prefersReduced ? undefined : { scale: 0.95 }}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-blue-700 hover:bg-blue-800 transition-all cursor-pointer flex items-center gap-1 shadow-xs"
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>{t("dash.card_verify")}</span>
-            </button>
+            </motion.button>
           )}
 
           {!isNgo && isCompleted && onDonateAgain && (
-            <button
+            <motion.button
               onClick={() => onDonateAgain(donation)}
-              className="px-2.5 py-1.5 rounded-xl text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 transition-all cursor-pointer flex items-center gap-1 border border-emerald-200 active:scale-95"
+              whileHover={prefersReduced ? undefined : { scale: 1.03 }}
+              whileTap={prefersReduced ? undefined : { scale: 0.95 }}
+              className="px-2.5 py-1.5 rounded-xl text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 transition-all cursor-pointer flex items-center gap-1 border border-emerald-200"
               title="Post similar surplus donation"
             >
               <RotateCcw className="w-3 h-3" />
               <span>{t("dash.card_donate_again")}</span>
-            </button>
+            </motion.button>
           )}
 
-          <button
+          <motion.button
+            whileHover={prefersReduced ? undefined : { x: 2 }}
             onClick={() => onViewDetails(donation)}
-            className="text-xs font-bold text-gray-600 hover:text-gray-900 px-2 py-1 cursor-pointer hover:underline"
+            className="text-xs font-bold text-gray-600 hover:text-gray-900 px-2 py-1 cursor-pointer hover:underline flex items-center gap-0.5"
           >
-            {t("common.details")} →
-          </button>
+            <span>{t("common.details")}</span>
+            <span>→</span>
+          </motion.button>
         </div>
       </div>
     </motion.div>

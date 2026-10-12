@@ -223,6 +223,28 @@ export const buttonPressProps = {
   },
 };
 
+/** Badge / Pill Pop Variant */
+export const badgePopVariants: Variants = {
+  initial: { scale: 0.82, opacity: 0 },
+  animate: {
+    scale: 1,
+    opacity: 1,
+    transition: MOTION_SPRINGS.playful,
+  },
+  exit: {
+    scale: 0.85,
+    opacity: 0,
+    transition: { duration: MOTION_DURATIONS.instant },
+  },
+};
+
+/** Tab Indicator Spring Transition (for layoutId capsules) */
+export const tabSpringTransition = {
+  type: "spring" as const,
+  stiffness: 450,
+  damping: 32,
+};
+
 // ============================================================
 // 4. ACCESSIBILITY & REDUCED-MOTION HELPERS
 // ============================================================
@@ -284,5 +306,37 @@ export async function fireMilestoneConfetti(options?: {
     });
   } catch {
     // Ignore if canvas-confetti is unavailable
+  }
+}
+
+// ============================================================
+// 5. GSAP SAFE CONTEXT LIFECYCLE HELPER
+// ============================================================
+
+/**
+ * Runs a GSAP animation sequence inside a scoped gsap.context.
+ * Automatically cleans up all animations, timelines, and listeners on unmount.
+ * Respects user prefers-reduced-motion preferences.
+ */
+export async function runSafeGsap(
+  scope: React.RefObject<HTMLElement | null>,
+  callback: (context: { gsap: typeof import("gsap").default }) => void
+): Promise<(() => void) | undefined> {
+  if (typeof window === "undefined" || !scope.current) return undefined;
+  if (checkPrefersReducedMotion()) return undefined;
+
+  try {
+    const gsapModule = await import("gsap");
+    const gsap = gsapModule.default;
+
+    const ctx = gsap.context(() => {
+      callback({ gsap });
+    }, scope);
+
+    return () => {
+      ctx.revert();
+    };
+  } catch {
+    return undefined;
   }
 }
