@@ -553,3 +553,21 @@
   }
 }
 
+/* ─── Landing Hero Viewport Balance for Tall Screens (≥800px) ─── */
+@media (min-height: 800px) {
+  .hero-card-left {
+    padding-top: 1.625rem !important;
+    padding-bottom: 1.625rem !important;
+  }
+  .hero-card-right {
+    padding-top: 1.625rem !important;
+    padding-bottom: 1.625rem !important;
+  }
+  .hero-illustration {
+    max-height: 105px !important;
+  }
+  .hero-cue-spacing {
+    margin-top: 1.35rem !important;
+  }
+}
+

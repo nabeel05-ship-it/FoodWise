@@ -196,7 +196,7 @@ export default function LoginPage() {
   return (
     <SmoothScrollWrapper>
       <div
-        className="min-h-screen flex flex-col items-center justify-start px-3 sm:px-6 pt-2 sm:pt-3 lg:pt-3.5 pb-8 sm:pb-12 relative overflow-x-hidden"
+        className="min-h-screen flex flex-col items-center justify-between px-3 sm:px-6 pt-3 sm:pt-4 lg:pt-5 xl:pt-6 pb-3 sm:pb-4 lg:pb-5 relative overflow-x-hidden"
         style={{
           background: "radial-gradient(ellipse at center, #18422A 0%, #0F2A1C 60%, #091D13 100%)",
         }}
@@ -205,15 +205,17 @@ export default function LoginPage() {
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Main Centered Authentication Card */}
-      <motion.div
-        initial={prefersReduced ? false : { opacity: 0, scale: 0.98, y: 16 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={MOTION_SPRINGS.natural}
-        className="w-full max-w-[1040px] bg-[#FBF9F4] rounded-[28px] sm:rounded-[32px] shadow-2xl overflow-hidden border border-emerald-800/30 relative z-10 grid grid-cols-1 lg:grid-cols-12 mt-0.5 sm:mt-1"
-      >
-        {/* LEFT COLUMN: Clean Authentication (7 cols) */}
-        <div className="lg:col-span-7 p-5 sm:p-6 lg:px-7 lg:py-5 flex flex-col justify-between bg-[#FBF9F4]">
+      {/* Hero Viewport Presentation (Login Card + Discovery Button) */}
+      <div className="w-full max-w-[1040px] flex-1 flex flex-col items-center justify-start lg:justify-center lg:my-auto z-10">
+        {/* Main Centered Authentication Card */}
+        <motion.div
+          initial={prefersReduced ? false : { opacity: 0, scale: 0.98, y: 16 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={MOTION_SPRINGS.natural}
+          className="w-full max-w-[1040px] bg-[#FBF9F4] rounded-[28px] sm:rounded-[32px] shadow-2xl overflow-hidden border border-emerald-800/30 relative z-10 grid grid-cols-1 lg:grid-cols-12"
+        >
+          {/* LEFT COLUMN: Clean Authentication (7 cols) */}
+          <div className="lg:col-span-7 p-4 sm:p-5 lg:px-7 lg:py-5 hero-card-left flex flex-col justify-between bg-[#FBF9F4]">
           <div>
             {/* Top Logo & Brand */}
             <div className="flex items-center justify-between">
@@ -235,14 +237,14 @@ export default function LoginPage() {
             </div>
 
             {/* Header Message */}
-            <div className="my-2 sm:my-2.5">
+            <div className="my-2 sm:my-2.5 lg:my-3 xl:my-3.5">
               <motion.div
                 initial={prefersReduced ? false : { opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: MOTION_DURATIONS.fast }}
                 className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] sm:text-[11px] font-bold mb-1"
               >
-                <Sparkles className="w-3 h-3 text-emerald-700" />
+                <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
                 Zero Waste Initiative
               </motion.div>
               <h1 className="text-xl sm:text-2xl font-extrabold text-gray-950 tracking-tight leading-tight">
@@ -264,7 +266,7 @@ export default function LoginPage() {
             </div>
 
             {/* PRIMARY AUTH TABS: DONOR LOGIN vs NGO / RELIEF LOGIN */}
-            <div className="p-1 rounded-2xl bg-gray-200/80 border border-gray-300/70 grid grid-cols-2 gap-1 mb-2.5 relative">
+            <div className="p-1 rounded-2xl bg-gray-200/80 border border-gray-300/70 grid grid-cols-2 gap-1 mb-2.5 sm:mb-3 lg:mb-3.5 relative">
               <button
                 type="button"
                 onClick={() => handleAuthTypeChange("DONOR")}
@@ -314,7 +316,7 @@ export default function LoginPage() {
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: MOTION_DURATIONS.fast }}
-                  className="mb-2.5 sm:mb-3"
+                  className="mb-2.5 sm:mb-3 lg:mb-3.5"
                 >
                   <label className="block text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1">
                     Donor Establishment Type
@@ -359,7 +361,7 @@ export default function LoginPage() {
                   exit={{ opacity: 0, x: -8 }}
                   transition={{ duration: MOTION_DURATIONS.fast }}
                   onSubmit={handleSignIn}
-                  className="space-y-2.5 sm:space-y-3"
+                  className="space-y-2.5 sm:space-y-3 lg:space-y-3.5"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-0.5">
@@ -673,8 +675,8 @@ export default function LoginPage() {
         </div>
 
         {/* RIGHT COLUMN: Role Details & Impact (5 cols) */}
-        <div className="lg:col-span-5 bg-[#F5F2EB] p-5 sm:p-6 lg:px-6 lg:py-5 flex flex-col justify-between relative overflow-hidden border-t lg:border-t-0 lg:border-l border-gray-200">
-          <div className="space-y-2 sm:space-y-2.5 relative z-10">
+        <div className="lg:col-span-5 bg-[#F5F2EB] p-4 sm:p-5 lg:px-6 lg:py-5 hero-card-right flex flex-col justify-between relative overflow-hidden border-t lg:border-t-0 lg:border-l border-gray-200">
+          <div className="space-y-2 sm:space-y-2.5 lg:space-y-3 relative z-10">
             {/* Top capability badge */}
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100/90 text-emerald-900 border border-emerald-300/80 text-[10px] sm:text-[11px] font-bold">
@@ -698,10 +700,10 @@ export default function LoginPage() {
             </div>
 
             {/* 3 Compact Feature Benefit Cards */}
-            <div className="space-y-1.5 pt-0.5">
+            <div className="space-y-1.5 sm:space-y-2 lg:space-y-2 xl:space-y-2.5 pt-0.5">
               <motion.div
                 whileHover={prefersReduced ? undefined : { y: -2 }}
-                className="bg-white/90 border border-emerald-900/10 rounded-xl p-2 sm:p-2.5 shadow-2xs transition-shadow"
+                className="bg-white/90 border border-emerald-900/10 rounded-xl p-2 sm:p-2.5 lg:p-2.5 xl:p-3 shadow-2xs transition-shadow"
               >
                 <div className="flex items-center gap-2 mb-0.5">
                   <div className="w-5 h-5 rounded-md bg-emerald-100 flex items-center justify-center shrink-0">
@@ -716,7 +718,7 @@ export default function LoginPage() {
 
               <motion.div
                 whileHover={prefersReduced ? undefined : { y: -2 }}
-                className="bg-white/90 border border-emerald-900/10 rounded-xl p-2 sm:p-2.5 shadow-2xs transition-shadow"
+                className="bg-white/90 border border-emerald-900/10 rounded-xl p-2 sm:p-2.5 lg:p-2.5 xl:p-3 shadow-2xs transition-shadow"
               >
                 <div className="flex items-center gap-2 mb-0.5">
                   <div className="w-5 h-5 rounded-md bg-emerald-100 flex items-center justify-center shrink-0">
@@ -731,7 +733,7 @@ export default function LoginPage() {
 
               <motion.div
                 whileHover={prefersReduced ? undefined : { y: -2 }}
-                className="bg-white/90 border border-emerald-900/10 rounded-xl p-2 sm:p-2.5 shadow-2xs transition-shadow"
+                className="bg-white/90 border border-emerald-900/10 rounded-xl p-2 sm:p-2.5 lg:p-2.5 xl:p-3 shadow-2xs transition-shadow"
               >
                 <div className="flex items-center gap-2 mb-0.5">
                   <div className="w-5 h-5 rounded-md bg-emerald-100 flex items-center justify-center shrink-0">
@@ -748,7 +750,7 @@ export default function LoginPage() {
             {/* Redistribution Journey Flow with interactive workflow discovery link */}
             <div
               onClick={handleScrollToWorkflow}
-              className="bg-white/85 hover:bg-white border border-emerald-900/10 hover:border-emerald-600/40 rounded-xl p-2 sm:p-2.5 cursor-pointer transition-all shadow-2xs hover:shadow-xs group"
+              className="bg-white/85 hover:bg-white border border-emerald-900/10 hover:border-emerald-600/40 rounded-xl p-2 sm:p-2.5 lg:p-2.5 xl:p-3 cursor-pointer transition-all shadow-2xs hover:shadow-xs group"
               title="Click to view the full interactive 5-stage redistribution workflow"
             >
               <div className="flex items-center justify-between mb-1.5">
@@ -790,19 +792,19 @@ export default function LoginPage() {
           </div>
 
           {/* Sustainable Food Logistics Illustration */}
-          <div className="mt-2 sm:mt-2.5 -mx-5 -mb-5 sm:-mx-6 sm:-mb-6 lg:-mx-6 lg:-mb-6 relative flex justify-end">
+          <div className="mt-2 sm:mt-2.5 lg:mt-3 -mx-4 -mb-4 sm:-mx-5 -mb-5 sm:-mx-6 sm:-mb-6 lg:-mx-6 lg:-mb-5 hero-card-right relative flex justify-end">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/login-illustration.png"
               alt="FoodWise Sustainable Surplus Food Redistribution"
-              className="w-full max-h-[75px] sm:max-h-[80px] lg:max-h-[80px] object-cover object-bottom opacity-95 hover:opacity-100 transition-opacity"
+              className="w-full max-h-[75px] sm:max-h-[82px] lg:max-h-[85px] hero-illustration object-cover object-bottom opacity-95 hover:opacity-100 transition-opacity"
             />
           </div>
         </div>
       </motion.div>
 
       {/* Scroll Discovery Cue */}
-      <div className="w-full max-w-[1040px] flex justify-center mt-2 mb-2.5 sm:mt-2.5 sm:mb-3 z-20">
+      <div className="w-full max-w-[1040px] flex justify-center mt-2.5 sm:mt-3 lg:mt-3.5 hero-cue-spacing z-20">
         <motion.button
           type="button"
           onClick={handleScrollToWorkflow}
@@ -810,7 +812,7 @@ export default function LoginPage() {
           animate={{ opacity: 1, y: 0 }}
           whileHover={prefersReduced ? undefined : { y: 2, scale: 1.02 }}
           whileTap={prefersReduced ? undefined : { scale: 0.98 }}
-          className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2 rounded-full bg-[#0A261A]/95 hover:bg-[#0E3524] text-emerald-200 hover:text-white border border-emerald-500/35 shadow-lg shadow-black/30 text-xs font-bold tracking-wide transition-all cursor-pointer backdrop-blur-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 group"
+          className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-[#0A261A]/95 hover:bg-[#0E3524] text-emerald-200 hover:text-white border border-emerald-500/35 shadow-lg shadow-black/30 text-xs font-bold tracking-wide transition-all cursor-pointer backdrop-blur-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 group"
           aria-label="Discover how FoodWise rescues surplus food"
         >
           <span className="flex items-center gap-1.5">
@@ -826,6 +828,7 @@ export default function LoginPage() {
           </motion.span>
         </motion.button>
       </div>
+      </div>
 
       {/* Interactive Food Redistribution Showcase */}
       {isWorkflowRevealed && (
@@ -834,14 +837,14 @@ export default function LoginPage() {
           initial={prefersReduced ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...MOTION_SPRINGS.gentle, delay: 0.1 }}
-          className="w-full max-w-[1040px] mt-1 sm:mt-2 z-10 scroll-mt-6 sm:scroll-mt-8"
+          className="w-full max-w-[1040px] mt-6 sm:mt-8 z-10 scroll-mt-6 sm:scroll-mt-8"
         >
           <FoodRedistributionWorkflow />
         </motion.div>
       )}
 
       {/* Footer Branding */}
-      <div className="mt-8 text-center text-xs text-emerald-300/80 font-medium">
+      <div className="mt-4 sm:mt-6 lg:mt-auto pt-2 sm:pt-3 text-center text-xs text-emerald-300/80 font-medium z-10">
         FoodWise Community Platform — Making every meal count
       </div>
     </div>
