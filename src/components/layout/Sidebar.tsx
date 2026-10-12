@@ -192,7 +192,7 @@ function SidebarContent({ type }: SidebarProps) {
           >
             <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-[10px] font-bold text-white flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center leading-none shadow-xs">
                 {unreadCount}
               </span>
             )}
@@ -525,7 +525,7 @@ function SidebarContent({ type }: SidebarProps) {
             <div className="flex-1 flex items-center justify-between">
               <span>{t("common.notifications")}</span>
               {unreadCount > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white">
+                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold leading-none bg-rose-500 text-white shadow-xs">
                   {unreadCount}
                 </span>
               )}

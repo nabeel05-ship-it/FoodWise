@@ -34,6 +34,11 @@ export async function PATCH(request: Request) {
   try {
     const body = await request.json();
 
+    if (Array.isArray(body.ids) && body.ids.length > 0) {
+      await markAllNotificationsAsRead(body.ids);
+      return NextResponse.json({ success: true, message: `${body.ids.length} notifications marked as read` });
+    }
+
     if (body.markAllRead) {
       await markAllNotificationsAsRead();
       return NextResponse.json({ success: true, message: "All notifications marked as read" });
@@ -44,7 +49,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ success: true, message: `Notification ${body.notifId} marked as read` });
     }
 
-    return NextResponse.json({ error: "Provide notifId or markAllRead" }, { status: 400 });
+    return NextResponse.json({ error: "Provide notifId, ids, or markAllRead" }, { status: 400 });
   } catch (error) {
     console.error("Notifications PATCH error:", error);
     return NextResponse.json({ error: "Failed to update notification" }, { status: 500 });

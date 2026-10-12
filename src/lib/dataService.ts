@@ -983,6 +983,8 @@ export async function createNotification(
     titleParams: notif.titleParams,
     messageParams: notif.messageParams,
     read: false,
+    role: notif.role,
+    facilityId: notif.facilityId,
     createdAt: notif.createdAt || Date.now(),
   };
 
@@ -1003,46 +1005,56 @@ export async function createNotification(
 }
 
 export async function markNotificationAsRead(id: string): Promise<boolean> {
-  if (!isMongoConfigured()) {
+  const syncMem = () => {
     const notif = memNotifications.find((n) => n.id === id);
     if (notif) {
       notif.read = true;
       return true;
     }
     return false;
+  };
+
+  if (!isMongoConfigured()) {
+    return syncMem();
   }
 
   try {
     const db = await getDatabase();
     const res = await db
       .collection("notifications")
-      .updateOne({ id }, { $set: { read: true } });
-    return res.modifiedCount > 0;
+      .updateOne({ $or: [{ id }, { notifId: id }] }, { $set: { read: true } });
+    syncMem();
+    return res.modifiedCount > 0 || res.matchedCount > 0;
   } catch (error) {
     console.error("[MongoDB] markNotificationAsRead error:", (error as Error).message);
-    const notif = memNotifications.find((n) => n.id === id);
-    if (notif) {
-      notif.read = true;
-      return true;
-    }
-    return false;
+    return syncMem();
   }
 }
 
-export async function markAllNotificationsAsRead(): Promise<boolean> {
-  if (!isMongoConfigured()) {
-    memNotifications = memNotifications.map((n) => ({ ...n, read: true }));
+export async function markAllNotificationsAsRead(ids?: string[]): Promise<boolean> {
+  const syncMem = () => {
+    memNotifications = memNotifications.map((n) =>
+      !ids || ids.includes(n.id) ? { ...n, read: true } : n
+    );
     return true;
+  };
+
+  if (!isMongoConfigured()) {
+    return syncMem();
   }
 
   try {
     const db = await getDatabase();
-    await db.collection("notifications").updateMany({}, { $set: { read: true } });
+    const filter =
+      ids && ids.length > 0
+        ? { $or: [{ id: { $in: ids } }, { notifId: { $in: ids } }] }
+        : {};
+    await db.collection("notifications").updateMany(filter, { $set: { read: true } });
+    syncMem();
     return true;
   } catch (error) {
     console.error("[MongoDB] markAllNotificationsAsRead error:", (error as Error).message);
-    memNotifications = memNotifications.map((n) => ({ ...n, read: true }));
-    return true;
+    return syncMem();
   }
 }
 

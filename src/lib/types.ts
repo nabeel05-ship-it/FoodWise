@@ -253,6 +253,8 @@ export interface NotificationAlert {
   actionLabel?: string;
   actionUrl?: string;
   read: boolean;
+  role?: "hotel" | "ngo" | "household" | "kitchen" | "all";
+  facilityId?: string;
 }
 
 export interface ScheduledPickup {

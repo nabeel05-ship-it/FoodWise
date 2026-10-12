@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
+import { usePathname } from "next/navigation";
 import {
   InstitutionRole,
   NotificationAlert,
@@ -21,6 +22,49 @@ import {
   CommunityNgo,
   INITIAL_QUALITY_REPORTS,
 } from "@/lib/mockData";
+
+export function isNotificationInScope(
+  notif: NotificationAlert,
+  targetScope: "hotel" | "ngo" | "household" | "kitchen",
+  activeFacilityId?: string
+): boolean {
+  if (notif.facilityId && activeFacilityId && notif.facilityId !== activeFacilityId) {
+    return false;
+  }
+
+  if (notif.role) {
+    const r = notif.role.toLowerCase();
+    if (r === "all") return true;
+    if (r === targetScope) return true;
+    if (targetScope === "hotel" && (r === "restaurant" || r === "commercial")) return true;
+    return false;
+  }
+
+  if (notif.actionUrl) {
+    const url = notif.actionUrl.toLowerCase();
+    if (url.startsWith("/hotel") || url.startsWith("/restaurant")) {
+      return targetScope === "hotel";
+    }
+    if (url.startsWith("/ngo")) {
+      return targetScope === "ngo";
+    }
+    if (url.startsWith("/household")) {
+      return targetScope === "household";
+    }
+    if (url.startsWith("/kitchen")) {
+      return targetScope === "kitchen";
+    }
+    if (url.startsWith("/dashboard/impact")) {
+      return targetScope === "hotel";
+    }
+  }
+
+  if (notif.category === "Kitchen" || notif.category === "Factory" || notif.category === "IoT") {
+    return targetScope === "kitchen";
+  }
+
+  return true;
+}
 
 export interface DonorHotel {
   id: string;
@@ -186,11 +230,12 @@ interface AppContextType {
   currentRole: InstitutionRole;
   setCurrentRole: (role: InstitutionRole) => void;
   notifications: NotificationAlert[];
+  scopedNotifications: NotificationAlert[];
   unreadCount: number;
   isNotificationOpen: boolean;
   setIsNotificationOpen: (open: boolean) => void;
-  markNotificationAsRead: (id: string) => void;
-  markAllNotificationsAsRead: () => void;
+  markNotificationAsRead: (id: string) => Promise<boolean>;
+  markAllNotificationsAsRead: (specificIds?: string[]) => Promise<boolean>;
   isOnboardingOpen: boolean;
   setIsOnboardingOpen: (open: boolean) => void;
   isSettingsOpen: boolean;
@@ -365,25 +410,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
           // Hydrate notifications from DB
           if (d.notifications?.length > 0) {
+            let storedReadIds: string[] = [];
+            try {
+              storedReadIds = JSON.parse(localStorage.getItem("foodwise_read_notif_ids") || "[]");
+            } catch {}
+
             setNotifications(
-              d.notifications.map((n: Record<string, unknown>) => ({
-                id: (n.id as string) || (n.notifId as string) || (n._id as string) || crypto.randomUUID(),
-                title: n.title as string,
-                message: n.message as string,
-                time: n.time as string,
-                createdAt: n.createdAt
-                  ? typeof n.createdAt === "number"
-                    ? n.createdAt
-                    : new Date(n.createdAt as string).getTime()
-                  : undefined,
-                severity: n.severity as string,
-                category: n.category as string,
-                actionLabel: n.actionLabel as string | undefined,
-                actionUrl: n.actionUrl as string | undefined,
-                read: n.read as boolean,
-                titleParams: n.titleParams as Record<string, string | number> | undefined,
-                messageParams: n.messageParams as Record<string, string | number> | undefined,
-              }))
+              d.notifications.map((n: Record<string, unknown>) => {
+                const id = (n.id as string) || (n.notifId as string) || (n._id as string) || crypto.randomUUID();
+                const isRead = Boolean(n.read) || storedReadIds.includes(id);
+                return {
+                  id,
+                  title: n.title as string,
+                  message: n.message as string,
+                  time: n.time as string,
+                  createdAt: n.createdAt
+                    ? typeof n.createdAt === "number"
+                      ? n.createdAt
+                      : new Date(n.createdAt as string).getTime()
+                    : undefined,
+                  severity: n.severity as string,
+                  category: n.category as string,
+                  actionLabel: n.actionLabel as string | undefined,
+                  actionUrl: n.actionUrl as string | undefined,
+                  read: isRead,
+                  role: (n.role as "hotel" | "ngo" | "household" | "kitchen" | "all") || undefined,
+                  facilityId: (n.facilityId as string) || undefined,
+                  titleParams: n.titleParams as Record<string, string | number> | undefined,
+                  messageParams: n.messageParams as Record<string, string | number> | undefined,
+                };
+              })
             );
           }
 
@@ -554,32 +610,115 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (storedNgoId) setActiveNgoId(storedNgoId);
     } catch {}
 
+    // Hydrate read notification IDs from localStorage if available
+    try {
+      const storedReadIds = JSON.parse(localStorage.getItem("foodwise_read_notif_ids") || "[]");
+      if (Array.isArray(storedReadIds) && storedReadIds.length > 0) {
+        setNotifications((prev) =>
+          prev.map((n) => (storedReadIds.includes(n.id) ? { ...n, read: true } : n))
+        );
+      }
+    } catch {}
+
     loadFromDb();
   }, []);
 
-  const unreadCount = useMemo(() => notifications.filter((n) => !n.read).length, [notifications]);
+  const pathname = usePathname() || "";
 
-  const markNotificationAsRead = useCallback((id: string) => {
+  // Determine current active scope for notifications:
+  const activeScope = useMemo<"hotel" | "ngo" | "household" | "kitchen">(() => {
+    const firstSegment = pathname.split("/")[1];
+    if (firstSegment === "hotel" || firstSegment === "restaurant") return "hotel";
+    if (firstSegment === "ngo") return "ngo";
+    if (firstSegment === "household") return "household";
+    if (firstSegment === "kitchen") return "kitchen";
+    if (userRole === "NGO") return "ngo";
+    if (userRole === "HOUSEHOLD") return "household";
+    return "hotel";
+  }, [pathname, userRole]);
+
+  const activeFacilityId = useMemo(() => {
+    if (activeScope === "hotel" || activeScope === "household") return activeDonorId;
+    if (activeScope === "ngo") return activeNgoId;
+    return undefined;
+  }, [activeScope, activeDonorId, activeNgoId]);
+
+  const scopedNotifications = useMemo(() => {
+    const seen = new Set<string>();
+    const unique: NotificationAlert[] = [];
+    for (const n of notifications) {
+      if (!seen.has(n.id)) {
+        seen.add(n.id);
+        unique.push(n);
+      }
+    }
+    return unique.filter((n) => isNotificationInScope(n, activeScope, activeFacilityId));
+  }, [notifications, activeScope, activeFacilityId]);
+
+  const unreadCount = useMemo(() => {
+    return scopedNotifications.filter((n) => !n.read).length;
+  }, [scopedNotifications]);
+
+  const markNotificationAsRead = useCallback(async (id: string): Promise<boolean> => {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
-    // Persist to local data service
-    apiCall("/api/notifications", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ notifId: id }),
-    });
+
+    try {
+      const stored = JSON.parse(localStorage.getItem("foodwise_read_notif_ids") || "[]");
+      localStorage.setItem("foodwise_read_notif_ids", JSON.stringify(Array.from(new Set([...stored, id]))));
+    } catch {}
+
+    try {
+      const res = await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notifId: id }),
+      });
+      return res.ok;
+    } catch (err) {
+      console.error("Failed to mark notification as read:", err);
+      return false;
+    }
   }, []);
 
-  const markAllNotificationsAsRead = useCallback(() => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    // Persist to local data service
-    apiCall("/api/notifications", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ markAllRead: true }),
-    });
-  }, []);
+  const markAllNotificationsAsRead = useCallback(async (specificIds?: string[]): Promise<boolean> => {
+    const targetIds = specificIds && specificIds.length > 0
+      ? specificIds
+      : scopedNotifications.filter((n) => !n.read).map((n) => n.id);
+
+    if (targetIds.length === 0) return true;
+
+    // Optimistic UI update
+    setNotifications((prev) =>
+      prev.map((n) => (targetIds.includes(n.id) ? { ...n, read: true } : n))
+    );
+
+    try {
+      const stored = JSON.parse(localStorage.getItem("foodwise_read_notif_ids") || "[]");
+      const combined = Array.from(new Set([...stored, ...targetIds]));
+      localStorage.setItem("foodwise_read_notif_ids", JSON.stringify(combined));
+    } catch {}
+
+    try {
+      const res = await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: targetIds }),
+      });
+      if (!res.ok) {
+        throw new Error("Failed to persist read status to server");
+      }
+      return true;
+    } catch (err) {
+      console.error("Failed to mark all notifications as read:", err);
+      // Revert if API failed
+      setNotifications((prev) =>
+        prev.map((n) => (targetIds.includes(n.id) ? { ...n, read: false } : n))
+      );
+      throw err;
+    }
+  }, [scopedNotifications]);
 
   const addNotification = useCallback((notif: NotificationAlert) => {
     const createdAtNum = typeof notif.createdAt === "number"
@@ -1341,6 +1480,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         currentRole,
         setCurrentRole,
         notifications,
+        scopedNotifications,
         unreadCount,
         isNotificationOpen,
         setIsNotificationOpen,

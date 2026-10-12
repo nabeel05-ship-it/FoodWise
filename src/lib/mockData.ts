@@ -106,7 +106,7 @@ export const KITCHEN_ALERTS = [
     message: "Lunch rice — 62 kg surplus — 4 hours remaining",
     severity: "urgent",
     actionLabel: "DONATE",
-    actionUrl: "/restaurant/donate",
+    actionUrl: "/hotel/donate",
   },
   {
     id: "ka-2",
@@ -114,7 +114,7 @@ export const KITCHEN_ALERTS = [
     message: "Robin Hood Army driver scheduled for 4:30 PM collection",
     severity: "info",
     actionLabel: "VIEW PICKUP",
-    actionUrl: "/restaurant/pickups",
+    actionUrl: "/hotel/pickups",
   },
   {
     id: "ka-3",
@@ -122,7 +122,7 @@ export const KITCHEN_ALERTS = [
     message: "Over 1,850 meals safely donated to local shelters this month",
     severity: "info",
     actionLabel: "VIEW IMPACT",
-    actionUrl: "/dashboard/impact",
+    actionUrl: "/hotel/impact",
   },
 ];
 
@@ -525,6 +525,7 @@ export const INITIAL_NOTIFICATIONS: NotificationAlert[] = [
     actionLabel: "nav.find_food",
     actionUrl: "/ngo/dashboard?tab=claims",
     read: false,
+    role: "ngo",
   },
   {
     id: "notif-2",
@@ -536,8 +537,9 @@ export const INITIAL_NOTIFICATIONS: NotificationAlert[] = [
     severity: "warning",
     category: "Donation",
     actionLabel: "nav.pickup_handover",
-    actionUrl: "/restaurant/pickups",
+    actionUrl: "/kitchen/surplus",
     read: false,
+    role: "kitchen",
   },
   {
     id: "notif-3",
@@ -550,8 +552,9 @@ export const INITIAL_NOTIFICATIONS: NotificationAlert[] = [
     severity: "success",
     category: "Redistribution",
     actionLabel: "nav.completed",
-    actionUrl: "/ngo/completed",
+    actionUrl: "/ngo/dashboard?tab=history",
     read: false,
+    role: "ngo",
   },
   {
     id: "notif-4",
@@ -563,8 +566,9 @@ export const INITIAL_NOTIFICATIONS: NotificationAlert[] = [
     severity: "success",
     category: "Logistics",
     actionLabel: "nav.impact",
-    actionUrl: "/dashboard/impact",
-    read: true,
+    actionUrl: "/hotel/impact",
+    read: false,
+    role: "hotel",
   },
 ];
 

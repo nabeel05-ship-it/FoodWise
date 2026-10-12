@@ -302,11 +302,11 @@ export default function HotelDashboard() {
                 <Truck className="w-5 h-5" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs font-extrabold text-blue-900 uppercase tracking-wider">
                     {t("Scheduled Collection by")} {upcomingPickups[0].acceptedBy || t("Authorized Relief Partner")}
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-200/80 text-blue-900">
+                  <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[10px] font-bold leading-normal tracking-wide whitespace-nowrap shrink-0 bg-blue-200/80 text-blue-900 shadow-2xs">
                     {t("In Progress")}
                   </span>
                 </div>
