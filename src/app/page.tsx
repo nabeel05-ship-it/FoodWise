@@ -31,6 +31,7 @@ import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { MOTION_SPRINGS, MOTION_DURATIONS, tabSpringTransition, buttonPressProps } from "@/lib/motion";
 import SmoothScrollWrapper from "@/components/common/SmoothScrollWrapper";
 import FoodRedistributionWorkflow from "@/components/common/FoodRedistributionWorkflow";
+import Footer from "@/components/common/Footer";
 
 type AuthType = "DONOR" | "NGO";
 type DonorCategory = "HOTEL" | "HOUSEHOLD";
@@ -797,7 +798,7 @@ export default function LoginPage() {
             <img
               src="/login-illustration.png"
               alt="FoodWise Sustainable Surplus Food Redistribution"
-              className="w-full max-h-[75px] sm:max-h-[82px] lg:max-h-[85px] hero-illustration object-cover object-bottom opacity-95 hover:opacity-100 transition-opacity"
+              className="w-full h-auto object-contain rounded-b-2xl lg:rounded-bl-none lg:rounded-br-[28px] sm:lg:rounded-br-[32px] opacity-95 hover:opacity-100 transition-opacity block"
             />
           </div>
         </div>
@@ -843,10 +844,8 @@ export default function LoginPage() {
         </motion.div>
       )}
 
-      {/* Footer Branding */}
-      <div className="mt-4 sm:mt-6 lg:mt-auto pt-2 sm:pt-3 text-center text-xs text-emerald-300/80 font-medium z-10">
-        FoodWise Community Platform — Making every meal count
-      </div>
+      {/* Professional Footer */}
+      <Footer />
     </div>
     </SmoothScrollWrapper>
   );
