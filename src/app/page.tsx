@@ -793,12 +793,12 @@ export default function LoginPage() {
           </div>
 
           {/* Sustainable Food Logistics Illustration */}
-          <div className="mt-2 sm:mt-2.5 lg:mt-3 -mx-4 -mb-4 sm:-mx-5 -mb-5 sm:-mx-6 sm:-mb-6 lg:-mx-6 lg:-mb-5 hero-card-right relative flex justify-end">
+          <div className="mt-2 sm:mt-2.5 -mx-4 -mb-4 sm:-mx-5 -mb-5 lg:-mx-6 lg:-mb-5 hero-card-right relative flex justify-end overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/login-illustration.png"
               alt="FoodWise Sustainable Surplus Food Redistribution"
-              className="w-full h-auto object-contain rounded-b-2xl lg:rounded-bl-none lg:rounded-br-[28px] sm:lg:rounded-br-[32px] opacity-95 hover:opacity-100 transition-opacity block"
+              className="w-full h-[130px] sm:h-[145px] lg:h-[155px] hero-illustration object-cover object-bottom rounded-b-2xl lg:rounded-bl-none lg:rounded-br-[28px] sm:lg:rounded-br-[32px] opacity-95 hover:opacity-100 transition-opacity block"
             />
           </div>
         </div>
