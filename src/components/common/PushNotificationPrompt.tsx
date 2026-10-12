@@ -23,15 +23,14 @@ export default function PushNotificationPrompt() {
   const [status, setStatus] = useState<PromptStatus>("loading");
 
   const registerServiceWorker = useCallback(async () => {
+    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    if (!vapidKey) {
+      return;
+    }
+
     try {
       const registration = await navigator.serviceWorker.register("/sw.js");
       await navigator.serviceWorker.ready;
-
-      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-      if (!vapidKey) {
-        console.warn("FoodWise: VAPID key missing — push won't work");
-        return;
-      }
 
       const existing = await registration.pushManager.getSubscription();
       const subscription =
@@ -54,6 +53,12 @@ export default function PushNotificationPrompt() {
   }, []);
 
   useEffect(() => {
+    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    if (!vapidKey) {
+      setTimeout(() => setStatus("hidden"), 0);
+      return;
+    }
+
     if (!("serviceWorker" in navigator) || !("PushManager" in window) || typeof Notification === "undefined") {
       setTimeout(() => setStatus("unsupported"), 0);
       return;
