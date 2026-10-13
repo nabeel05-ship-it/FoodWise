@@ -308,96 +308,206 @@ FoodWise follows a structured food donation and redistribution workflow.
 
 ## 🛠️ Technology Stack
 
-| Technology | Purpose |
-|---|---|
-| Next.js | Full-stack web framework and API routes |
-| React | Interactive user interface |
-| TypeScript | Type safety and maintainability |
-| Tailwind CSS | Responsive styling |
-| MongoDB Atlas | Cloud database and persistent storage |
-| MongoDB Node.js Driver | Database connectivity and operations |
-| Groq SDK | AI assistant integration |
-| Motion | Interface animations and transitions |
-| Recharts | Data visualization |
-| jsPDF | PDF document generation |
-| Lucide React | Interface icons |
-| Web Push | Browser push notification functionality |
-| ESLint | Code quality checks |
-| Vercel | Application deployment |
+| Technology | Version / Spec | Purpose & Architectural Role |
+|---|---|---|
+| **Next.js** | `^16.3.5` | App Router full-stack framework, Turbopack, and serverless API route handlers |
+| **React** | `19.2.8` | Component-based UI library with Server and Client Components |
+| **TypeScript** | `^5` | Strict static typing across data contracts, API payloads, and state models |
+| **Tailwind CSS** | `^4` | Utility-first responsive styling and theme tokens |
+| **MongoDB Node Driver** | `^7.7.0` | Official client with connection pooling and atomic operations |
+| **MongoDB Atlas** | Cloud Multi-Region | Persistent document database for donations, pickups, notifications, and logs |
+| **Groq SDK** | `^1.6.0` | Low-latency inference client for the conversational Foodie AI assistant |
+| **Motion / Framer Motion** | `^14.0.0` / `^13.4.0` | Micro-interactions, smooth layout animations, and status transition indicators |
+| **Recharts** | `^3.10.1` | Analytical charts for diverted waste, meal equivalents, and ESG impact |
+| **jsPDF** | `^4.2.1` | Client-side vector PDF generation for donation receipts, handover certificates, and reports |
+| **Web Push** | `^3.6.7` | Voluntary browser push notifications using standard VAPID authentication |
+| **Lenis** | `^1.3.26` | Smooth page momentum scrolling |
+| **Lucide React** | `^1.47.0` | Accessible and uniform vector iconography |
+| **ESLint** | `^9` | Code style enforcement and static analysis |
+| **Vercel** | Edge Network | Automated deployment, global CDN, and serverless compute |
 
 ---
 
-## 🏗️ Project Architecture
+## 🏗️ System Architecture
 
-FoodWise separates its interface, application state, business logic, and database access into organized modules.
+FoodWise is architected as a modular, full-stack Next.js web application with decoupled presentation portals, isolated serverless API route handlers, centralized data services, and resilient dual-mode persistence.
+
+### System Architecture Flow Diagram
+
+```mermaid
+flowchart TD
+    %% 1. Client Presentation Layer
+    subgraph ClientLayer["1. Client Presentation Layer (Next.js 16 / React 19)"]
+        direction TB
+        subgraph Portals["Role-Specific Web Portals"]
+            Household["🏠 Household Donors<br/><code>/household/*</code>"]
+            Commercial["🏨 Hotels & Kitchens<br/><code>/hotel/*</code> & <code>/kitchen/*</code>"]
+            NGO["🤝 Relief NGOs<br/><code>/ngo/*</code>"]
+            Public["🌐 Public & Settings<br/><code>/</code>, <code>/login</code>, <code>/settings</code>"]
+        end
+        subgraph StateUI["Client State & UI Utilities"]
+            AppContext["AppContext<br/>(Role Session, State Hydration)"]
+            LangContext["LanguageContext<br/>(i18n: EN / HI / KN)"]
+            FoodieWidget["Foodie AI Assistant<br/>(Floating LLM Widget)"]
+            PDFGen["PDF Engine (jsPDF)<br/>(Receipts & Certificates)"]
+        end
+        Portals --> StateUI
+    end
+
+    %% 2. API Routes Layer
+    subgraph APILayer["2. Serverless API Route Handlers (Next.js App Router)"]
+        direction TB
+        APIData["<code>/api/data</code><br/>State Bootstrap & Sync"]
+        APISurplus["<code>/api/surplus</code><br/>Listings & Atomic Claims"]
+        APIPickups["<code>/api/pickups</code><br/>Coordination & OTP Handover"]
+        APINotif["<code>/api/notifications</code><br/>Alerts & Read Status"]
+        APIComplaints["<code>/api/complaints</code> & <code>/api/feedback</code><br/>Quality Flags & Ratings"]
+        APIAI["<code>/api/foodie-ai</code><br/>Groq LLM Proxy"]
+        APIPush["<code>/api/push</code><br/>Web Push Subscriptions"]
+        APIHealth["<code>/api/health</code><br/>System Liveness & DB Probe"]
+    end
+
+    %% 3. Application Logic & Service Layer
+    subgraph Services["3. Application Logic & Service Layer (src/lib)"]
+        direction TB
+        DataService["dataService.ts<br/>(Data Abstraction & Atomic Ops)"]
+        SmartMatch["smartMatching.ts<br/>(Locality & Urgency Matching)"]
+        OTPLogic["OTP Handover State Machine<br/>(4-Digit Secure Verification)"]
+        PushNotif["pushNotifications.ts<br/>(VAPID Web Push Delivery)"]
+    end
+
+    %% 4. Persistence & External Services
+    subgraph PersistenceLayer["4. Persistence & External Services"]
+        direction TB
+        subgraph DBEngine["Data Persistence Engine"]
+            MongoConn["mongodb.ts<br/>(Connection Pooling & Caching)"]
+            MongoAtlas[("MongoDB Atlas Cloud<br/>Collections: donations, pickups,<br/>notifications, complaints, donors")]
+            MemFallback[("In-Memory Fallback Cache<br/>(mockData.ts for Local Dev)")]
+        end
+        subgraph ExternalAPIs["External Cloud Integrations"]
+            GroqCloud["Groq Cloud LLM API<br/>(openai/gpt-oss-20b)"]
+            WebPushGateway["Browser Web Push Service<br/>(VAPID Protocol)"]
+        end
+    end
+
+    %% Inter-layer relationships
+    StateUI -->|HTTPS JSON Requests| APILayer
+    APISurplus --> DataService
+    APIPickups --> DataService
+    APIData --> DataService
+    APINotif --> DataService
+    APIComplaints --> DataService
+    APISurplus -.-> SmartMatch
+    APIPickups -.-> OTPLogic
+    APIPush --> PushNotif
+    APIAI -->|Groq SDK| GroqCloud
+    PushNotif -->|web-push| WebPushGateway
+    DataService --> MongoConn
+    MongoConn -->|Primary Cloud DB| MongoAtlas
+    MongoConn -.->|Fallback if URI Unset| MemFallback
+    APIHealth --> MongoConn
+```
+
+### Architectural Component Breakdown & Data Flow
+
+1. **Client Presentation & State Layer (`src/app/`, `src/context/`)**:
+   - **Role-Segmented Portals:** Tailored routing and workflows for Household Donors (`/household`), Commercial Kitchens & Hotels (`/hotel`, `/kitchen`), and Relief NGOs (`/ngo`).
+   - **Centralized Client State:** `AppContext` manages active role switching, session caching via `localStorage`, and asynchronous synchronization with the backend API.
+   - **Trilingual Localization:** `LanguageContext` provides instantaneous, zero-overhead switching between English, Hindi, and Kannada.
+   - **Interactive Assistants:** The floating `FoodieAIWidget` provides role-tailored donation guidance and operational tips.
+
+2. **Serverless API Layer (`src/app/api/`)**:
+   - 10 modular Next.js route handlers process incoming HTTP requests and return typed JSON responses.
+   - Handles route validation, input sanitization, and maps frontend actions to underlying service methods without exposing direct database handles to the client.
+
+3. **Application Logic & Service Layer (`src/lib/`)**:
+   - **`dataService.ts`:** Centralized business logic and data abstraction layer governing status transitions, timeline logging, and database operations.
+   - **Atomic Concurrency Protection (`claimDonationAtomic`):** When multiple NGOs attempt to claim the same donation concurrently, `dataService` uses atomic conditional database queries (`findOneAndUpdate` checking `{ id, status: "AVAILABLE" }`). Only the first request succeeds; any conflicting attempt receives an HTTP 409 Conflict error.
+   - **Deterministic Smart Matching (`smartMatching.ts`):** Calculates donation urgency scores based on perishable shelf-life windows and ranks partner proximity using geographic locality heuristics, without external map dependencies or live location tracking.
+   - **Handover State Machine:** Enforces rigid linear progression (`AVAILABLE` → `ACCEPTED` → `COMPLETED`), preventing uncoordinated transitions and requiring 4-digit digital OTP verification at physical handover.
+
+4. **Persistence & Resilience Layer (`src/lib/mongodb.ts`, `src/lib/mockData.ts`)**:
+   - **MongoDB Atlas Integration:** Connects via the official MongoDB driver with global connection caching (`global._mongoClientPromise`) optimized for serverless function re-use.
+   - **Automatic Local Fallback:** If `MONGODB_URI` is unconfigured during local development or offline evaluation, `dataService.ts` seamlessly runs on an in-memory dataset seeded from `mockData.ts`, ensuring zero setup friction.
+   - **Third-Party Integrations:** Connects to Groq Cloud for LLM chat completion and standard Web Push servers for push notifications.
+
+---
+
+### 📁 Repository Directory Structure
 
 ```text
 FoodWise/
 │
-├── public/                       # Static assets
+├── public/                       # Static assets, branding, and service workers
+│   ├── logo.png                  # FoodWise platform branding
+│   ├── login-illustration.png    # Portal illustration asset
+│   ├── fssai-logo.png            # Compliance reference badge
+│   └── sw.js                     # Web Push service worker
+│
+├── scripts/                      # Automated test and operational scripts
+│   ├── test-e2e-workflow.mjs     # SIH 2026 E2E operational verification suite
+│   ├── seed-bengaluru.mjs        # Comprehensive Bengaluru seed dataset
+│   └── audit-db.mjs              # MongoDB collection integrity auditor
 │
 ├── src/
-│   ├── app/
-│   │   ├── api/                  # Backend API routes
-│   │   │   ├── complaints/
-│   │   │   ├── data/
-│   │   │   ├── donors/
-│   │   │   ├── feedback/
-│   │   │   ├── foodie-ai/
-│   │   │   ├── health/
-│   │   │   ├── notifications/
-│   │   │   ├── pickups/
-│   │   │   ├── push/
-│   │   │   └── surplus/
+│   ├── app/                      # Next.js 16 App Router pages & API routes
+│   │   ├── api/                  # 10 Serverless REST API route handlers
+│   │   │   ├── complaints/       # Food quality incidents & reviews
+│   │   │   ├── data/             # Initial state bootstrap & bulk sync
+│   │   │   ├── donors/           # Registered food donors directory
+│   │   │   ├── feedback/         # Partner ratings & feedback
+│   │   │   ├── foodie-ai/        # Groq Cloud LLM proxy endpoint
+│   │   │   ├── health/           # System liveness & MongoDB probe
+│   │   │   ├── notifications/    # In-app alerts CRUD
+│   │   │   ├── pickups/          # Scheduled pickups & OTP completion
+│   │   │   ├── push/             # Web push subscription & testing
+│   │   │   └── surplus/          # Surplus food listings & atomic claims
 │   │   │
-│   │   ├── household/            # Household donor portal
-│   │   ├── hotel/                # Restaurant and hotel portal
-│   │   ├── ngo/                  # NGO operations portal
-│   │   ├── login/
-│   │   ├── settings/
-│   │   ├── layout.tsx
-│   │   └── page.tsx
+│   │   ├── household/            # Household donor portal (donate, track, impact)
+│   │   ├── hotel/                # Commercial donor portal (surplus, pickups, impact)
+│   │   ├── kitchen/              # Institutional kitchen portal (rankings, reports)
+│   │   ├── ngo/                  # Relief NGO operations portal (claim, coordinate, verify)
+│   │   ├── dashboard/            # Overview analytics layout
+│   │   ├── login/                # Role-based credential/demo switcher
+│   │   ├── settings/             # User preferences & notification toggles
+│   │   ├── about/                # Platform background & mission
+│   │   ├── contact/              # Support & inquiry channels
+│   │   ├── privacy-policy/       # Data privacy guidelines
+│   │   ├── terms/                # Platform terms of service
+│   │   ├── layout.tsx            # Root layout with providers & Lenis scroll
+│   │   └── page.tsx              # Public interactive landing page
 │   │
-│   ├── components/               # Reusable UI components
-│   ├── context/                  # Shared application state
-│   ├── lib/
-│   │   ├── dataService.ts        # Data access layer
-│   │   ├── mongodb.ts            # MongoDB connection utility
-│   │   ├── mockData.ts           # Demonstration data
-│   │   ├── smartMatching.ts      # Donation matching logic
-│   │   ├── pdfGenerator.ts       # PDF generation
-│   │   ├── pushNotifications.ts  # Push notification utilities
-│   │   └── types.ts              # Shared TypeScript types
+│   ├── components/               # Modular UI components
+│   │   ├── common/               # Badges, modals, cards, and buttons
+│   │   ├── layout/               # Header, Footer, and RoleNav navigation
+│   │   ├── ngo/                  # NGO-specific claim cards and pickup views
+│   │   ├── providers/            # Client providers (Language, App, Lenis)
+│   │   └── settings/             # Profile & notification configuration forms
 │   │
-│   └── types/                    # Additional type declarations
+│   ├── context/                  # Global React Context providers
+│   │   ├── AppContext.tsx        # Central application state & localStorage sync
+│   │   └── LanguageContext.tsx   # Trilingual translations (EN, HI, KN)
+│   │
+│   ├── lib/                      # Core business logic and integrations
+│   │   ├── dataService.ts        # Data layer with atomic operations & collections
+│   │   ├── mongodb.ts            # Serverless MongoDB connection pooler
+│   │   ├── mockData.ts           # Demo seed data & in-memory fallback
+│   │   ├── smartMatching.ts      # Locality distance & urgency algorithms
+│   │   ├── pdfGenerator.ts       # Client-side jsPDF document builder
+│   │   ├── pdfAssets.ts          # Embedded vector and base64 assets for PDF
+│   │   ├── pushNotifications.ts  # Web-push helper utilities
+│   │   ├── motion.ts             # Reusable Motion animation variants
+│   │   └── types.ts              # Canonical TypeScript domain interfaces
+│   │
+│   └── types/                    # Ambient type definitions
 │
-├── .env.example                  # Environment template
-├── .gitignore
-├── package.json
-├── package-lock.json
-└── README.md
+├── .env.example                  # Safe environment variable template
+├── .gitignore                    # Git ignore specifications
+├── package.json                  # Dependencies, metadata, and npm scripts
+├── package-lock.json             # Locked dependency tree
+├── tsconfig.json                 # TypeScript compiler configuration
+└── README.md                     # Complete project documentation
 ```
-
-*This is a simplified overview of the project structure. Individual files and directories may evolve during development.*
-
-### Application Data Flow
-
-```text
-           User Interface
-                 │
-                 ▼
-         Next.js API Routes
-                 │
-                 ▼
-           Data Service
-                 │
-                 ▼
-           MongoDB Atlas
-```
-
-The MongoDB connection and private credentials must remain on the server. Client components should access shared data through the application's API and state-management layers.
-
----
 
 ## 🚀 Getting Started
 
@@ -492,47 +602,81 @@ Open the application at:
 
 **http://localhost:3000**
 
-### 6. Run Code Quality Checks
+### 6. Run Automated Tests and Verification
 
-Run lint:
+FoodWise includes an end-to-end operational verification script (`scripts/test-e2e-workflow.mjs`):
+
+```bash
+npm run test
+```
+
+This automated suite validates:
+1. Complete elimination of prohibited external live map dependencies.
+2. Positive and boundary input validation (shelf-life, quantities, dietary metadata).
+3. Concurrency protection and atomic claim operations under race conditions.
+4. Rigid donation status lifecycle state machine (`AVAILABLE` → `ACCEPTED` → `COMPLETED`).
+5. Safe rejection of invalid status transitions (e.g. attempting to jump straight to `COMPLETED`).
+6. Food quality reporting and review-flagging workflows.
+
+### 7. Seed Demonstration Data (Optional)
+
+To seed a comprehensive Bengaluru donor and NGO distribution into MongoDB:
+
+```bash
+npm run db:seed
+```
+
+To audit database collection document counts and connection status:
+
+```bash
+npm run db:audit
+```
+
+### 8. Run Code Quality Checks & Production Build
+
+Run static analysis:
 
 ```bash
 npm run lint
 ```
 
-Build the application:
+Compile and validate the production bundle:
 
 ```bash
 npm run build
 ```
 
-Resolve build errors before deploying.
-
 ---
 
 ## 🧪 Testing and Verification
 
-Before sharing a deployment, verify the application's main workflows.
+Before deploying or submitting, verify the platform using both automated test scripts and manual checks.
 
-### Recommended Checklist
+### Automated Test Suite
 
-- [ ] Create a household donation.
-- [ ] Create a restaurant or hotel donation.
-- [ ] View available donations as an NGO.
-- [ ] Claim an available donation.
-- [ ] Coordinate a pickup.
-- [ ] Complete the handover workflow.
-- [ ] Record delivery completion.
-- [ ] Submit a food quality report.
-- [ ] Verify notification behavior.
-- [ ] Verify impact dashboard calculations.
-- [ ] Test PDF generation.
-- [ ] Test English, Hindi, and Kannada language switching.
-- [ ] Test Foodie AI with a valid Groq API key.
-- [ ] Verify MongoDB persistence after a page refresh.
-- [ ] Verify persisted records after restarting the local server.
-- [ ] Run `npm run lint`.
-- [ ] Run `npm run build`.
+```bash
+# Execute the full E2E workflow and codebase constraint test suite
+npm run test
+```
+
+### Manual Verification Checklist
+
+- [ ] Run `npm run test` and confirm all suites pass.
+- [ ] Create a household donation (`/household/donate`).
+- [ ] Create a restaurant or hotel donation (`/hotel/donate`).
+- [ ] View available donations from the NGO dashboard (`/ngo/dashboard`).
+- [ ] Claim an available donation and observe atomic claim lock.
+- [ ] Coordinate a pickup and test the 4-digit OTP digital handover.
+- [ ] Record delivery completion and verify state update.
+- [ ] Submit a food quality issue report (`/ngo/complaints` or `/ngo/food-issues`).
+- [ ] Verify notification count and toast triggers.
+- [ ] Verify real impact calculations on the impact dashboard (`/ngo/impact`, `/hotel/impact`).
+- [ ] Test PDF generation for donation receipts and certificates.
+- [ ] Switch languages across English, Hindi, and Kannada.
+- [ ] Test conversational guidance with Foodie AI (using configured Groq key).
+- [ ] Verify MongoDB persistence across page refreshes and server restarts.
+- [ ] Run `npm run lint` with 0 errors.
+- [ ] Run `npm run build` with 0 production build errors.
 
 ### Health Check
 
