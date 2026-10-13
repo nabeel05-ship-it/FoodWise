@@ -65,7 +65,7 @@ export default function SmoothScrollWrapper({
   }, [enabled]);
 
   return (
-    <div ref={containerRef} className={className}>
+    <div ref={containerRef} className={`w-full min-h-screen ${className || ""}`}>
       {children}
     </div>
   );

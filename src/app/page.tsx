@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { flushSync } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
@@ -41,6 +41,23 @@ export default function LoginPage() {
   const { login, registerDonor, registerNgo } = useApp();
   const { t: _t } = useLang();
   const prefersReduced = useReducedMotion();
+
+  // Ensure document canvas and viewport background strictly match the dark green theme
+  useEffect(() => {
+    const originalHtmlBg = document.documentElement.style.backgroundColor;
+    const originalBodyBg = document.body.style.backgroundColor;
+    document.documentElement.style.backgroundColor = "#091D13";
+    document.body.style.backgroundColor = "#091D13";
+    document.documentElement.classList.add("dark-theme-page");
+    document.body.classList.add("dark-theme-page");
+
+    return () => {
+      document.documentElement.style.backgroundColor = originalHtmlBg;
+      document.body.style.backgroundColor = originalBodyBg;
+      document.documentElement.classList.remove("dark-theme-page");
+      document.body.classList.remove("dark-theme-page");
+    };
+  }, []);
 
   // Redistribution workflow visibility state
   const [isWorkflowRevealed, setIsWorkflowRevealed] = useState(false);
@@ -197,7 +214,7 @@ export default function LoginPage() {
   return (
     <SmoothScrollWrapper>
       <div
-        className="min-h-screen flex flex-col items-center justify-between px-3 sm:px-6 pt-3 sm:pt-4 lg:pt-5 xl:pt-6 pb-3 sm:pb-4 lg:pb-5 relative overflow-x-hidden"
+        className="foodwise-login-page min-h-screen flex flex-col justify-between w-full relative bg-[#091D13] overflow-x-hidden"
         style={{
           background: "radial-gradient(ellipse at center, #18422A 0%, #0F2A1C 60%, #091D13 100%)",
         }}
@@ -206,8 +223,10 @@ export default function LoginPage() {
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Hero Viewport Presentation (Login Card + Discovery Button) */}
-      <div className="w-full max-w-[1040px] flex-1 flex flex-col items-center justify-start lg:justify-center lg:my-auto z-10">
+      {/* Main Content Presentation */}
+      <main className="w-full flex-1 flex flex-col items-center justify-center px-3 sm:px-6 pt-3 sm:pt-4 lg:pt-6 pb-4 sm:pb-6 relative z-10">
+        {/* Hero Presentation (Login Card + Discovery Button) */}
+        <div className="w-full max-w-[1040px] flex flex-col items-center my-auto">
         {/* Main Centered Authentication Card */}
         <motion.div
           initial={prefersReduced ? false : { opacity: 0, scale: 0.98, y: 16 }}
@@ -843,8 +862,9 @@ export default function LoginPage() {
           <FoodRedistributionWorkflow />
         </motion.div>
       )}
+      </main>
 
-      {/* Professional Footer */}
+      {/* Full-width Professional Footer in normal document flow */}
       <Footer />
     </div>
     </SmoothScrollWrapper>

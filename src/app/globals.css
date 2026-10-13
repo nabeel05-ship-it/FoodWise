@@ -260,24 +260,28 @@
 .gradient-text-emerald {
   background: linear-gradient(135deg, #00D4AA 0%, #38BDF8 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .gradient-text-indigo {
   background: linear-gradient(135deg, #34D399 0%, #C084FC 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .gradient-text-hero {
   background: linear-gradient(135deg, #FFFFFF 30%, #94A3B8 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .gradient-text-brand {
   background: linear-gradient(135deg, #00D4AA 0%, #10B981 50%, #38BDF8 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -570,4 +574,33 @@
     margin-top: 1.25rem !important;
   }
 }
+
+/* ─── Login / Landing Page Dark Theme Viewport & Scrollbar ─── */
+html:has(.foodwise-login-page),
+body:has(.foodwise-login-page),
+html.dark-theme-page,
+body.dark-theme-page {
+  background-color: #091D13 !important;
+  scrollbar-color: rgba(255, 255, 255, 0.2) #091D13;
+}
+
+html.dark-theme-page::-webkit-scrollbar-track,
+body.dark-theme-page::-webkit-scrollbar-track,
+.foodwise-login-page::-webkit-scrollbar-track {
+  background: #091D13;
+}
+
+html.dark-theme-page::-webkit-scrollbar-thumb,
+body.dark-theme-page::-webkit-scrollbar-thumb,
+.foodwise-login-page::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 9999px;
+}
+
+html.dark-theme-page::-webkit-scrollbar-thumb:hover,
+body.dark-theme-page::-webkit-scrollbar-thumb:hover,
+.foodwise-login-page::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
 
