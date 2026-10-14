@@ -17,7 +17,7 @@ import {
   Pause,
   RotateCcw,
 } from "lucide-react";
-import { MOTION_SPRINGS, MOTION_DURATIONS, runSafeGsap } from "@/lib/motion";
+import { MOTION_DURATIONS, MOTION_EASINGS, runSafeGsap } from "@/lib/motion";
 
 export interface WorkflowStep {
   id: number;
@@ -132,8 +132,8 @@ export default function FoodRedistributionWorkflow({
   useEffect(() => {
     if (!isPlaying || prefersReduced || !isInView) return;
 
-    // 4.2 seconds per stage: relaxed, readable SaaS pacing
-    const intervalTime = 4200;
+    // 2.6 seconds per stage: brisk but still readable pacing
+    const intervalTime = 2600;
     const timer = setInterval(() => {
       setActiveStep((prev) => (prev >= WORKFLOW_STEPS.length ? 1 : prev + 1));
     }, intervalTime);
@@ -276,7 +276,7 @@ export default function FoodRedistributionWorkflow({
           >
             {/* Active progress track terminating precisely at the active stage center */}
             <div
-              className="h-full bg-linear-to-r from-emerald-500 via-teal-400 to-emerald-300 rounded-full transition-all duration-700 ease-out"
+              className="h-full bg-linear-to-r from-emerald-500 via-teal-400 to-emerald-300 rounded-full transition-all duration-300 ease-out"
               style={{
                 width: `${progressPercent}%`,
               }}
@@ -346,10 +346,10 @@ export default function FoodRedistributionWorkflow({
       <AnimatePresence mode="wait">
         <motion.div
           key={current.id}
-          initial={prefersReduced ? false : { opacity: 0, y: 10 }}
+          initial={prefersReduced ? false : { opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={MOTION_SPRINGS.natural}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: MOTION_DURATIONS.fast, ease: MOTION_EASINGS.apple }}
           className="bg-emerald-950/70 border border-emerald-500/30 rounded-2xl p-4 sm:p-5 relative z-10 grid grid-cols-1 md:grid-cols-12 gap-4 items-center"
         >
           {/* Left info (8 cols) */}
