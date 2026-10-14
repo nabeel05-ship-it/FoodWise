@@ -110,8 +110,7 @@ export default function SettingsPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[#E8ECF3]">
         <div className="flex items-center gap-3">
           <div
-            className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md shadow-emerald-950/20"
-            style={{ background: "#164A31" }}
+            className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md shadow-emerald-950/20 btn-brand"
           >
             <Settings className="w-6 h-6 text-emerald-400" />
           </div>
@@ -135,8 +134,7 @@ export default function SettingsPage() {
         <div className="flex items-center gap-2.5">
           <button
             onClick={handleSave}
-            className="px-4 py-2.5 rounded-xl text-white text-xs font-bold shadow-md shadow-emerald-950/20 flex items-center gap-2 transition-all cursor-pointer hover:brightness-110 active:scale-95"
-            style={{ background: "#164A31" }}
+            className="px-4 py-2.5 rounded-xl text-white text-xs font-bold shadow-md shadow-emerald-950/20 flex items-center gap-2 transition-all cursor-pointer hover:brightness-110 active:scale-95 btn-brand"
           >
             <Save className="w-4 h-4 text-emerald-400" />
             <span>{t("settings_page.save_changes")}</span>
@@ -318,8 +316,7 @@ export default function SettingsPage() {
             <div className="pt-2">
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110"
-                style={{ background: "#164A31" }}
+                className="px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110 btn-brand"
               >
                 {t("settings_page.save_profile")}</button>
             </div>
@@ -405,8 +402,7 @@ export default function SettingsPage() {
             <div className="pt-2">
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110"
-                style={{ background: "#164A31" }}
+                className="px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110 btn-brand"
               >
                 {t("settings_page.save_location_detail")}</button>
             </div>
@@ -504,8 +500,7 @@ export default function SettingsPage() {
             <div className="pt-2">
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110"
-                style={{ background: "#164A31" }}
+                className="px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110 btn-brand"
               >
                 {t("settings_page.save_preferences")}</button>
             </div>
@@ -559,8 +554,7 @@ export default function SettingsPage() {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110"
-                  style={{ background: "#164A31" }}
+                  className="px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110 btn-brand"
                 >
                   {t("settings_page.update_password")}</button>
               </div>

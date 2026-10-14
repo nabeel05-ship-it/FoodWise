@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import ClientProvider from "@/components/providers/ClientProvider";
 
@@ -11,6 +11,12 @@ import FoodieAIWidget from "@/components/common/FoodieAIWidget";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
+});
+
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-jakarta",
   display: "swap",
 });
 
@@ -43,10 +49,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable}`}
+      className={`${inter.variable} ${plusJakarta.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
-      <body className="min-h-screen bg-[#F4F6FA] text-[#111827] font-sans antialiased selection:bg-[#10B981]/20 selection:text-[#10B981]">
+      <body className="min-h-screen bg-[#F5F7F6] text-[#111827] font-sans antialiased">
         <ClientProvider>
           {children}
           <NotificationDrawer />

@@ -128,8 +128,7 @@ export default function HotelDonationsPage() {
 
           <Link
             href="/hotel/donate"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-md shadow-emerald-950/20 hover:brightness-110 active:scale-95 cursor-pointer"
-            style={{ background: "#164A31" }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-md shadow-emerald-950/20 hover:brightness-110 active:scale-95 cursor-pointer btn-brand"
           >
             <PlusCircle className="w-4 h-4 text-emerald-400" />
             <span>{t("+ Post New Surplus Batch")}</span>

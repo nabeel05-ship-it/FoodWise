@@ -168,8 +168,7 @@ export default function HotelDashboard() {
         <div className="flex items-center gap-2.5 flex-wrap">
           <Link
             href="/hotel/donate"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-md shadow-emerald-950/20 transition-all hover:brightness-110 active:scale-95 cursor-pointer"
-            style={{ background: "#164A31" }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-md shadow-emerald-950/20 transition-all hover:brightness-110 active:scale-95 cursor-pointer btn-brand"
           >
             <PlusCircle className="w-4 h-4 text-emerald-400" />
             <span>{t("+ Post Surplus Food")}</span>
@@ -191,7 +190,7 @@ export default function HotelDashboard() {
           <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">
             {t("Total Surplus Listed")}
           </span>
-          <div className="text-2xl sm:text-3xl font-extrabold text-gray-950 mt-1 font-mono">
+          <div className="text-2xl sm:text-3xl font-extrabold text-gray-950 mt-1 font-display tabular-nums">
             <CountUp value={totalKg} /> <span className="text-xs font-semibold text-gray-500">{t("common.kg")}</span>
           </div>
           <span className="text-[11px] text-emerald-700 font-medium mt-1 block">
@@ -206,7 +205,7 @@ export default function HotelDashboard() {
           <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">
             {t("Active Listings")}
           </span>
-          <div className="text-2xl sm:text-3xl font-extrabold text-emerald-700 mt-1 font-mono">
+          <div className="text-2xl sm:text-3xl font-extrabold text-emerald-700 mt-1 font-display tabular-nums">
             <CountUp value={activeDonations.length} />
           </div>
           <span className="text-[11px] text-gray-500 font-medium mt-1 block">
@@ -221,7 +220,7 @@ export default function HotelDashboard() {
           <span className="text-[11px] font-bold uppercase tracking-wider text-blue-700 block">
             {t("Scheduled Pickups")}
           </span>
-          <div className="text-2xl sm:text-3xl font-extrabold text-blue-800 mt-1 font-mono">
+          <div className="text-2xl sm:text-3xl font-extrabold text-blue-800 mt-1 font-display tabular-nums">
             <CountUp value={upcomingPickups.length} />
           </div>
           <span className="text-[11px] text-blue-700 font-medium mt-1 block">
@@ -236,7 +235,7 @@ export default function HotelDashboard() {
           <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">
             {t("Completed Rescues")}
           </span>
-          <div className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-1 font-mono">
+          <div className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-1 font-display tabular-nums">
             <CountUp value={completedDonations.length} />
           </div>
           <span className="text-[11px] text-gray-500 font-medium mt-1 block">
@@ -251,7 +250,7 @@ export default function HotelDashboard() {
           <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">
             {t("People Nourished")}
           </span>
-          <div className="text-2xl sm:text-3xl font-extrabold text-emerald-900 mt-1 font-mono">
+          <div className="text-2xl sm:text-3xl font-extrabold text-emerald-900 mt-1 font-display tabular-nums">
             <CountUp value={totalPeopleServed || activeDonor.peopleServed || 0} />+
           </div>
           <span className="text-[11px] text-emerald-700 font-medium mt-1 block">

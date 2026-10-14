@@ -721,8 +721,7 @@ function NgoDashboardContent() {
         <div className="flex items-center gap-3">
           <Link
             href="/ngo/dashboard?tab=claims"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-md shadow-emerald-950/20 transition-all hover:brightness-110 active:scale-95 cursor-pointer"
-            style={{ background: "#164A31" }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-md shadow-emerald-950/20 transition-all hover:brightness-110 active:scale-95 cursor-pointer btn-brand"
           >
             <PackageCheck className="w-4 h-4 text-emerald-400" />
             <span>{t("ngo.find_available_food")}</span>
@@ -805,7 +804,7 @@ function NgoDashboardContent() {
                 <div className="icon-container icon-container-green"><Utensils className="w-5 h-5" /></div>
               </div>
               <div>
-                <div className="text-[28px] font-extrabold font-mono-data text-gray-900 leading-none mb-1.5">
+                <div className="text-[28px] font-extrabold font-display tabular-nums text-gray-900 leading-none mb-1.5">
                   <CountUp value={dynamicFeed.length} /> {t("ngo.dash.batches")}
                 </div>
                 <div className="text-[12px] font-medium text-emerald-600">
@@ -823,7 +822,7 @@ function NgoDashboardContent() {
                 <div className="icon-container icon-container-amber"><Timer className="w-5 h-5" /></div>
               </div>
               <div>
-                <div className="text-[28px] font-extrabold font-mono-data text-gray-900 leading-none mb-1.5">
+                <div className="text-[28px] font-extrabold font-display tabular-nums text-gray-900 leading-none mb-1.5">
                   <CountUp value={dynamicFeed.filter((i) => i.hoursLeft <= 4).length} /> {t("ngo.dash.batches")}
                 </div>
                 <div className="text-[12px] font-medium text-amber-600">{t("ngo.dash.rapid_dispatch")}</div>
@@ -839,7 +838,7 @@ function NgoDashboardContent() {
                 <div className="icon-container icon-container-green"><Truck className="w-5 h-5" /></div>
               </div>
               <div>
-                <div className="text-[28px] font-extrabold font-mono-data text-gray-900 leading-none mb-1.5">
+                <div className="text-[28px] font-extrabold font-display tabular-nums text-gray-900 leading-none mb-1.5">
                   <CountUp value={scheduledPickups.length} /> Batches
                 </div>
                 <div className="text-[12px] font-medium text-emerald-600">Assigned & in dispatch transit</div>
@@ -855,7 +854,7 @@ function NgoDashboardContent() {
                 <div className="icon-container icon-container-blue"><CheckCircle2 className="w-5 h-5" /></div>
               </div>
               <div>
-                <div className="text-[28px] font-extrabold font-mono-data text-gray-900 leading-none mb-1.5">
+                <div className="text-[28px] font-extrabold font-display tabular-nums text-gray-900 leading-none mb-1.5">
                   <CountUp value={pickupHistory.length} /> Delivered
                 </div>
                 <div className="text-[12px] font-medium text-blue-600">Verified shelter distributions</div>
@@ -1074,7 +1073,7 @@ function NgoDashboardContent() {
                     </div>
 
                     <span className="text-right">
-                      <span className="text-xl font-black font-mono-data text-emerald-700 block">
+                      <span className="text-xl font-black font-display tabular-nums text-emerald-700 block">
                         {item.quantityKg} {t("ngo.kg")}
                       </span>
                       <span className="text-[10px] text-gray-400">

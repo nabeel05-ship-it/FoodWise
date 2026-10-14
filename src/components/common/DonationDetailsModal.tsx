@@ -77,7 +77,7 @@ export default function DonationDetailsModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: MOTION_DURATIONS.fast }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#03140C]/55 backdrop-blur-sm"
           onClick={onClose}
           role="dialog"
           aria-modal="true"
@@ -374,8 +374,7 @@ export default function DonationDetailsModal({
                   onClick={() => {
                     onRequestFood(donation);
                   }}
-                  className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
-                  style={{ background: "#164A31" }}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 btn-brand"
                 >
                   <HeartHandshake className="w-4 h-4 text-emerald-400" />
                   <span>{t("Request Food")}</span>

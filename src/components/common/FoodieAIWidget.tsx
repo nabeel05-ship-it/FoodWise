@@ -248,8 +248,7 @@ export default function FoodieAIWidget() {
                   onClick={() => handleSend(inputValue)}
                   disabled={!inputValue.trim() || isLoading}
                   aria-label="Send message"
-                  className="text-white rounded-xl p-2 h-9 w-9 flex items-center justify-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer active:scale-95"
-                  style={{ background: "#164A31" }}
+                  className="text-white rounded-xl p-2 h-9 w-9 flex items-center justify-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer active:scale-95 btn-brand"
                 >
                   <Send className="w-4 h-4" />
                 </button>

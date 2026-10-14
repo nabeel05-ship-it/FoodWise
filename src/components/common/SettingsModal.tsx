@@ -88,7 +88,7 @@ export default function SettingsModal() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: MOTION_DURATIONS.fast }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#03140C]/55 backdrop-blur-sm"
           onClick={() => setIsSettingsOpen(false)}
           role="dialog"
           aria-modal="true"
@@ -107,8 +107,7 @@ export default function SettingsModal() {
             <div className="p-5 sm:p-6 border-b border-[#E8ECF3] flex items-center justify-between bg-white shrink-0">
               <div className="flex items-center gap-3">
                 <div
-                  className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-md shadow-emerald-950/20"
-                  style={{ background: "#164A31" }}
+                  className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-md shadow-emerald-950/20 btn-brand"
                 >
                   <Settings className="w-5 h-5 text-emerald-400" />
                 </div>
@@ -249,8 +248,7 @@ export default function SettingsModal() {
                   <div className="pt-2 flex justify-end">
                     <button
                       type="submit"
-                      className="px-4 py-2 rounded-xl text-white font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110"
-                      style={{ background: "#164A31" }}
+                      className="px-4 py-2 rounded-xl text-white font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110 btn-brand"
                     >
                       {t("Save Location")}
                     </button>
@@ -331,8 +329,7 @@ export default function SettingsModal() {
                   <div className="pt-2 flex justify-end">
                     <button
                       type="submit"
-                      className="px-4 py-2 rounded-xl text-white font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110"
-                      style={{ background: "#164A31" }}
+                      className="px-4 py-2 rounded-xl text-white font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110 btn-brand"
                     >
                       {t("Save Notification Preferences")}
                     </button>
@@ -366,8 +363,7 @@ export default function SettingsModal() {
                     </div>
                     <button
                       type="submit"
-                      className="px-4 py-2 rounded-xl text-white font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110"
-                      style={{ background: "#164A31" }}
+                      className="px-4 py-2 rounded-xl text-white font-bold transition-all shadow-md active:scale-95 cursor-pointer hover:brightness-110 btn-brand"
                     >
                       {t("Update Password")}
                     </button>

@@ -303,7 +303,7 @@ export default function KitchenRankingPage() {
                 <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-200 mb-0.5">
                   {t("kitchen.rank.current_rank")}
                 </div>
-                <div className="text-3xl sm:text-4xl font-black text-white font-mono-data">
+                <div className="text-3xl sm:text-4xl font-black text-white font-display tabular-nums">
                   #{myRank}
                 </div>
                 <div className="text-[10px] text-emerald-200/80 mt-0.5">{t("kitchen.rank.city_standing")}</div>
@@ -313,7 +313,7 @@ export default function KitchenRankingPage() {
                 <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-200 mb-0.5">
                   {t("kitchen.rank.total_points")}
                 </div>
-                <div className="text-3xl sm:text-4xl font-black text-amber-300 font-mono-data">
+                <div className="text-3xl sm:text-4xl font-black text-amber-300 font-display tabular-nums">
                   {currentPoints.toLocaleString()}
                 </div>
                 <div className="text-[10px] text-emerald-200/80 mt-0.5">{t("kitchen.rank.reputation_pts")}</div>
@@ -323,7 +323,7 @@ export default function KitchenRankingPage() {
                 <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-200 mb-0.5">
                   {t("kitchen.rank.donation_streak")}
                 </div>
-                <div className="text-3xl sm:text-4xl font-black text-emerald-300 font-mono-data flex items-center justify-center gap-1">
+                <div className="text-3xl sm:text-4xl font-black text-emerald-300 font-display tabular-nums flex items-center justify-center gap-1">
                   <Flame className="w-6 h-6 text-amber-400 fill-amber-400" />
                   {myKitchen.streak}
                 </div>
@@ -334,7 +334,7 @@ export default function KitchenRankingPage() {
                 <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-200 mb-0.5">
                   {t("kitchen.rank.ngo_rating")}
                 </div>
-                <div className="text-3xl sm:text-4xl font-black text-white font-mono-data flex items-center justify-center gap-1">
+                <div className="text-3xl sm:text-4xl font-black text-white font-display tabular-nums flex items-center justify-center gap-1">
                   <Star className="w-5 h-5 text-amber-300 fill-amber-300" />
                   {myKitchen.avgRating}
                 </div>

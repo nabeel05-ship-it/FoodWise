@@ -237,8 +237,7 @@ export default function HotelProfilePage() {
           )}
           <button
             type="submit"
-            className="px-6 py-2.5 rounded-xl font-bold text-white shadow-md hover:brightness-110 active:scale-95 cursor-pointer ml-auto flex items-center gap-1.5"
-            style={{ background: "#164A31" }}
+            className="px-6 py-2.5 rounded-xl font-bold text-white shadow-md hover:brightness-110 active:scale-95 cursor-pointer ml-auto flex items-center gap-1.5 btn-brand"
           >
             <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
             <span>{t("Save Changes")}</span>

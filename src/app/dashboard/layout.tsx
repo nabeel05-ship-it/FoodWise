@@ -21,7 +21,7 @@ export default function DashboardLayout({
       : "hotel";
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "#F4F6FA" }}>
+    <div className="app-canvas min-h-screen flex flex-col md:flex-row">
       <Sidebar type={sidebarType} />
       <main id="main-content" className="flex-1 min-w-0">
         <div className="p-3.5 sm:p-6 lg:p-8 max-w-[1400px] mx-auto w-full pb-24">

@@ -146,8 +146,7 @@ export default function HouseholdProfilePage() {
         <div className="pt-2">
           <button
             type="submit"
-            className="w-full py-3 rounded-xl text-white font-bold text-sm transition-all shadow-md active:scale-98 flex items-center justify-center gap-2 cursor-pointer hover:brightness-110"
-            style={{ background: "#164A31" }}
+            className="w-full py-3 rounded-xl text-white font-bold text-sm transition-all shadow-md active:scale-98 flex items-center justify-center gap-2 cursor-pointer hover:brightness-110 btn-brand"
           >
             <Save className="w-4 h-4 text-emerald-400" />
             <span>{t("Save Profile")}</span>

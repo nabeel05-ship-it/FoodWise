@@ -155,7 +155,7 @@ export default function NotificationDrawer() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: MOTION_DURATIONS.fast }}
-          className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex justify-end bg-[#03140C]/40 backdrop-blur-sm"
           onClick={closeDrawer}
           role="dialog"
           aria-modal="true"

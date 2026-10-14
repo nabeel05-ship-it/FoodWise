@@ -105,8 +105,7 @@ export default function KitchenDashboardPage() {
           {/* Quick Donate CTA */}
           <Link
             href="/kitchen/surplus"
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-emerald-900/20 transition-all hover:brightness-110 active:scale-95"
-            style={{ background: "#164A31" }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-emerald-900/20 transition-all hover:brightness-110 active:scale-95 btn-brand"
           >
             <PlusCircle className="w-4 h-4 text-emerald-400" />
             <span>+ Donate Food</span>
@@ -183,7 +182,7 @@ export default function KitchenDashboardPage() {
               <Package className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-black font-mono-data text-gray-900 mb-1">
+          <div className="text-2xl font-black font-display tabular-nums text-gray-900 mb-1">
             {activeDonationsCount} Batches
           </div>
           <p className="text-[11px] text-gray-500">Ready for nearby NGO collection</p>
@@ -197,7 +196,7 @@ export default function KitchenDashboardPage() {
               <Truck className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-black font-mono-data text-gray-900 mb-1">
+          <div className="text-2xl font-black font-display tabular-nums text-gray-900 mb-1">
             {acceptedDonationsCount} Active Pickups
           </div>
           <p className="text-[11px] text-blue-700 font-medium">Driver dispatched with OTP</p>
@@ -211,7 +210,7 @@ export default function KitchenDashboardPage() {
               <TrendingDown className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-black font-mono-data text-emerald-900 mb-1">
+          <div className="text-2xl font-black font-display tabular-nums text-emerald-900 mb-1">
             {totalFoodDonated}{" "}
             <span className="text-sm font-bold text-emerald-700">kg</span>
           </div>
@@ -229,7 +228,7 @@ export default function KitchenDashboardPage() {
               <HeartHandshake className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-black font-mono-data text-gray-900 mb-1">
+          <div className="text-2xl font-black font-display tabular-nums text-gray-900 mb-1">
             ~{totalPeopleFed.toLocaleString()}{" "}
             <span className="text-sm font-bold text-gray-500">meals</span>
           </div>

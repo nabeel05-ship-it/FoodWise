@@ -132,7 +132,7 @@ export default function FoodQualityReportModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: MOTION_DURATIONS.fast }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#03140C]/55 backdrop-blur-sm"
           onClick={onClose}
           role="dialog"
           aria-modal="true"
@@ -204,8 +204,7 @@ export default function FoodQualityReportModal({
 
                 <button
                   onClick={handleResetAndClose}
-                  className="w-full py-3 rounded-xl text-xs font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-95 cursor-pointer"
-                  style={{ background: "#164A31" }}
+                  className="w-full py-3 rounded-xl text-xs font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-95 cursor-pointer btn-brand"
                 >
                   Done & Return to Donations
                 </button>
@@ -422,8 +421,7 @@ export default function FoodQualityReportModal({
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
-                    style={{ background: "#164A31" }}
+                    className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 btn-brand"
                   >
                     <ShieldAlert className="w-4 h-4 text-amber-400" />
                     <span>Submit Report</span>

@@ -165,12 +165,12 @@ function SidebarContent({ type }: SidebarProps) {
   return (
     <>
       {/* Mobile Top Header Bar */}
-      <header className="md:hidden sticky top-0 z-30 w-full bg-[#072B1E] border-b border-emerald-500/20 px-3.5 py-2.5 flex items-center justify-between shadow-md">
+      <header className="md:hidden sticky top-0 z-30 w-full bg-[#072B1E]/95 backdrop-blur-md border-b border-white/[0.06] px-3.5 py-2.5 flex items-center justify-between shadow-lg shadow-black/10">
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setMobileOpen(true)}
             aria-label="Open navigation menu"
-            className="p-2 rounded-xl bg-emerald-900/50 text-emerald-300 hover:text-white border border-emerald-500/30 active:scale-95 transition-all cursor-pointer"
+            className="p-2 rounded-xl bg-white/[0.06] text-emerald-200 hover:text-white hover:bg-white/10 ring-1 ring-inset ring-white/10 active:scale-95 transition-all cursor-pointer"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -189,7 +189,7 @@ function SidebarContent({ type }: SidebarProps) {
           <button
             onClick={() => setIsNotificationOpen(true)}
             aria-label="Notifications"
-            className="relative p-2 rounded-xl bg-emerald-900/50 text-emerald-300 border border-emerald-500/30 cursor-pointer"
+            className="relative p-2 rounded-xl bg-white/[0.06] text-emerald-200 hover:text-white hover:bg-white/10 ring-1 ring-inset ring-white/10 transition-all cursor-pointer"
           >
             <Bell className="w-4 h-4" />
             <AnimatePresence>
@@ -200,7 +200,7 @@ function SidebarContent({ type }: SidebarProps) {
                   initial="initial"
                   animate="animate"
                   exit="exit"
-                  className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center leading-none shadow-xs"
+                  className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center leading-none ring-2 ring-[#072B1E] tabular-nums"
                 >
                   {unreadCount}
                 </motion.span>
@@ -210,7 +210,7 @@ function SidebarContent({ type }: SidebarProps) {
           <button
             onClick={() => setIsSettingsOpen(true)}
             aria-label="Settings"
-            className="p-2 rounded-xl bg-emerald-900/50 text-emerald-300 border border-emerald-500/30 cursor-pointer"
+            className="p-2 rounded-xl bg-white/[0.06] text-emerald-200 hover:text-white hover:bg-white/10 ring-1 ring-inset ring-white/10 transition-all cursor-pointer"
           >
             <Settings className="w-4 h-4" />
           </button>
@@ -226,7 +226,7 @@ function SidebarContent({ type }: SidebarProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/70 backdrop-blur-xs"
+              className="fixed inset-0 bg-[#03140C]/65 backdrop-blur-sm"
               onClick={() => setMobileOpen(false)}
             />
             <motion.div
@@ -234,13 +234,14 @@ function SidebarContent({ type }: SidebarProps) {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", stiffness: 380, damping: 32 }}
-              className="relative w-[285px] max-w-[85vw] h-full flex flex-col z-10 shadow-2xl border-r border-emerald-500/20"
+              className="relative w-[285px] max-w-[85vw] h-full flex flex-col z-10 shadow-2xl border-r border-white/[0.06]"
               style={{
-                background: "linear-gradient(180deg, #072B1E 0%, #052117 60%, #031710 100%)",
+                background:
+                  "radial-gradient(120% 45% at 0% 0%, rgba(16, 185, 129, 0.16) 0%, transparent 60%), linear-gradient(180deg, #072B1E 0%, #052117 60%, #031710 100%)",
               }}
             >
               {/* Top Drawer Header */}
-              <div className="flex items-center justify-between px-4 h-16 border-b border-emerald-500/20 shrink-0">
+              <div className="flex items-center justify-between px-4 h-16 border-b border-white/[0.06] shrink-0">
                 <div className="flex items-center gap-2.5">
                   <img src="/logo.png" alt="FoodWise Logo" className="w-8 h-8 object-contain shrink-0" />
                   <div>
@@ -259,7 +260,7 @@ function SidebarContent({ type }: SidebarProps) {
 
               {/* Current Role Identity */}
               <div className="px-3 pt-3 pb-2 shrink-0">
-                <div className="p-2 rounded-xl flex items-center gap-2 border border-emerald-500/20 bg-black/30">
+                <div className="p-2.5 rounded-xl flex items-center gap-2 bg-white/[0.04] ring-1 ring-inset ring-white/[0.07]">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   <span className="text-xs font-bold text-white truncate">{institution.name}</span>
                   <span className="text-[10px] uppercase font-bold text-emerald-300 ml-auto tracking-wider">
@@ -282,16 +283,16 @@ function SidebarContent({ type }: SidebarProps) {
                       onClick={() => setMobileOpen(false)}
                       className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                         isActive
-                          ? "bg-[#10B981] text-white shadow-md shadow-emerald-950/60"
-                          : "text-emerald-200 hover:bg-emerald-500/15 hover:text-white"
+                          ? "bg-linear-to-r from-emerald-400/25 to-emerald-400/5 text-white ring-1 ring-inset ring-emerald-300/20"
+                          : "text-emerald-100/80 hover:bg-white/[0.05] hover:text-white"
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-emerald-400"}`} />
+                        <Icon className={`w-4 h-4 ${isActive ? "text-emerald-300" : item.highlight ? "text-amber-300" : "text-emerald-400/90"}`} />
                         <span>{item.label}</span>
                       </div>
                       {item.badge && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider bg-emerald-950/60 text-emerald-300 border border-emerald-500/30">
+                        <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider bg-amber-400/10 text-amber-200 ring-1 ring-inset ring-amber-300/25">
                           {item.badge}
                         </span>
                       )}
@@ -301,7 +302,7 @@ function SidebarContent({ type }: SidebarProps) {
               </nav>
 
               {/* Bottom Actions */}
-              <div className="p-3 border-t border-emerald-500/20 bg-black/25 space-y-2 shrink-0">
+              <div className="p-3 border-t border-white/[0.06] bg-black/20 space-y-2 shrink-0">
                 <Link
                   href="/"
                   onClick={() => setMobileOpen(false)}
@@ -320,15 +321,15 @@ function SidebarContent({ type }: SidebarProps) {
       <aside
         className={`hidden md:flex sticky top-0 h-screen shrink-0 z-20 flex-col transition-all duration-300 ${
           collapsed ? "w-[72px]" : "w-[272px]"
-        } border-r border-[#10B981]/20`}
+        } border-r border-white/[0.06] shadow-[1px_0_0_rgba(0,0,0,0.25)]`}
         style={{
-          background: "linear-gradient(180deg, #072B1E 0%, #052117 60%, #031710 100%)",
+          background:
+            "radial-gradient(120% 40% at 0% 0%, rgba(16, 185, 129, 0.16) 0%, transparent 60%), linear-gradient(180deg, #072B1E 0%, #052117 60%, #031710 100%)",
         }}
       >
       {/* Brand / Logo Area */}
       <div
-        className="flex items-center gap-3 px-4 h-16 border-b"
-        style={{ borderColor: "rgba(16, 185, 129, 0.18)" }}
+        className="flex items-center gap-3 px-4 h-16 border-b border-white/[0.06]"
       >
         <Link href="/" className="flex items-center gap-3 group">
           <img
@@ -338,7 +339,7 @@ function SidebarContent({ type }: SidebarProps) {
           />
           {!collapsed && (
             <div className="overflow-hidden">
-              <div className="text-[15px] font-extrabold text-white tracking-tight whitespace-nowrap">
+              <div className="font-display text-[15px] font-extrabold text-white tracking-tight whitespace-nowrap">
                 FoodWise
               </div>
               <div
@@ -354,12 +355,9 @@ function SidebarContent({ type }: SidebarProps) {
 
 
       {/* Institution Identity */}
-      <div
-        className="px-4 py-3 border-b"
-        style={{ borderColor: "rgba(16, 185, 129, 0.15)" }}
-      >
+      <div className="px-3 pt-3 pb-1">
         {!collapsed ? (
-          <div>
+          <div className="rounded-xl px-3 py-2.5 bg-white/[0.04] ring-1 ring-inset ring-white/[0.07]">
             <div className="flex items-center gap-2 mb-1">
               <span
                 className="w-2 h-2 rounded-full animate-pulse"
@@ -413,8 +411,8 @@ function SidebarContent({ type }: SidebarProps) {
       <nav className="flex-1 px-3 py-3 space-y-1 overflow-y-auto sidebar-scroll">
         {!collapsed && (
           <div
-            className="text-[10px] font-bold uppercase tracking-widest mb-2 px-3"
-            style={{ color: "#6EE7B7" }}
+            className="text-[10px] font-semibold uppercase tracking-[0.14em] mb-2 px-3"
+            style={{ color: "rgba(167, 243, 208, 0.55)" }}
           >
             {t("nav.navigation")}
           </div>
@@ -435,50 +433,43 @@ function SidebarContent({ type }: SidebarProps) {
             <Link
               key={item.label}
               href={item.href}
-              className={`group flex items-center gap-3 rounded-xl text-[13px] font-medium transition-all relative ${
+              className={`group flex items-center gap-3 rounded-xl text-[13px] transition-colors relative ${
                 collapsed ? "px-0 py-2.5 justify-center" : "px-3 py-2.5"
+              } ${
+                isActive
+                  ? "text-white font-semibold"
+                  : "text-emerald-50/75 font-medium hover:text-white hover:bg-white/[0.045]"
               }`}
-              style={{
-                color: isActive
-                  ? "#FFFFFF"
-                  : item.highlight
-                  ? "#FCA5A5"
-                  : "#D1FAE5",
-              }}
               title={collapsed ? item.label : undefined}
             >
               {isActive && (
                 <motion.div
                   layoutId="desktopSidebarActiveIndicator"
                   transition={tabSpringTransition}
-                  className="absolute inset-0 rounded-xl bg-linear-to-r from-emerald-500/30 to-emerald-500/10 border-l-[3px] border-emerald-400 pointer-events-none shadow-xs -z-10"
-                />
+                  className="absolute inset-0 rounded-xl bg-linear-to-r from-emerald-400/20 via-emerald-400/[0.08] to-transparent ring-1 ring-inset ring-emerald-300/15 pointer-events-none -z-10"
+                >
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-emerald-300 shadow-[0_0_12px_rgba(110,231,183,0.6)]" />
+                </motion.div>
               )}
               <Icon
-                className="w-[18px] h-[18px] shrink-0 transition-transform group-hover:scale-110"
-                style={{
-                  color: isActive
-                    ? "#34D399"
+                className={`w-[18px] h-[18px] shrink-0 transition-transform group-hover:scale-110 ${
+                  isActive
+                    ? "text-emerald-300"
                     : item.highlight
-                    ? "#FCA5A5"
-                    : "#6EE7B7",
-                }}
+                    ? "text-amber-300"
+                    : "text-emerald-400/80 group-hover:text-emerald-300"
+                }`}
               />
               {!collapsed && (
                 <div className="flex-1 min-w-0 flex items-center justify-between gap-1.5">
                   <span className="truncate">{item.label}</span>
                   {item.badge && (
                     <span
-                      className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-md font-mono-data"
-                      style={{
-                        background: item.highlight
-                          ? "rgba(239,68,68,0.25)"
-                          : "rgba(16,185,129,0.25)",
-                        color: item.highlight ? "#FCA5A5" : "#A7F3D0",
-                        border: item.highlight
-                          ? "1px solid rgba(239,68,68,0.4)"
-                          : "1px solid rgba(16,185,129,0.3)",
-                      }}
+                      className={`shrink-0 text-[9.5px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ring-1 ring-inset ${
+                        item.highlight
+                          ? "bg-amber-400/10 text-amber-200 ring-amber-300/25"
+                          : "bg-emerald-400/10 text-emerald-200 ring-emerald-300/25"
+                      }`}
                     >
                       {item.badge}
                     </span>
@@ -491,29 +482,16 @@ function SidebarContent({ type }: SidebarProps) {
       </nav>
 
       {/* Bottom Section - Notifications + Settings */}
-      <div
-        className="px-3 py-2 border-t space-y-0.5"
-        style={{ borderColor: "rgba(16, 185, 129, 0.15)" }}
-      >
+      <div className="px-3 py-2 border-t border-white/[0.06] space-y-0.5">
         <button
           onClick={() => setIsNotificationOpen(true)}
-          className={`w-full flex items-center gap-3 rounded-xl text-[13px] font-medium transition-all cursor-pointer ${
+          className={`w-full flex items-center gap-3 rounded-xl text-[13px] font-medium transition-colors cursor-pointer text-emerald-50/75 hover:text-white hover:bg-white/[0.045] ${
             collapsed ? "px-0 py-2.5 justify-center" : "px-3 py-2.5"
           }`}
-          style={{ color: "#A7F3D0" }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.background =
-              "rgba(16, 185, 129, 0.18)";
-            (e.currentTarget as HTMLElement).style.color = "#FFFFFF";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.background = "transparent";
-            (e.currentTarget as HTMLElement).style.color = "#A7F3D0";
-          }}
           title={collapsed ? "Notifications" : undefined}
         >
           <div className="relative">
-            <Bell className="w-[18px] h-[18px] text-emerald-400" />
+            <Bell className="w-[18px] h-[18px] text-emerald-400/80" />
             {unreadCount > 0 && collapsed && (
               <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-rose-500" />
             )}
@@ -529,7 +507,7 @@ function SidebarContent({ type }: SidebarProps) {
                     initial="initial"
                     animate="animate"
                     exit="exit"
-                    className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold leading-none bg-rose-500 text-white shadow-xs"
+                    className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full text-[10px] font-bold leading-none bg-rose-500 text-white shadow-[0_0_0_3px_rgba(244,63,94,0.15)] tabular-nums"
                   >
                     {unreadCount}
                   </motion.span>
@@ -540,39 +518,25 @@ function SidebarContent({ type }: SidebarProps) {
         </button>
         <button
           onClick={() => setIsSettingsOpen(true)}
-          className={`w-full flex items-center gap-3 rounded-xl text-[13px] font-medium transition-all cursor-pointer ${
+          className={`w-full flex items-center gap-3 rounded-xl text-[13px] font-medium transition-colors cursor-pointer text-emerald-50/75 hover:text-white hover:bg-white/[0.045] ${
             collapsed ? "px-0 py-2.5 justify-center" : "px-3 py-2.5"
           }`}
-          style={{ color: "#A7F3D0" }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.background =
-              "rgba(16, 185, 129, 0.18)";
-            (e.currentTarget as HTMLElement).style.color = "#FFFFFF";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.background = "transparent";
-            (e.currentTarget as HTMLElement).style.color = "#A7F3D0";
-          }}
           title={collapsed ? t("common.settings") : undefined}
         >
-          <Settings className="w-[18px] h-[18px] text-emerald-400" />
+          <Settings className="w-[18px] h-[18px] text-emerald-400/80" />
           {!collapsed && <span>{t("common.settings")}</span>}
         </button>
       </div>
 
       {/* User Profile + Collapse Toggle */}
       <div
-        className="px-3 py-3 border-t"
-        style={{
-          borderColor: "rgba(16, 185, 129, 0.18)",
-          background: "rgba(0, 0, 0, 0.25)",
-        }}
+        className="px-3 py-3 border-t border-white/[0.06] bg-black/20"
       >
         {!collapsed ? (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5 min-w-0">
               <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-[12px] font-bold text-white shadow-md shadow-emerald-950/50 shrink-0"
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-[12px] font-bold text-white shadow-md shadow-emerald-950/50 ring-1 ring-inset ring-white/20 shrink-0"
                 style={{
                   background: "linear-gradient(135deg, #10B981 0%, #059669 100%)",
                 }}
@@ -611,7 +575,7 @@ function SidebarContent({ type }: SidebarProps) {
         ) : (
           <div className="flex flex-col items-center gap-2">
             <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center text-[12px] font-bold text-white shadow-md shadow-emerald-950/50"
+              className="w-9 h-9 rounded-xl flex items-center justify-center text-[12px] font-bold text-white shadow-md shadow-emerald-950/50 ring-1 ring-inset ring-white/20"
               style={{
                 background: "linear-gradient(135deg, #10B981 0%, #059669 100%)",
               }}

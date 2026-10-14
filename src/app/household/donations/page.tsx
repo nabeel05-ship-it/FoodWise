@@ -50,8 +50,7 @@ export default function HouseholdDonationsPage() {
 
         <Link
           href="/household/donate"
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white font-bold text-xs transition-all shadow-md active:scale-95 self-start sm:self-auto cursor-pointer hover:brightness-110"
-          style={{ background: "#164A31" }}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white font-bold text-xs transition-all shadow-md active:scale-95 self-start sm:self-auto cursor-pointer hover:brightness-110 btn-brand"
         >
           <PlusCircle className="w-4 h-4 text-emerald-400" />
           <span>{t("New Food Donation")}</span>
@@ -125,8 +124,7 @@ export default function HouseholdDonationsPage() {
           <div className="pt-2">
             <Link
               href="/household/donate"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-xs font-bold cursor-pointer hover:brightness-110"
-              style={{ background: "#164A31" }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-xs font-bold cursor-pointer hover:brightness-110 btn-brand"
             >
               <PlusCircle className="w-3.5 h-3.5 text-emerald-400" />
               <span>{t("nav.donate_food")}</span>

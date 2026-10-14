@@ -385,7 +385,7 @@ export default function FoodRedistributionWorkflow({
               <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 block">
                 {current.metricLabel}
               </span>
-              <div className="text-xl sm:text-2xl font-black font-mono text-white mt-0.5 tracking-tight">
+              <div className="text-xl sm:text-2xl font-black font-display tabular-nums text-white mt-0.5 tracking-tight">
                 {current.metric}
               </div>
             </div>

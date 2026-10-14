@@ -1,5 +1,21 @@
 @import "tailwindcss";
 
+/* ─── Design tokens (override Tailwind defaults app-wide) ─── */
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-jakarta), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Softer, layered, slate-tinted elevation scale */
+  --shadow-2xs: 0 1px 1px rgb(16 24 40 / 0.03);
+  --shadow-xs: 0 1px 2px rgb(16 24 40 / 0.05), 0 1px 1px rgb(16 24 40 / 0.02);
+  --shadow-sm: 0 1px 3px rgb(16 24 40 / 0.07), 0 1px 2px -1px rgb(16 24 40 / 0.05);
+  --shadow-md: 0 6px 16px -4px rgb(16 24 40 / 0.08), 0 2px 4px -2px rgb(16 24 40 / 0.05);
+  --shadow-lg: 0 12px 28px -6px rgb(16 24 40 / 0.1), 0 4px 8px -4px rgb(16 24 40 / 0.05);
+  --shadow-xl: 0 20px 40px -8px rgb(16 24 40 / 0.12), 0 8px 16px -8px rgb(16 24 40 / 0.06);
+  --shadow-2xl: 0 32px 64px -16px rgb(16 24 40 / 0.22);
+}
+
 @layer base {
   :root {
     /* ── Sidebar (emerald green) ── */
@@ -11,11 +27,11 @@
     --sidebar-border: rgba(16, 185, 129, 0.2);
 
     /* ── Content area (light) ── */
-    --bg-page: #F4F6FA;
+    --bg-page: #F5F7F6;
     --bg-card: #FFFFFF;
-    --bg-card-hover: #FAFBFC;
-    --border-card: #E8ECF3;
-    --border-card-hover: #D0D6E2;
+    --bg-card-hover: #FAFBFB;
+    --border-card: #E6EAEE;
+    --border-card-hover: #D3DAE1;
 
     /* ── Accents ── */
     --primary-accent: #10B981;
@@ -38,10 +54,13 @@
     --text-heading: #1E293B;
 
     /* ── Shadows ── */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-    --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
-    --shadow-lg: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+    --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04), 0 1px 3px rgb(16 24 40 / 0.03);
+    --shadow-card-hover: 0 12px 28px -8px rgb(16 24 40 / 0.12), 0 4px 8px -4px rgb(16 24 40 / 0.05);
+
+    /* ── Brand ── */
+    --brand-900: #0F3B27;
+    --brand-800: #164A31;
+    --brand-700: #1B5A3B;
 
     /* ── Chart tooltip (dark) ── */
     --tooltip-bg: #1B2138;
@@ -63,28 +82,64 @@
     outline: none;
   }
 
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
   body {
     background-color: var(--bg-page);
     color: var(--text-primary);
-    font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+    font-family: var(--font-sans);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     line-height: 1.6;
     overflow-x: hidden;
   }
 
+  /* Display typeface for page & section headings */
+  h1, h2 {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  h1 {
+    letter-spacing: -0.025em;
+  }
+
+  ::selection {
+    background: rgb(16 185 129 / 0.22);
+    color: #064E3B;
+  }
+
+  /* Consistent native control accents & smooth field transitions */
+  input, select, textarea {
+    accent-color: #059669;
+    transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: #A3ACB9;
+  }
+
   /* Custom scrollbar */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: #D0D6E2;
+    background: #CDD5DD;
     border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #B0B8C9;
+    background: #AEB8C4;
+    background-clip: padding-box;
   }
 
   /* Sidebar scrollbar (dark variant) */
@@ -105,7 +160,7 @@
   border: 1px solid var(--border-card);
   border-radius: 16px;
   box-shadow: var(--shadow-card);
-  transition: all 0.2s ease;
+  transition: box-shadow 0.25s var(--ease-apple), border-color 0.25s var(--ease-apple), transform 0.25s var(--ease-apple);
 }
 
 .card:hover {
@@ -117,12 +172,14 @@
   background: var(--bg-card);
   border: 1px solid var(--border-card);
   border-radius: 16px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card);
 }
 
 /* ─── Stat Card accent strip ─── */
 .stat-card {
-  background: var(--bg-card);
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0) 0%, rgb(248 250 249 / 0.7) 100%),
+    var(--bg-card);
   border: 1px solid var(--border-card);
   border-radius: 16px;
   box-shadow: var(--shadow-card);
@@ -135,21 +192,24 @@
   content: '';
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  border-radius: 16px 16px 0 0;
-  opacity: 0;
-  transition: opacity 0.25s ease;
+  left: 16px;
+  right: 16px;
+  height: 2px;
+  border-radius: 0 0 2px 2px;
+  opacity: 0.55;
+  transition: opacity 0.25s ease, left 0.25s ease, right 0.25s ease;
 }
 
 .stat-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-card-hover);
+  border-color: var(--border-card-hover);
 }
 
 .stat-card:hover::before {
   opacity: 1;
+  left: 0;
+  right: 0;
 }
 
 .stat-card-indigo::before { background: var(--primary-accent); }
@@ -157,13 +217,14 @@
 .stat-card-amber::before { background: var(--warning); }
 .stat-card-green::before { background: var(--success); }
 .stat-card-red::before { background: var(--danger); }
+.stat-card-blue::before { background: var(--info); }
 
 /* ─── Badge / Pill styles ─── */
 .badge {
   font-size: 11px;
   font-weight: 600;
   padding: 2px 8px;
-  border-radius: 6px;
+  border-radius: 9999px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -171,27 +232,32 @@
 
 .badge-success {
   background: var(--success-light);
-  color: #059669;
+  color: #047857;
+  box-shadow: inset 0 0 0 1px rgb(16 185 129 / 0.22);
 }
 
 .badge-danger {
   background: var(--danger-light);
-  color: #DC2626;
+  color: #B91C1C;
+  box-shadow: inset 0 0 0 1px rgb(239 68 68 / 0.22);
 }
 
 .badge-warning {
   background: var(--warning-light);
-  color: #D97706;
+  color: #B45309;
+  box-shadow: inset 0 0 0 1px rgb(245 158 11 / 0.25);
 }
 
 .badge-info {
   background: var(--info-light);
-  color: #2563EB;
+  color: #1D4ED8;
+  box-shadow: inset 0 0 0 1px rgb(59 130 246 / 0.22);
 }
 
 .badge-indigo {
   background: var(--primary-accent-light);
-  color: var(--primary-accent);
+  color: #047857;
+  box-shadow: inset 0 0 0 1px rgb(16 185 129 / 0.22);
 }
 
 /* ─── Trend Indicator ─── */
@@ -411,10 +477,11 @@
 
 /* ─── Section titles ─── */
 .section-title {
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 700;
   color: var(--text-heading);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 
 .section-subtitle {
@@ -427,27 +494,36 @@
 .data-table {
   width: 100%;
   font-size: 13px;
+  font-variant-numeric: tabular-nums;
 }
 
 .data-table thead th {
   padding: 10px 12px;
   text-align: left;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
+  background: #F8FAF9;
   border-bottom: 1px solid var(--border-card);
 }
 
+.data-table thead th:first-child { border-top-left-radius: 10px; }
+.data-table thead th:last-child { border-top-right-radius: 10px; }
+
 .data-table tbody td {
   padding: 12px;
-  border-bottom: 1px solid #F3F4F6;
+  border-bottom: 1px solid #F0F2F4;
   color: var(--text-primary);
 }
 
+.data-table tbody tr {
+  transition: background-color 150ms ease;
+}
+
 .data-table tbody tr:hover {
-  background: #F9FAFB;
+  background: #F7FAF8;
 }
 
 .data-table tbody tr:last-child td {
@@ -460,20 +536,21 @@
   border-radius: 10px;
   font-size: 13px;
   font-weight: 600;
-  background: var(--primary-accent);
+  background: linear-gradient(180deg, #12C48A 0%, #0EA371 100%);
   color: white;
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s var(--ease-apple);
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), 0 1px 2px rgb(6 78 59 / 0.2);
 }
 
 .btn-primary:hover {
-  background: #059669;
+  filter: brightness(1.05);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), 0 6px 16px -4px rgb(16 185 129 / 0.45);
 }
 
 .btn-secondary {
@@ -485,10 +562,11 @@
   color: var(--text-primary);
   border: 1px solid var(--border-card);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s var(--ease-apple);
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  box-shadow: 0 1px 2px rgb(16 24 40 / 0.05);
 }
 
 .btn-secondary:hover {
@@ -496,10 +574,36 @@
   border-color: var(--border-card-hover);
 }
 
+/* Deep forest brand button (primary CTAs across portals) */
+.btn-brand {
+  background: linear-gradient(180deg, var(--brand-700) 0%, var(--brand-900) 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.14),
+    0 1px 2px rgb(6 40 24 / 0.25),
+    0 6px 16px -6px rgb(6 40 24 / 0.5);
+  transition: filter 0.2s var(--ease-apple), box-shadow 0.2s var(--ease-apple), transform 0.2s var(--ease-apple);
+}
+
+.btn-brand:hover {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.18),
+    0 1px 2px rgb(6 40 24 / 0.25),
+    0 10px 24px -8px rgb(6 40 24 / 0.6);
+}
+
+/* Main app canvas behind portal pages */
+.app-canvas {
+  background:
+    radial-gradient(1200px 420px at 75% -120px, rgb(16 185 129 / 0.07), transparent 70%),
+    radial-gradient(800px 360px at 0% 0%, rgb(14 116 84 / 0.04), transparent 70%),
+    var(--bg-page);
+}
+
 /* ─── Recharts Overrides ─── */
 .recharts-default-tooltip {
   border-radius: 12px !important;
-  box-shadow: var(--shadow-lg) !important;
+  border-color: var(--border-card) !important;
+  box-shadow: 0 12px 28px -6px rgb(16 24 40 / 0.14), 0 4px 8px -4px rgb(16 24 40 / 0.06) !important;
 }
 
 /* ─── Apple-inspired Motion Tokens & Micro-interactions ─── */
@@ -604,3 +708,8 @@ body.dark-theme-page::-webkit-scrollbar-thumb:hover,
 }
 
 
+
+/* ─── Display numerals (KPI values) ─── */
+.font-display.tabular-nums {
+  letter-spacing: -0.02em;
+}

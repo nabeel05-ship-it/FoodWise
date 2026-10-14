@@ -199,7 +199,7 @@ export default function NgoReportsPage() {
               <HeartHandshake className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-[28px] font-extrabold font-mono-data text-[#111827] mb-1">
+          <div className="text-[28px] font-extrabold font-display tabular-nums text-[#111827] mb-1">
             28,450
           </div>
           <div className="flex items-center gap-1.5 text-xs">
@@ -221,7 +221,7 @@ export default function NgoReportsPage() {
               <Users className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-[28px] font-extrabold font-mono-data text-[#111827] mb-1">
+          <div className="text-[28px] font-extrabold font-display tabular-nums text-[#111827] mb-1">
             9,600 <span className="text-base font-normal text-gray-500">{t("ngo.report.people")}</span>
           </div>
           <div className="flex items-center gap-1.5 text-xs">
@@ -241,7 +241,7 @@ export default function NgoReportsPage() {
               <Clock className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-[28px] font-extrabold font-mono-data text-[#111827] mb-1">
+          <div className="text-[28px] font-extrabold font-display tabular-nums text-[#111827] mb-1">
             33.8 <span className="text-base font-normal text-gray-500">{t("ngo.report.mins")}</span>
           </div>
           <div className="flex items-center gap-1.5 text-xs">
@@ -262,7 +262,7 @@ export default function NgoReportsPage() {
               <Award className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-[28px] font-extrabold font-mono-data text-[#111827] mb-1">
+          <div className="text-[28px] font-extrabold font-display tabular-nums text-[#111827] mb-1">
             ₹14,22,500
           </div>
           <div className="flex items-center gap-1.5 text-xs">

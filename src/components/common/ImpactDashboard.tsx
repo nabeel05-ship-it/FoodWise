@@ -171,8 +171,7 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
                 donationDate: "October 2026",
               });
             }}
-            className="px-4 py-2.5 rounded-xl text-white text-xs font-bold shadow-md shadow-emerald-950/20 transition-all flex items-center gap-2 cursor-pointer hover:brightness-110 active:scale-95"
-            style={{ background: "#164A31" }}
+            className="px-4 py-2.5 rounded-xl text-white text-xs font-bold shadow-md shadow-emerald-950/20 transition-all flex items-center gap-2 cursor-pointer hover:brightness-110 active:scale-95 btn-brand"
           >
             <Download className="w-3.5 h-3.5 text-emerald-400" />
             <span>{t("impact.download_certificate")}</span>
@@ -192,7 +191,7 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 {isNgo ? t("impact.food_received") : t("impact.food_donated")}
               </span>
-              <div className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-800 mt-1">
+              <div className="text-2xl sm:text-3xl font-extrabold font-display tabular-nums text-emerald-800 mt-1">
                 <CountUp value={roleFoodKg} /> <span className="text-xs font-semibold text-gray-500">kg</span>
               </div>
               <span className="text-[11px] text-gray-500 mt-1 block">
@@ -213,7 +212,7 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 {isNgo ? t("impact.completed_pickups") : t("impact.completed_donations")}
               </span>
-              <div className="text-2xl sm:text-3xl font-extrabold font-mono text-gray-900 mt-1">
+              <div className="text-2xl sm:text-3xl font-extrabold font-display tabular-nums text-gray-900 mt-1">
                 <CountUp value={roleCompletedCount} />
               </div>
               <span className="text-[11px] text-gray-500 mt-1 block">
@@ -228,7 +227,7 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 {isHousehold ? t("impact.people_helped") : isNgo ? t("impact.people_served") : t("impact.people_served")}
               </span>
-              <div className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-900 mt-1">
+              <div className="text-2xl sm:text-3xl font-extrabold font-display tabular-nums text-emerald-900 mt-1">
                 ~<CountUp value={rolePeopleServed} />
               </div>
               <span className="text-[11px] text-emerald-700 mt-1 block">
@@ -243,7 +242,7 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 {isNgo ? t("impact.active_donors") : t("impact.food_waste_prevented")}
               </span>
-              <div className="text-2xl sm:text-3xl font-extrabold font-mono text-amber-700 mt-1">
+              <div className="text-2xl sm:text-3xl font-extrabold font-display tabular-nums text-amber-700 mt-1">
                 {isNgo ? t("impact.three_donors") : <><CountUp value={roleFoodKg} /> kg</>}
               </div>
               <span className="text-[11px] text-gray-500 mt-1 block">
@@ -345,7 +344,7 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 Total Food Donated
               </span>
-              <div className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-800 mt-1">
+              <div className="text-2xl sm:text-3xl font-extrabold font-display tabular-nums text-emerald-800 mt-1">
                 <CountUp value={totalCommunityKg} /> <span className="text-xs font-semibold text-gray-500">kg</span>
               </div>
               <span className="text-[11px] text-gray-500 mt-1 block">{t("impact.across_donors")}</span>
@@ -358,7 +357,7 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 People Fed / Servings
               </span>
-              <div className="text-2xl sm:text-3xl font-extrabold font-mono text-rose-700 mt-1">
+              <div className="text-2xl sm:text-3xl font-extrabold font-display tabular-nums text-rose-700 mt-1">
                 ~<CountUp value={totalCommunityServings} />
               </div>
               <span className="text-[11px] text-gray-500 mt-1 block">{t("impact.meals_distributed")}</span>
@@ -371,7 +370,7 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 {t("impact.food_waste_prevented")}
               </span>
-              <div className="text-2xl sm:text-3xl font-extrabold font-mono text-amber-700 mt-1">
+              <div className="text-2xl sm:text-3xl font-extrabold font-display tabular-nums text-amber-700 mt-1">
                 <CountUp value={totalCommunityKg} /> <span className="text-xs font-semibold text-gray-500">kg</span>
               </div>
               <span className="text-[11px] text-gray-500 mt-1 block">{t("impact.diverted_landfills")}</span>
@@ -384,7 +383,7 @@ export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAUR
               <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
                 {t("impact.emissions_averted")}
               </span>
-              <div className="text-2xl sm:text-3xl font-extrabold font-mono text-blue-700 mt-1">
+              <div className="text-2xl sm:text-3xl font-extrabold font-display tabular-nums text-blue-700 mt-1">
                 <CountUp value={Math.round(totalCommunityKg * 2.5)} /> <span className="text-xs font-semibold text-gray-500">kg CO₂e</span>
               </div>
               <span className="text-[11px] text-gray-500 mt-1 block">{t("impact.co2_saved")}</span>

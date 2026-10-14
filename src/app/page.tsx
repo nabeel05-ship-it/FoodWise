@@ -216,12 +216,24 @@ export default function LoginPage() {
       <div
         className="foodwise-login-page min-h-screen flex flex-col justify-between w-full relative bg-[#091D13] overflow-x-hidden"
         style={{
-          background: "radial-gradient(ellipse at center, #18422A 0%, #0F2A1C 60%, #091D13 100%)",
+          background:
+            "radial-gradient(60% 50% at 50% 0%, rgba(52, 211, 153, 0.14) 0%, transparent 70%), radial-gradient(ellipse at center, #18422A 0%, #0F2A1C 60%, #091D13 100%)",
         }}
       >
       {/* Decorative organic glows */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Fine dot texture, faded toward the edges */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none opacity-60"
+        style={{
+          backgroundImage: "radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+          maskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+          WebkitMaskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+        }}
+      />
 
       {/* Main Content Presentation */}
       <main className="w-full flex-1 flex flex-col items-center justify-center px-3 sm:px-6 pt-3 sm:pt-4 lg:pt-6 pb-4 sm:pb-6 relative z-10">
@@ -232,7 +244,7 @@ export default function LoginPage() {
           initial={prefersReduced ? false : { opacity: 0, scale: 0.98, y: 16 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={MOTION_SPRINGS.natural}
-          className="w-full max-w-[1040px] bg-[#FBF9F4] rounded-[28px] sm:rounded-[32px] shadow-2xl overflow-hidden border border-emerald-800/30 relative z-10 grid grid-cols-1 lg:grid-cols-12"
+          className="w-full max-w-[1040px] bg-[#FBF9F4] rounded-[28px] sm:rounded-[32px] shadow-[0_40px_100px_-30px_rgba(0,0,0,0.7),0_12px_32px_-12px_rgba(0,0,0,0.35)] overflow-hidden ring-1 ring-white/10 relative z-10 grid grid-cols-1 lg:grid-cols-12"
         >
           {/* LEFT COLUMN: Clean Authentication (7 cols) */}
           <div className="lg:col-span-7 p-4 sm:p-5 lg:px-7 lg:py-5 hero-card-left flex flex-col justify-between bg-[#FBF9F4]">
@@ -246,7 +258,7 @@ export default function LoginPage() {
                   className="w-8.5 h-8.5 sm:w-9.5 sm:h-9.5 object-contain shrink-0"
                 />
                 <div>
-                  <span className="font-extrabold text-lg sm:text-xl text-[#143826] tracking-tight block leading-tight">
+                  <span className="font-display font-extrabold text-lg sm:text-xl text-[#143826] tracking-tight block leading-tight">
                     FoodWise
                   </span>
                   <span className="text-[10px] sm:text-[11px] font-semibold text-emerald-800 tracking-wide block">
@@ -262,7 +274,7 @@ export default function LoginPage() {
                 initial={prefersReduced ? false : { opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: MOTION_DURATIONS.fast }}
-                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] sm:text-[11px] font-bold mb-1"
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-900 ring-1 ring-inset ring-emerald-600/20 text-[10px] sm:text-[11px] font-bold mb-1"
               >
                 <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
                 Zero Waste Initiative
@@ -286,7 +298,7 @@ export default function LoginPage() {
             </div>
 
             {/* PRIMARY AUTH TABS: DONOR LOGIN vs NGO / RELIEF LOGIN */}
-            <div className="p-1 rounded-2xl bg-gray-200/80 border border-gray-300/70 grid grid-cols-2 gap-1 mb-2.5 sm:mb-3 lg:mb-3.5 relative">
+            <div className="p-1 rounded-2xl bg-[#ECE8DF] border border-black/[0.05] shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] grid grid-cols-2 gap-1 mb-2.5 sm:mb-3 lg:mb-3.5 relative">
               <button
                 type="button"
                 onClick={() => handleAuthTypeChange("DONOR")}
@@ -300,7 +312,7 @@ export default function LoginPage() {
                   <motion.div
                     layoutId="authTypeActiveCapsule"
                     transition={tabSpringTransition}
-                    className="absolute inset-0 bg-white rounded-xl shadow-xs -z-10"
+                    className="absolute inset-0 bg-white rounded-xl shadow-sm ring-1 ring-black/[0.04] -z-10"
                   />
                 )}
                 <Utensils className="w-3.5 h-3.5 text-emerald-700" />
@@ -319,7 +331,7 @@ export default function LoginPage() {
                   <motion.div
                     layoutId="authTypeActiveCapsule"
                     transition={tabSpringTransition}
-                    className="absolute inset-0 bg-white rounded-xl shadow-xs -z-10"
+                    className="absolute inset-0 bg-white rounded-xl shadow-sm ring-1 ring-black/[0.04] -z-10"
                   />
                 )}
                 <HeartHandshake className="w-3.5 h-3.5 text-emerald-700" />
@@ -355,8 +367,8 @@ export default function LoginPage() {
                           onClick={() => handleDonorCategorySelect(item.id)}
                           className={`p-2 sm:p-2.5 rounded-xl border text-left transition-all cursor-pointer active:scale-98 ${
                             isSelected
-                              ? "border-emerald-700 bg-emerald-50/80 text-emerald-950 shadow-xs ring-1 ring-emerald-600/30"
-                              : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                              ? "border-emerald-700 bg-emerald-50/80 text-emerald-950 shadow-sm ring-1 ring-emerald-600/30"
+                              : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:shadow-xs"
                           }`}
                         >
                           <Icon className={`w-3.5 h-3.5 mb-1 ${isSelected ? "text-emerald-700" : "text-gray-400"}`} />
@@ -397,7 +409,7 @@ export default function LoginPage() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="banquets@oberoibangalore.com"
-                        className="w-full pl-9 pr-3.5 py-2 sm:py-2.5 rounded-xl border border-gray-200 bg-white text-xs sm:text-sm font-medium text-gray-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 shadow-2xs font-mono transition-colors"
+                        className="w-full pl-9 pr-3.5 py-2 sm:py-2.5 rounded-xl border border-gray-200 bg-white text-xs sm:text-sm font-medium text-gray-900 outline-none hover:border-gray-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 shadow-2xs transition-colors"
                       />
                     </div>
                   </div>
@@ -415,7 +427,7 @@ export default function LoginPage() {
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full pl-9 pr-9 py-2 sm:py-2.5 rounded-xl border border-gray-200 bg-white text-xs sm:text-sm font-medium text-gray-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 shadow-2xs transition-colors"
+                        className="w-full pl-9 pr-9 py-2 sm:py-2.5 rounded-xl border border-gray-200 bg-white text-xs sm:text-sm font-medium text-gray-900 outline-none hover:border-gray-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 shadow-2xs transition-colors"
                       />
                       <button
                         type="button"
@@ -433,8 +445,7 @@ export default function LoginPage() {
                     disabled={isLoading}
                     whileHover={prefersReduced ? undefined : { scale: 1.015 }}
                     whileTap={prefersReduced ? undefined : { scale: 0.985 }}
-                    className="w-full py-2.5 sm:py-2.5 mt-1 rounded-xl font-bold text-xs sm:text-sm text-white shadow-md shadow-emerald-950/20 flex items-center justify-center gap-2 transition-all cursor-pointer hover:brightness-110"
-                    style={{ background: "#164A31" }}
+                    className="w-full py-2.5 sm:py-2.5 mt-1 rounded-xl font-bold text-xs sm:text-sm text-white flex items-center justify-center gap-2 transition-all cursor-pointer hover:brightness-110 btn-brand"
                   >
                     {isLoading ? (
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -506,7 +517,7 @@ export default function LoginPage() {
                                 ? "e.g. The Oberoi, Bengaluru"
                                 : "e.g. Sharma Family Residence"
                             }
-                            className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600 transition-colors"
+                            className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 outline-none shadow-2xs hover:border-gray-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 transition-colors"
                           />
                         </div>
 
@@ -520,7 +531,7 @@ export default function LoginPage() {
                             value={regContact}
                             onChange={(e) => setRegContact(e.target.value)}
                             placeholder="e.g. Rajeev Mehra / Dr. Ananya Sharma"
-                            className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600 transition-colors"
+                            className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 outline-none shadow-2xs hover:border-gray-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 transition-colors"
                           />
                         </div>
 
@@ -532,7 +543,7 @@ export default function LoginPage() {
                             value={regPhone}
                             onChange={(e) => setRegPhone(e.target.value)}
                             placeholder="+91 98451 23456"
-                            className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600 transition-colors"
+                            className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 outline-none shadow-2xs hover:border-gray-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 transition-colors"
                           />
                         </div>
 
@@ -544,7 +555,7 @@ export default function LoginPage() {
                             value={regAddress}
                             onChange={(e) => setRegAddress(e.target.value)}
                             placeholder="e.g. 4005, 100 Feet Road, Indiranagar, Bengaluru"
-                            className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600 transition-colors"
+                            className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 outline-none shadow-2xs hover:border-gray-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 transition-colors"
                           />
                         </div>
 
@@ -554,7 +565,7 @@ export default function LoginPage() {
                             type="text"
                             value={regCity}
                             onChange={(e) => setRegCity(e.target.value)}
-                            className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600 transition-colors"
+                            className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 outline-none shadow-2xs hover:border-gray-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 transition-colors"
                           />
                         </div>
 
@@ -566,7 +577,7 @@ export default function LoginPage() {
                               value={regFssai}
                               onChange={(e) => setRegFssai(e.target.value)}
                               placeholder="e.g. FSSAI LIC: 11219004000312"
-                              className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600 transition-colors"
+                              className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 outline-none shadow-2xs hover:border-gray-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 transition-colors"
                             />
                           </div>
                         )}
@@ -583,8 +594,7 @@ export default function LoginPage() {
                         <button
                           type="submit"
                           disabled={isLoading}
-                          className="px-6 py-2.5 rounded-xl font-bold text-white shadow-md hover:brightness-110 active:scale-95 cursor-pointer"
-                          style={{ background: "#164A31" }}
+                          className="px-6 py-2.5 rounded-xl font-bold text-white hover:brightness-110 active:scale-95 cursor-pointer btn-brand"
                         >
                           {isLoading ? "Creating Account..." : "Register & Open Portal"}
                         </button>
@@ -604,7 +614,7 @@ export default function LoginPage() {
                             value={ngoName}
                             onChange={(e) => setNgoName(e.target.value)}
                             placeholder="e.g. Bangalore Food Bank (Bengaluru Hub)"
-                            className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600 transition-colors"
+                            className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 outline-none shadow-2xs hover:border-gray-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 transition-colors"
                           />
                         </div>
 
@@ -618,7 +628,7 @@ export default function LoginPage() {
                             value={ngoLead}
                             onChange={(e) => setNgoLead(e.target.value)}
                             placeholder="e.g. Pooja Verma"
-                            className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600 transition-colors"
+                            className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 outline-none shadow-2xs hover:border-gray-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 transition-colors"
                           />
                         </div>
 
@@ -630,7 +640,7 @@ export default function LoginPage() {
                             value={ngoPhone}
                             onChange={(e) => setNgoPhone(e.target.value)}
                             placeholder="+91 80 2315 4029"
-                            className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600 transition-colors"
+                            className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 outline-none shadow-2xs hover:border-gray-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 transition-colors"
                           />
                         </div>
 
@@ -642,7 +652,7 @@ export default function LoginPage() {
                             value={ngoAddress}
                             onChange={(e) => setNgoAddress(e.target.value)}
                             placeholder="e.g. 5th Main Road, Industrial Suburb, Rajajinagar, Bengaluru"
-                            className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600 transition-colors"
+                            className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 outline-none shadow-2xs hover:border-gray-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 transition-colors"
                           />
                         </div>
 
@@ -653,7 +663,7 @@ export default function LoginPage() {
                             value={ngoCoverage}
                             onChange={(e) => setNgoCoverage(e.target.value)}
                             placeholder="e.g. Rajajinagar, Malleshwaram & Central Bengaluru"
-                            className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600 transition-colors"
+                            className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 outline-none shadow-2xs hover:border-gray-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 transition-colors"
                           />
                         </div>
 
@@ -664,7 +674,7 @@ export default function LoginPage() {
                             value={ngoRegNo}
                             onChange={(e) => setNgoRegNo(e.target.value)}
                             placeholder="e.g. NGO-DARPAN-KA-2019-02114"
-                            className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none focus:border-emerald-600 transition-colors"
+                            className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 outline-none shadow-2xs hover:border-gray-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 transition-colors"
                           />
                         </div>
                       </div>
@@ -680,8 +690,7 @@ export default function LoginPage() {
                         <button
                           type="submit"
                           disabled={isLoading}
-                          className="px-6 py-2.5 rounded-xl font-bold text-white shadow-md hover:brightness-110 active:scale-95 cursor-pointer"
-                          style={{ background: "#164A31" }}
+                          className="px-6 py-2.5 rounded-xl font-bold text-white hover:brightness-110 active:scale-95 cursor-pointer btn-brand"
                         >
                           {isLoading ? "Registering..." : "Register & Open NGO Portal"}
                         </button>
@@ -699,7 +708,7 @@ export default function LoginPage() {
           <div className="space-y-2 sm:space-y-2.5 lg:space-y-3 relative z-10">
             {/* Top capability badge */}
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100/90 text-emerald-900 border border-emerald-300/80 text-[10px] sm:text-[11px] font-bold">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-900 ring-1 ring-inset ring-emerald-600/20 text-[10px] sm:text-[11px] font-bold">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
                 {authType === "NGO"
                   ? "NGO Food Relief Network"
@@ -723,10 +732,10 @@ export default function LoginPage() {
             <div className="space-y-1.5 sm:space-y-2 lg:space-y-2 xl:space-y-2.5 pt-0.5">
               <motion.div
                 whileHover={prefersReduced ? undefined : { y: -2 }}
-                className="bg-white/90 border border-emerald-900/10 rounded-xl p-2 sm:p-2.5 lg:p-2.5 xl:p-3 shadow-2xs transition-shadow"
+                className="bg-white border border-black/[0.06] rounded-xl p-2 sm:p-2.5 lg:p-2.5 xl:p-3 shadow-xs hover:shadow-md transition-shadow"
               >
                 <div className="flex items-center gap-2 mb-0.5">
-                  <div className="w-5 h-5 rounded-md bg-emerald-100 flex items-center justify-center shrink-0">
+                  <div className="w-5 h-5 rounded-md bg-emerald-50 ring-1 ring-inset ring-emerald-700/15 flex items-center justify-center shrink-0">
                     <Utensils className="w-3 h-3 text-emerald-800" />
                   </div>
                   <h3 className="text-[10px] sm:text-[11px] font-bold text-gray-900 tracking-tight">EASY FOOD DONATION</h3>
@@ -738,10 +747,10 @@ export default function LoginPage() {
 
               <motion.div
                 whileHover={prefersReduced ? undefined : { y: -2 }}
-                className="bg-white/90 border border-emerald-900/10 rounded-xl p-2 sm:p-2.5 lg:p-2.5 xl:p-3 shadow-2xs transition-shadow"
+                className="bg-white border border-black/[0.06] rounded-xl p-2 sm:p-2.5 lg:p-2.5 xl:p-3 shadow-xs hover:shadow-md transition-shadow"
               >
                 <div className="flex items-center gap-2 mb-0.5">
-                  <div className="w-5 h-5 rounded-md bg-emerald-100 flex items-center justify-center shrink-0">
+                  <div className="w-5 h-5 rounded-md bg-emerald-50 ring-1 ring-inset ring-emerald-700/15 flex items-center justify-center shrink-0">
                     <HeartHandshake className="w-3 h-3 text-emerald-800" />
                   </div>
                   <h3 className="text-[10px] sm:text-[11px] font-bold text-gray-900 tracking-tight">NGO REDISTRIBUTION</h3>
@@ -753,10 +762,10 @@ export default function LoginPage() {
 
               <motion.div
                 whileHover={prefersReduced ? undefined : { y: -2 }}
-                className="bg-white/90 border border-emerald-900/10 rounded-xl p-2 sm:p-2.5 lg:p-2.5 xl:p-3 shadow-2xs transition-shadow"
+                className="bg-white border border-black/[0.06] rounded-xl p-2 sm:p-2.5 lg:p-2.5 xl:p-3 shadow-xs hover:shadow-md transition-shadow"
               >
                 <div className="flex items-center gap-2 mb-0.5">
-                  <div className="w-5 h-5 rounded-md bg-emerald-100 flex items-center justify-center shrink-0">
+                  <div className="w-5 h-5 rounded-md bg-emerald-50 ring-1 ring-inset ring-emerald-700/15 flex items-center justify-center shrink-0">
                     <Truck className="w-3 h-3 text-emerald-800" />
                   </div>
                   <h3 className="text-[10px] sm:text-[11px] font-bold text-gray-900 tracking-tight">TRANSPARENT TRACKING</h3>
@@ -770,7 +779,7 @@ export default function LoginPage() {
             {/* Redistribution Journey Flow with interactive workflow discovery link */}
             <div
               onClick={handleScrollToWorkflow}
-              className="bg-white/85 hover:bg-white border border-emerald-900/10 hover:border-emerald-600/40 rounded-xl p-2 sm:p-2.5 lg:p-2.5 xl:p-3 cursor-pointer transition-all shadow-2xs hover:shadow-xs group"
+              className="bg-white/85 hover:bg-white border border-black/[0.06] hover:border-emerald-600/40 rounded-xl p-2 sm:p-2.5 lg:p-2.5 xl:p-3 cursor-pointer transition-all shadow-xs hover:shadow-md group"
               title="Click to view the full interactive 5-stage redistribution workflow"
             >
               <div className="flex items-center justify-between mb-1.5">

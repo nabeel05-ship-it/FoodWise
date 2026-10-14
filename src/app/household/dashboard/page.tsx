@@ -77,8 +77,7 @@ export default function HouseholdDashboard() {
         <div className="flex items-center gap-3">
           <Link
             href="/household/donate"
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-md shadow-emerald-950/20 transition-all hover:brightness-110 active:scale-95 cursor-pointer"
-            style={{ background: "#164A31" }}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-md shadow-emerald-950/20 transition-all hover:brightness-110 active:scale-95 cursor-pointer btn-brand"
           >
             <PlusCircle className="w-4 h-4 text-emerald-400" />
             <span>{t("household.donate_btn")}</span>
@@ -98,7 +97,7 @@ export default function HouseholdDashboard() {
           <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">
             {t("dash.active_donations")}
           </span>
-          <div className="text-2xl sm:text-3xl font-extrabold text-emerald-700 mt-1 font-mono">
+          <div className="text-2xl sm:text-3xl font-extrabold text-emerald-700 mt-1 font-display tabular-nums">
             <CountUp end={activeDonations.length} duration={800} />
           </div>
           <span className="text-[11px] text-gray-500 font-medium mt-1 block">
@@ -116,7 +115,7 @@ export default function HouseholdDashboard() {
           <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">
             {t("dash.completed_rescues")}
           </span>
-          <div className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-1 font-mono">
+          <div className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-1 font-display tabular-nums">
             <CountUp end={completedDonations.length} duration={800} />
           </div>
           <span className="text-[11px] text-emerald-700 font-medium mt-1 block">
@@ -134,7 +133,7 @@ export default function HouseholdDashboard() {
           <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">
             {t("dash.food_donated")}
           </span>
-          <div className="text-2xl sm:text-3xl font-extrabold text-gray-950 mt-1 font-mono">
+          <div className="text-2xl sm:text-3xl font-extrabold text-gray-950 mt-1 font-display tabular-nums">
             <CountUp end={totalKg} decimals={totalKg % 1 !== 0 ? 1 : 0} duration={900} />{" "}
             <span className="text-xs font-semibold text-gray-500">{t("common.kg")}</span>
           </div>
@@ -153,7 +152,7 @@ export default function HouseholdDashboard() {
           <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 block">
             {t("dash.people_helped")}
           </span>
-          <div className="text-2xl sm:text-3xl font-extrabold text-emerald-900 mt-1 font-mono">
+          <div className="text-2xl sm:text-3xl font-extrabold text-emerald-900 mt-1 font-display tabular-nums">
             <CountUp end={totalServings} duration={900} />
           </div>
           <span className="text-[11px] text-emerald-700 font-medium mt-1 block">
@@ -204,8 +203,7 @@ export default function HouseholdDashboard() {
               <div className="pt-2">
                 <Link
                   href="/household/donate"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-xs font-bold transition-all hover:brightness-110 active:scale-95 cursor-pointer"
-                  style={{ background: "#164A31" }}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-xs font-bold transition-all hover:brightness-110 active:scale-95 cursor-pointer btn-brand"
                 >
                   <PlusCircle className="w-3.5 h-3.5 text-emerald-400" />
                   <span>{t("household.donate_food")}</span>

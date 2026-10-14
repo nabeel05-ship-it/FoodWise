@@ -237,7 +237,7 @@ export default function KitchenReportsPage() {
               <Scale className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-[28px] font-extrabold font-mono-data text-[#111827] mb-1">
+          <div className="text-[28px] font-extrabold font-display tabular-nums text-[#111827] mb-1">
             254 <span className="text-base font-normal text-gray-500">{t("kitchen.report.kg")}</span>
           </div>
           <div className="flex items-center gap-1.5 text-xs">
@@ -259,7 +259,7 @@ export default function KitchenReportsPage() {
               <Sparkles className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-[28px] font-extrabold font-mono-data text-[#111827] mb-1">
+          <div className="text-[28px] font-extrabold font-display tabular-nums text-[#111827] mb-1">
             97.4%
           </div>
           <div className="flex items-center gap-1.5 text-xs">
@@ -281,7 +281,7 @@ export default function KitchenReportsPage() {
               <HeartHandshake className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-[28px] font-extrabold font-mono-data text-[#111827] mb-1">
+          <div className="text-[28px] font-extrabold font-display tabular-nums text-[#111827] mb-1">
             1,480 <span className="text-base font-normal text-gray-500">{t("kitchen.report.meals")}</span>
           </div>
           <div className="flex items-center gap-1.5 text-xs">
@@ -302,7 +302,7 @@ export default function KitchenReportsPage() {
               <DollarSign className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-[28px] font-extrabold font-mono-data text-[#111827] mb-1">
+          <div className="text-[28px] font-extrabold font-display tabular-nums text-[#111827] mb-1">
             ₹84,350
           </div>
           <div className="flex items-center gap-1.5 text-xs">

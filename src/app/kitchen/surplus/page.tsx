@@ -180,8 +180,7 @@ export default function KitchenSurplusPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-md shadow-emerald-900/20 transition-all hover:brightness-110 active:scale-95 cursor-pointer"
-            style={{ background: "#164A31" }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-md shadow-emerald-900/20 transition-all hover:brightness-110 active:scale-95 cursor-pointer btn-brand"
           >
             <PlusCircle className="w-4 h-4 text-emerald-400" />
             <span>+ Post Surplus Food</span>
@@ -552,8 +551,7 @@ export default function KitchenSurplusPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl font-bold text-white shadow-md hover:brightness-110 active:scale-95 cursor-pointer flex items-center gap-1.5"
-                  style={{ background: "#164A31" }}
+                  className="px-6 py-2.5 rounded-xl font-bold text-white shadow-md hover:brightness-110 active:scale-95 cursor-pointer flex items-center gap-1.5 btn-brand"
                 >
                   <Sparkles className="w-4 h-4" />
                   <span>Publish Donation to NGOs</span>

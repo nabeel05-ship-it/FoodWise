@@ -184,8 +184,7 @@ export default function HouseholdDonatePage() {
                 setDescription("");
                 setIsSuccess(false);
               }}
-              className="px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all hover:brightness-110 cursor-pointer shadow-sm"
-              style={{ background: "#164A31" }}
+              className="px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all hover:brightness-110 cursor-pointer shadow-sm btn-brand"
             >
               {t("Donate Another Item")}
             </motion.button>
@@ -503,8 +502,7 @@ export default function HouseholdDonatePage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-3 rounded-xl text-white font-bold text-sm transition-all shadow-md active:scale-98 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer hover:brightness-110"
-          style={{ background: "#164A31" }}
+          className="w-full py-3 rounded-xl text-white font-bold text-sm transition-all shadow-md active:scale-98 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer hover:brightness-110 btn-brand"
         >
           {isSubmitting ? (
             <span>{t("Publishing Listing...")}</span>

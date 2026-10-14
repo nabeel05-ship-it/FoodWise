@@ -670,23 +670,23 @@ export default function NgoComplaintsPage() {
         <div className="space-y-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="card p-4 text-center bg-white border border-gray-200 rounded-2xl border-t-4 border-t-indigo-600">
-              <div className="text-2xl font-extrabold font-mono-data text-gray-900">{pastComplaints.length}</div>
+              <div className="text-2xl font-extrabold font-display tabular-nums text-gray-900">{pastComplaints.length}</div>
               <div className="text-[11px] font-bold text-gray-500 uppercase mt-0.5">{t("ngo.complaints.total_tickets")}</div>
             </div>
             <div className="card p-4 text-center bg-white border border-gray-200 rounded-2xl border-t-4 border-t-blue-500">
-              <div className="text-2xl font-extrabold font-mono-data text-blue-600">
+              <div className="text-2xl font-extrabold font-display tabular-nums text-blue-600">
                 {pastComplaints.filter((c) => c.status === "Under Review by Admin").length}
               </div>
               <div className="text-[11px] font-bold text-gray-500 uppercase mt-0.5">{t("ngo.complaints.under_review")}</div>
             </div>
             <div className="card p-4 text-center bg-white border border-gray-200 rounded-2xl border-t-4 border-t-amber-500">
-              <div className="text-2xl font-extrabold font-mono-data text-amber-600">
+              <div className="text-2xl font-extrabold font-display tabular-nums text-amber-600">
                 {pastComplaints.filter((c) => c.status === "Investigating").length}
               </div>
               <div className="text-[11px] font-bold text-gray-500 uppercase mt-0.5">{t("ngo.complaints.investigating")}</div>
             </div>
             <div className="card p-4 text-center bg-white border border-gray-200 rounded-2xl border-t-4 border-t-emerald-500">
-              <div className="text-2xl font-extrabold font-mono-data text-emerald-600">
+              <div className="text-2xl font-extrabold font-display tabular-nums text-emerald-600">
                 {pastComplaints.filter((c) => c.status.includes("Resolved")).length}
               </div>
               <div className="text-[11px] font-bold text-gray-500 uppercase mt-0.5">{t("ngo.complaints.resolved")}</div>

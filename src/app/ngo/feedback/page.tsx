@@ -293,7 +293,7 @@ export default function NgoFeedbackPage() {
 
                     {/* Points */}
                     <div className="text-right shrink-0">
-                      <div className="text-xl font-extrabold font-mono-data" style={{ color: tier.color }}>{hotel.totalPoints.toLocaleString()}</div>
+                      <div className="text-xl font-extrabold font-display tabular-nums" style={{ color: tier.color }}>{hotel.totalPoints.toLocaleString()}</div>
                       <div className="text-[10px] font-semibold" style={{ color: "#9CA3AF" }}>{t("ngo.feedback.points")}</div>
                       <button
                         onClick={() => { setSelectedHotel(hotel); setActiveTab("feedback"); }}
@@ -484,7 +484,7 @@ export default function NgoFeedbackPage() {
                   <div className="text-center">
                     <Trophy className="w-8 h-8 mx-auto mb-2" style={{ color: "#F59E0B" }} />
                     <div className="text-[13px] font-bold mb-1" style={{ color: "#92400E" }}>{t("ngo.feedback.points_preview")}</div>
-                    <div className="text-3xl font-extrabold font-mono-data" style={{ color: "#D97706" }}>
+                    <div className="text-3xl font-extrabold font-display tabular-nums" style={{ color: "#D97706" }}>
                       +{Object.values(ratings).some((r) => r > 0) ? calculatePreviewPoints() : "—"}
                     </div>
                     <div className="text-[10px] mt-1" style={{ color: "#78350F" }}>

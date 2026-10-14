@@ -619,8 +619,7 @@ function HotelDonateForm() {
           </button>
           <button
             type="submit"
-            className="px-6 py-2.5 rounded-xl font-bold text-white shadow-md hover:brightness-110 active:scale-95 cursor-pointer flex items-center gap-2"
-            style={{ background: "#164A31" }}
+            className="px-6 py-2.5 rounded-xl font-bold text-white shadow-md hover:brightness-110 active:scale-95 cursor-pointer flex items-center gap-2 btn-brand"
           >
             <Sparkles className="w-4 h-4 text-emerald-400" />
             <span>{t("Publish Batch to NGO Fleet")}</span>

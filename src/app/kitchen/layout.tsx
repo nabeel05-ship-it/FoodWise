@@ -25,7 +25,7 @@ export default function KitchenLayout({
   }, [userRole, activeDonor, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F4F6FA]">
+    <div className="min-h-screen flex items-center justify-center app-canvas">
       <div className="text-center space-y-2">
         <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto" />
         <p className="text-xs text-gray-500 font-medium">Redirecting to your portal...</p>
