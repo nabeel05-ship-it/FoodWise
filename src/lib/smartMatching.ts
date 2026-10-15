@@ -53,13 +53,13 @@ export function calculateUrgency(pickupDeadline: string | number | Date): Urgenc
         deadlineDate = new Date(now);
         if (lower.includes("tomorrow")) {
           deadlineDate.setDate(deadlineDate.getDate() + 1);
+        } else if (lower.includes("yesterday")) {
+          deadlineDate.setDate(deadlineDate.getDate() - 1);
+        } else if (lower.includes("tonight") && !isPM && hours < 6) {
+          // "Tonight, 1:00 AM" means the early hours after midnight, not this morning
+          deadlineDate.setDate(deadlineDate.getDate() + 1);
         }
         deadlineDate.setHours(hours, minutes, 0, 0);
-
-        // If time today has passed and no day specified, assume it was today earlier or default buffer
-        if (!lower.includes("tomorrow") && !lower.includes("yesterday") && deadlineDate < now) {
-          // If less than 6 hours in the past, treat as expired; otherwise assume same day evening
-        }
       } else {
         // Fallback default: assume 4 hours from creation or now
         deadlineDate = new Date(now.getTime() + 4 * 60 * 60 * 1000);
