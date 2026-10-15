@@ -173,8 +173,8 @@ function ListingDemo({ reduced }: { reduced: boolean }) {
           <span className="block text-[13px] font-semibold text-white leading-snug">{EXAMPLE.food}</span>
         </motion.div>
         <motion.div variants={itemVariants} className="flex flex-wrap gap-1.5">
-          <Chip>{EXAMPLE.kg} kg</Chip>
-          <Chip>~{EXAMPLE.servings} servings</Chip>
+          <Chip>{`${EXAMPLE.kg} kg`}</Chip>
+          <Chip>{`~${EXAMPLE.servings} servings`}</Chip>
           <Chip>{EXAMPLE.diet}</Chip>
           <Chip>{EXAMPLE.category}</Chip>
         </motion.div>
@@ -486,7 +486,7 @@ function QualityDemo({ reduced }: { reduced: boolean }) {
         >
           <span className="text-[11px] text-emerald-50/85">Average 4.75 →</span>
           <motion.span variants={popVariants} className="text-[13px] font-bold text-emerald-200">
-            +{EXAMPLE.pointsAwarded} points
+            {`+${EXAMPLE.pointsAwarded} points`}
           </motion.span>
         </motion.div>
 
@@ -935,7 +935,7 @@ export default function FoodRedistributionWorkflow({
           <div className="md:col-span-6 flex flex-col gap-3">
             <motion.div variants={itemVariants} className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300/80">
-                Stage {String(current.id).padStart(2, "0")} of {String(STAGES.length).padStart(2, "0")}
+                {`Stage ${String(current.id).padStart(2, "0")} of ${String(STAGES.length).padStart(2, "0")}`}
               </span>
               <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1 ring-inset ${ACTOR_STYLES[current.actor]}`}>
                 {current.actor}

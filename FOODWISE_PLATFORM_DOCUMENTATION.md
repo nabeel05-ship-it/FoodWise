@@ -233,8 +233,9 @@ The multilingual system operates on a dual-layer architectural strategy:
 | `src/context/dictionary.ts` | Hindi phrase dictionary for raw English text, plus reverse (Hindi → English) lookup |
 | `src/context/kannadaDictionary.ts` | Kannada phrase dictionary for raw English text, plus reverse lookup |
 | `src/context/locales/phrases-extra.ts` | Additional Hindi and Kannada phrases for copy rendered without `t()` (public and legal pages, NGO portal labels) |
-| `src/context/domTranslator.ts` | DOM auto-translator: translates rendered text, placeholders and titles; re-translates text React updates; handles dynamic labels such as countdowns |
-| `src/components/common/LanguageToggle.tsx` | Language switcher (compact and full variants), shown in the sidebar, public header, sign-in card and Settings |
+| `src/context/locales/phrases-workflow.ts` | Hindi and Kannada phrases for the "How FoodWise Works" walkthrough, plus tooltips, placeholders and accessibility labels |
+| `src/context/domTranslator.ts` | DOM auto-translator: translates rendered text and the `placeholder`, `title` and `aria-label` attributes; re-translates text React updates; handles dynamic labels such as countdowns, "Today, 8:30 PM" times and impact-page subtitles. Anything inside `data-no-translate="true"` is left as is. |
+| `src/components/common/LanguageToggle.tsx` | "Choose language" dropdown (English, हिंदी, ಕನ್ನಡ) with keyboard support; opens upward when there's no room below. Shown in the sidebar, public header, sign-in card and Settings |
 
 ### 10.3 How to Add Future Translations
 
@@ -253,4 +254,4 @@ The multilingual system operates on a dual-layer architectural strategy:
    return <h1>{t("my_feature.title")}</h1>;
    ```
 
-Copy that isn't passed through `t()` is translated by the DOM auto-translator when an exact phrase exists in `locales/phrases-extra.ts` (or the phrase dictionaries). User-entered content is never translated.
+Copy that isn't passed through `t()` is translated by the DOM auto-translator when an exact phrase exists in `locales/phrases-extra.ts`, `locales/phrases-workflow.ts` or the phrase dictionaries. Matching is on whole text nodes, so render a sentence that contains a number as one string (for example `` {`Stage ${n} of ${total}`} ``) and add a pattern to `DYNAMIC_PATTERNS` in `domTranslator.ts`. Keep `{{placeholders}}` in English inside translated templates. User-entered content (names, addresses, dish names, descriptions) is never translated.

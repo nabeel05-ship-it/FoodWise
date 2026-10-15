@@ -427,7 +427,7 @@ flowchart TD
 1. **Client Presentation & State Layer (`src/app/`, `src/context/`)**:
    - **Role-Segmented Portals:** Tailored routing and workflows for Household Donors (`/household`), Commercial Kitchens & Hotels (`/hotel`, `/kitchen`), and Relief NGOs (`/ngo`).
    - **Centralized Client State:** `AppContext` manages active role switching, session caching via `localStorage`, and asynchronous synchronization with the backend API.
-   - **Trilingual Localization:** `LanguageContext` provides instantaneous, zero-overhead switching between English, Hindi, and Kannada.
+   - **Trilingual Localization:** `LanguageContext` provides instant switching between English, Hindi, and Kannada from a "Choose language" dropdown in the sidebar, header, sign-in card and Settings. The choice is remembered across visits.
    - **Interactive Assistants:** The floating `FoodieAIWidget` provides role-tailored donation guidance and operational tips.
 
 2. **Serverless API Layer (`src/app/api/`)**:

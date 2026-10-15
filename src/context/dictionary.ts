@@ -4,6 +4,7 @@
  */
 
 import { HI_PHRASES_EXTRA } from "./locales/phrases-extra";
+import { HI_PHRASES_WORKFLOW } from "./locales/phrases-workflow";
 
 export const PHRASE_DICTIONARY: Record<string, string> = {
   "Donate Food": "भोजन दान करें",
@@ -1941,7 +1942,7 @@ export const PHRASE_DICTIONARY: Record<string, string> = {
 };
 
 // Phrases added after the original dictionary (see locales/phrases-extra.ts)
-Object.assign(PHRASE_DICTIONARY, HI_PHRASES_EXTRA);
+Object.assign(PHRASE_DICTIONARY, HI_PHRASES_EXTRA, HI_PHRASES_WORKFLOW);
 
 export const SORTED_EN_TO_HINDI = Object.entries(PHRASE_DICTIONARY).sort(
   (a, b) => b[0].length - a[0].length

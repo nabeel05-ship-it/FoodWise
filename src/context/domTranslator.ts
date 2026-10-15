@@ -59,7 +59,9 @@ export function useDomAutoTranslator() {
       // Observe DOM mutations (for modals, dialogs, drawers, live cards)
       const observer = new MutationObserver((mutations) => {
         for (const mutation of mutations) {
-          if (mutation.type === "characterData") {
+          if (mutation.type === "attributes") {
+            translateAttributes(mutation.target as HTMLElement, lang);
+          } else if (mutation.type === "characterData") {
             translateTextNode(mutation.target as Text, lang);
           } else if (mutation.type === "childList") {
             for (const addedNode of Array.from(mutation.addedNodes)) {
@@ -77,6 +79,8 @@ export function useDomAutoTranslator() {
         childList: true,
         characterData: true,
         subtree: true,
+        attributes: true,
+        attributeFilter: [...TRANSLATED_ATTRS],
       });
 
       return () => {
@@ -99,7 +103,7 @@ function shouldSkipElement(element: HTMLElement): boolean {
   ) {
     return true;
   }
-  if (element.getAttribute("data-no-translate") === "true") {
+  if (element.closest('[data-no-translate="true"]')) {
     return true;
   }
   return false;
@@ -132,6 +136,30 @@ const DYNAMIC_PATTERNS: { re: RegExp; hi: string; kn: string }[] = [
   { re: /^(\d+) hrs safe buffer$/, hi: "$1 घंटे सुरक्षित समय", kn: "$1 ಗಂಟೆ ಸುರಕ್ಷಿತ ಅವಧಿ" },
   { re: /^Serves ~(\d+) people$/, hi: "~$1 लोगों के लिए", kn: "~$1 ಜನರಿಗೆ" },
   { re: /^(\d+) Active Volunteers$/, hi: "$1 सक्रिय स्वयंसेवक", kn: "$1 ಸಕ್ರಿಯ ಸ್ವಯಂಸೇವಕರು" },
+  { re: /^Today, (\d{1,2}:\d{2} [AP]M)$/, hi: "आज, $1", kn: "ಇಂದು, $1" },
+  { re: /^Tonight, (\d{1,2}:\d{2} [AP]M)$/, hi: "आज रात, $1", kn: "ಇಂದು ರಾತ್ರಿ, $1" },
+  { re: /^Tomorrow, (\d{1,2}:\d{2} [AP]M)$/, hi: "कल, $1", kn: "ನಾಳೆ, $1" },
+  { re: /^Yesterday, (\d{1,2}:\d{2} [AP]M)$/, hi: "बीता कल, $1", kn: "ನಿನ್ನೆ, $1" },
+  { re: /^Stage (\d+) of (\d+)$/, hi: "चरण $1 / $2", kn: "ಹಂತ $1 / $2" },
+  { re: /^\+(\d+) points$/, hi: "+$1 अंक", kn: "+$1 ಅಂಕಗಳು" },
+  { re: /^~(\d+) servings$/, hi: "~$1 सर्विंग", kn: "~$1 ಊಟದ ಪಾಲುಗಳು" },
+  { re: /^(\d+) mins$/, hi: "$1 मिनट", kn: "$1 ನಿಮಿಷ" },
+  { re: /^(\d+) hrs$/, hi: "$1 घंटे", kn: "$1 ಗಂಟೆ" },
+  {
+    re: /^Personal impact for (.+) • Sharing extra food with local people in need\.$/,
+    hi: "$1 का व्यक्तिगत प्रभाव • ज़रूरतमंद स्थानीय लोगों के साथ अतिरिक्त भोजन साझा करना।",
+    kn: "$1 ಅವರ ವೈಯಕ್ತಿಕ ಪರಿಣಾಮ • ಅಗತ್ಯವಿರುವ ಸ್ಥಳೀಯರೊಂದಿಗೆ ಹೆಚ್ಚುವರಿ ಆಹಾರ ಹಂಚಿಕೆ.",
+  },
+  {
+    re: /^Commercial kitchen and banquet rescue impact for (.+) • Zero food to landfill\.$/,
+    hi: "$1 का वाणिज्यिक रसोई और भोज बचाव प्रभाव • लैंडफ़िल में शून्य भोजन।",
+    kn: "$1 ಅವರ ವಾಣಿಜ್ಯ ಅಡುಗೆಮನೆ ಮತ್ತು ಔತಣಕೂಟ ಆಹಾರ ಉಳಿತಾಯದ ಪರಿಣಾಮ • ಭೂಭರ್ತಿಗೆ ಶೂನ್ಯ ಆಹಾರ.",
+  },
+  {
+    re: /^Distribution summary for (.+) • Delivering donor surplus to communities\.$/,
+    hi: "$1 का वितरण सारांश • दाताओं का अतिरिक्त भोजन समुदायों तक पहुँचाना।",
+    kn: "$1 ಅವರ ವಿತರಣಾ ಸಾರಾಂಶ • ದಾನಿಗಳ ಹೆಚ್ಚುವರಿ ಆಹಾರವನ್ನು ಸಮುದಾಯಗಳಿಗೆ ತಲುಪಿಸುವುದು.",
+  },
 ];
 
 function translateDynamicPattern(text: string, targetLang: Language): string | null {
@@ -181,6 +209,49 @@ function translateTextNode(textNode: Text, targetLang: Language) {
   }
 }
 
+const TRANSLATED_ATTRS = ["placeholder", "title", "aria-label"] as const;
+const ATTR_SELECTOR = "[placeholder], [title], [aria-label]";
+// data-* key holding each attribute's English source, e.g. aria-label -> fwOrigAriaLabel
+const origKey = (attr: string) => "fwOrig" + attr.replace(/(^|-)(\w)/g, (_, __, c: string) => c.toUpperCase());
+
+function translateString(text: string, targetLang: Language): string {
+  let translated = targetLang === "hi" ? translateDynamicEnglishToHindi(text) : translateDynamicEnglishToKannada(text);
+  if (!translated || translated === text) translated = translateDynamicPattern(text, targetLang) || text;
+  return translated;
+}
+
+function translateAttributes(el: HTMLElement, targetLang: Language) {
+  if (shouldSkipElement(el)) return;
+  for (const attr of TRANSLATED_ATTRS) {
+    const value = el.getAttribute(attr);
+    if (!value || !value.trim()) continue;
+    const key = origKey(attr);
+    // Fresh English from React replaces the cached source
+    if (!isIndianScript(value)) el.dataset[key] = value;
+    const source = getSourceEnglish(value, el.dataset[key]);
+    const translated = translateString(source, targetLang);
+    if (translated !== value) el.setAttribute(attr, translated);
+  }
+}
+
+function restoreAttributes(root: HTMLElement) {
+  const elements = [root, ...Array.from(root.querySelectorAll<HTMLElement>(ATTR_SELECTOR))];
+  for (const el of elements) {
+    for (const attr of TRANSLATED_ATTRS) {
+      const value = el.getAttribute?.(attr);
+      if (!value) continue;
+      const orig = el.dataset?.[origKey(attr)];
+      if (orig && !isIndianScript(orig)) {
+        if (value !== orig) el.setAttribute(attr, orig);
+      } else if (isDevanagari(value)) {
+        el.setAttribute(attr, translateHindiToEnglish(value));
+      } else if (isKannada(value)) {
+        el.setAttribute(attr, translateKannadaToEnglish(value));
+      }
+    }
+  }
+}
+
 function translateTree(root: HTMLElement | Node, targetLang: Language) {
   if (!root) return;
 
@@ -188,38 +259,11 @@ function translateTree(root: HTMLElement | Node, targetLang: Language) {
     return;
   }
 
-  // Translate placeholders and titles on inputs and elements
+  // Translate placeholders, tooltips and accessibility labels on the root and every descendant
   if (root.nodeType === Node.ELEMENT_NODE) {
     const el = root as HTMLElement;
-    if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
-      const input = el as HTMLInputElement;
-      if (input.placeholder && input.placeholder.trim()) {
-        if (!input.dataset.fwOrigPlaceholder && !isIndianScript(input.placeholder)) {
-          input.dataset.fwOrigPlaceholder = input.placeholder;
-        }
-        const sourcePlaceholder = getSourceEnglish(
-          input.placeholder,
-          input.dataset.fwOrigPlaceholder
-        );
-        if (targetLang === "hi") {
-          input.placeholder = translateDynamicEnglishToHindi(sourcePlaceholder);
-        } else if (targetLang === "kn") {
-          input.placeholder = translateDynamicEnglishToKannada(sourcePlaceholder);
-        }
-      }
-    }
-
-    if (el.title && el.title.trim()) {
-      if (!el.dataset.fwOrigTitle && !isIndianScript(el.title)) {
-        el.dataset.fwOrigTitle = el.title;
-      }
-      const sourceTitle = getSourceEnglish(el.title, el.dataset.fwOrigTitle);
-      if (targetLang === "hi") {
-        el.title = translateDynamicEnglishToHindi(sourceTitle);
-      } else if (targetLang === "kn") {
-        el.title = translateDynamicEnglishToKannada(sourceTitle);
-      }
-    }
+    translateAttributes(el, targetLang);
+    el.querySelectorAll<HTMLElement>(ATTR_SELECTOR).forEach((child) => translateAttributes(child, targetLang));
   }
 
   // Walk text nodes
@@ -269,29 +313,7 @@ function restoreEnglish(root: HTMLElement) {
     currentNode = walker.nextNode();
   }
 
-  // Restore placeholders
-  const inputs = root.querySelectorAll<HTMLInputElement>("input, textarea");
-  inputs.forEach((input) => {
-    if (input.dataset.fwOrigPlaceholder && !isIndianScript(input.dataset.fwOrigPlaceholder)) {
-      input.placeholder = input.dataset.fwOrigPlaceholder;
-    } else if (isDevanagari(input.placeholder)) {
-      input.placeholder = translateHindiToEnglish(input.placeholder);
-    } else if (isKannada(input.placeholder)) {
-      input.placeholder = translateKannadaToEnglish(input.placeholder);
-    }
-  });
-
-  // Restore titles
-  const elementsWithTitle = root.querySelectorAll<HTMLElement>("[title]");
-  elementsWithTitle.forEach((el) => {
-    if (el.dataset.fwOrigTitle && !isIndianScript(el.dataset.fwOrigTitle)) {
-      el.title = el.dataset.fwOrigTitle;
-    } else if (isDevanagari(el.title)) {
-      el.title = translateHindiToEnglish(el.title);
-    } else if (isKannada(el.title)) {
-      el.title = translateKannadaToEnglish(el.title);
-    }
-  });
+  restoreAttributes(root);
 }
 
 /**
