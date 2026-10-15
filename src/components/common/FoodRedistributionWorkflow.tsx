@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
+import { useSafeReducedMotion } from "@/lib/useHydrated";
 import {
   Utensils,
   HeartHandshake,
@@ -106,7 +107,7 @@ export default function FoodRedistributionWorkflow({
 }: {
   compact?: boolean;
 }) {
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = useSafeReducedMotion();
   const [activeStep, setActiveStep] = useState<number>(1);
   const [isPlaying, setIsPlaying] = useState<boolean>(!prefersReduced);
   const [isInView, setIsInView] = useState<boolean>(true);

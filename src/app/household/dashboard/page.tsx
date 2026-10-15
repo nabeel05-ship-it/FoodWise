@@ -8,7 +8,8 @@ import { DonationItem } from "@/lib/types";
 import DonationCard from "@/components/common/DonationCard";
 import DonationDetailsModal from "@/components/common/DonationDetailsModal";
 import CountUp from "@/components/common/CountUp";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
+import { useSafeReducedMotion } from "@/lib/useHydrated";
 import { MOTION_SPRINGS } from "@/lib/motion";
 import {
   Home,
@@ -23,7 +24,7 @@ import {
 export default function HouseholdDashboard() {
   const { donations, activeDonor } = useApp();
   const { t } = useLang();
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = useSafeReducedMotion();
   const [selectedDonation, setSelectedDonation] = useState<DonationItem | null>(null);
 
   // Filter household donations

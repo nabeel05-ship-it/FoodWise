@@ -18,7 +18,8 @@ import {
   Building2,
   Trash2,
 } from "lucide-react";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
+import { useSafeReducedMotion } from "@/lib/useHydrated";
 import { MOTION_SPRINGS, MOTION_DURATIONS } from "@/lib/motion";
 
 export interface FoodQualityReportModalProps {
@@ -46,7 +47,7 @@ export default function FoodQualityReportModal({
   onSuccess,
 }: FoodQualityReportModalProps) {
   const { createQualityReport, activeNgo } = useApp();
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = useSafeReducedMotion();
 
   const [issueType, setIssueType] = useState<FoodQualityIssueType>("Spoiled / rotten food");
   const [severity, setSeverity] = useState<QualityReportSeverity>("HIGH");

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useReducedMotion } from "motion/react";
+import { useSafeReducedMotion } from "@/lib/useHydrated";
 
 interface CountUpProps {
   end?: number;
@@ -21,7 +21,7 @@ export default function CountUp({
   decimals = 0,
 }: CountUpProps) {
   const target = typeof value === "number" ? value : typeof end === "number" ? end : 0;
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = useSafeReducedMotion();
   const [count, setCount] = useState(0);
   const prevEndRef = useRef<number>(0);
 
@@ -68,7 +68,7 @@ export default function CountUp({
   const displayValue = prefersReduced ? target : count;
 
   return (
-    <span className="font-mono-data">
+    <span className="tabular-nums">
       {prefix}
       {displayValue.toLocaleString(undefined, {
         minimumFractionDigits: decimals,

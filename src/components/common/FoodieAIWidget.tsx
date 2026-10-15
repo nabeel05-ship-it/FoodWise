@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useApp } from "@/context/AppContext";
 import { usePathname } from "next/navigation";
 import { Sparkles, Send, X, Bot } from "lucide-react";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
+import { useSafeReducedMotion } from "@/lib/useHydrated";
 import { MOTION_SPRINGS, MOTION_DURATIONS } from "@/lib/motion";
 
 interface Message {
@@ -15,7 +16,7 @@ interface Message {
 export default function FoodieAIWidget() {
   const { userRole } = useApp();
   const pathname = usePathname();
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = useSafeReducedMotion();
 
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([

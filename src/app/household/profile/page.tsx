@@ -52,8 +52,8 @@ export default function HouseholdProfilePage() {
       </div>
 
       {savedSuccess && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+        <div role="status" className="p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs flex items-center gap-2 animate-success-in">
+          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 animate-check-pop" />
           <span>{t("Profile changes saved successfully.")}</span>
         </div>
       )}

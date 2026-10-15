@@ -14,6 +14,30 @@
   --shadow-lg: 0 12px 28px -6px rgb(16 24 40 / 0.1), 0 4px 8px -4px rgb(16 24 40 / 0.05);
   --shadow-xl: 0 20px 40px -8px rgb(16 24 40 / 0.12), 0 8px 16px -8px rgb(16 24 40 / 0.06);
   --shadow-2xl: 0 32px 64px -16px rgb(16 24 40 / 0.22);
+
+  /* Entrance animations (`animate-fade-in`, `animate-page-in`) */
+  --animate-fade-in: fade-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* `backwards` fill: no transform lingers afterwards, so fixed-position modals inside pages stay viewport-relative */
+  --animate-page-in: page-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+
+  /* Success confirmations (saved / submitted) */
+  --animate-success-in: success-in 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  --animate-check-pop: check-pop 0.4s 0.08s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+
+  @keyframes success-in {
+    from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes page-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 }
 
 @layer base {
@@ -632,6 +656,112 @@
 
 .tap-feedback:active {
   transform: scale(0.97);
+}
+
+/* ─── Enter animations (`animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-200`) ───
+   Several modals, toasts and dropdowns use these tailwindcss-animate class names; the plugin
+   isn't installed, so this is the subset they rely on. `backwards` fill leaves no transform
+   behind once finished. Duration comes from Tailwind's own `duration-*` utility. */
+@keyframes enter {
+  from {
+    opacity: var(--tw-enter-opacity, 1);
+    transform: translate3d(0, var(--tw-enter-translate-y, 0), 0) scale(var(--tw-enter-scale, 1));
+  }
+}
+
+.animate-in {
+  animation: enter var(--tw-duration, 200ms) cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+.fade-in { --tw-enter-opacity: 0; }
+.zoom-in-95 { --tw-enter-scale: 0.95; }
+.slide-in-from-top-1 { --tw-enter-translate-y: -0.25rem; }
+.slide-in-from-top-2 { --tw-enter-translate-y: -0.5rem; }
+
+/* ─── Micro-interactions for designated actions ─── */
+/* Press feedback on primary/secondary/brand buttons */
+.btn-brand:active:not(:disabled),
+.btn-primary:active:not(:disabled),
+.btn-secondary:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Forward-motion icons nudge toward their destination */
+svg.lucide-arrow-right,
+svg.lucide-chevron-right,
+svg.lucide-log-out,
+svg.lucide-send {
+  transition: transform 220ms var(--ease-apple);
+}
+:is(a, button):hover > svg.lucide-arrow-right,
+:is(a, button):hover > svg.lucide-chevron-right,
+:is(a, button):hover > span > svg.lucide-arrow-right,
+:is(a, button):hover > svg.lucide-log-out {
+  transform: translateX(3px);
+}
+:is(a, button):hover svg.lucide-send {
+  transform: translate(2px, -2px);
+}
+
+/* Create / add actions: plus rotates a quarter turn */
+svg.lucide-plus,
+svg.lucide-circle-plus {
+  transition: transform 300ms var(--ease-apple);
+}
+:is(a, button):hover svg.lucide-plus,
+:is(a, button):hover svg.lucide-circle-plus {
+  transform: rotate(90deg);
+}
+
+/* Restart / refresh actions: counter-rotate */
+svg.lucide-rotate-ccw,
+svg.lucide-refresh-cw {
+  transition: transform 450ms var(--ease-apple);
+}
+:is(a, button):hover svg.lucide-rotate-ccw {
+  transform: rotate(-180deg);
+}
+:is(a, button):hover svg.lucide-refresh-cw {
+  transform: rotate(180deg);
+}
+
+/* Settings gear turns, notification bell rings */
+svg.lucide-settings {
+  transition: transform 500ms var(--ease-apple);
+}
+button:hover svg.lucide-settings {
+  transform: rotate(60deg);
+}
+button:hover svg.lucide-bell {
+  animation: bell-ring 0.6s var(--ease-apple);
+  transform-origin: 50% 10%;
+}
+
+/* Downloads (PDF / CSV exports) dip downward */
+:is(a, button):hover svg.lucide-download {
+  animation: nudge-down 0.6s var(--ease-apple);
+}
+
+/* Copy → confirmed: the check mark pops in */
+button svg.lucide-check {
+  animation: check-pop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes bell-ring {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(14deg); }
+  40% { transform: rotate(-10deg); }
+  60% { transform: rotate(6deg); }
+  80% { transform: rotate(-3deg); }
+}
+
+@keyframes nudge-down {
+  0%, 100% { transform: translateY(0); }
+  45% { transform: translateY(3px); }
+}
+
+@keyframes check-pop {
+  from { transform: scale(0.4); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 
 /* ─── Accessibility: Operating System Reduced Motion Support ─── */

@@ -25,7 +25,8 @@ import {
   Check,
   Copy,
 } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
+import { useHydrated, useSafeReducedMotion } from "@/lib/useHydrated";
 
 interface OperationalPickupHubProps {
   selectedItem: DonationItem | null;
@@ -41,7 +42,8 @@ export default function OperationalPickupHub({
   onRequestClaim,
 }: OperationalPickupHubProps) {
   const { activeNgo, completeDonation } = useApp();
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = useSafeReducedMotion();
+  const hydrated = useHydrated();
   const [showMatchReasons, setShowMatchReasons] = useState(false);
   const [copiedOtp, setCopiedOtp] = useState(false);
 
@@ -64,8 +66,20 @@ export default function OperationalPickupHub({
     );
   }
 
+  // Match score, reasons and urgency all depend on the current time, so they are
+  // computed only on the client to keep prerendered HTML consistent with hydration.
+  if (!hydrated) {
+    return (
+      <div
+        aria-busy="true"
+        className="card p-6 bg-white border border-gray-200 rounded-3xl min-h-[420px] animate-pulse"
+      />
+    );
+  }
+
   const matchData = calculateSmartDonationMatch(activeItem, activeNgo);
   const urgency = matchData.urgency;
+  const isExpired = urgency.isExpired;
   const isAvailable = activeItem.status === "AVAILABLE";
   const isClaimed = activeItem.status === "ACCEPTED" || activeItem.status === "PICKUP" || activeItem.status === "PICKUP_IN_PROGRESS";
   const isCompleted = activeItem.status === "COMPLETED";
@@ -385,18 +399,18 @@ export default function OperationalPickupHub({
             {isAvailable && (
               <motion.button
                 type="button"
-                disabled={urgency.isExpired}
-                whileHover={prefersReduced || urgency.isExpired ? undefined : { scale: 1.02 }}
-                whileTap={prefersReduced || urgency.isExpired ? undefined : { scale: 0.98 }}
+                disabled={isExpired}
+                whileHover={prefersReduced || isExpired ? undefined : { scale: 1.02 }}
+                whileTap={prefersReduced || isExpired ? undefined : { scale: 0.98 }}
                 onClick={() => onRequestClaim(activeItem)}
                 className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 cursor-pointer ${
-                  urgency.isExpired
+                  isExpired
                     ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                     : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 active:scale-95"
                 }`}
               >
                 <PackageCheck className="w-4 h-4" />
-                <span>{urgency.isExpired ? "Window Expired" : "Claim & Assign Volunteer Fleet"}</span>
+                <span>{isExpired ? "Window Expired" : "Claim & Assign Volunteer Fleet"}</span>
               </motion.button>
             )}
 

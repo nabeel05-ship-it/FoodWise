@@ -19,7 +19,8 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { calculateUrgency } from "@/lib/smartMatching";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
+import { useSafeReducedMotion } from "@/lib/useHydrated";
 import { MOTION_SPRINGS, fireMilestoneConfetti } from "@/lib/motion";
 
 function HotelDonateForm() {
@@ -27,7 +28,7 @@ function HotelDonateForm() {
   const searchParams = useSearchParams();
   const { addDonation, activeDonor } = useApp();
   const { t } = useLang();
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = useSafeReducedMotion();
 
   const [establishmentType, setEstablishmentType] = useState("Restaurant & Commercial Kitchen");
   const [mealType, setMealType] = useState(searchParams.get("repeatCategory") || "Banquet / Event Surplus");

@@ -17,7 +17,8 @@ import {
   Loader2,
 } from "lucide-react";
 import Link from "next/link";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
+import { useSafeReducedMotion } from "@/lib/useHydrated";
 import { MOTION_SPRINGS, MOTION_DURATIONS } from "@/lib/motion";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 
@@ -51,7 +52,7 @@ export default function NotificationDrawer() {
     userRole,
   } = useApp();
   const { t } = useLang();
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = useSafeReducedMotion();
 
   const [now, setNow] = useState<number>(() => Date.now());
   const [isMarkingAllRead, setIsMarkingAllRead] = useState(false);

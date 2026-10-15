@@ -297,10 +297,10 @@ export default function NgoReportsPage() {
 
           <div className="h-[280px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={shelterDistributionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <BarChart data={shelterDistributionData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F3F4F6" />
                 <XAxis dataKey="hub" stroke="#9CA3AF" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#9CA3AF" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="#9CA3AF" fontSize={12} tickLine={false} axisLine={false} width={48} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: "#1F2937",

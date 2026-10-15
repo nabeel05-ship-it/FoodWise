@@ -10,7 +10,8 @@ import DonationCard from "@/components/common/DonationCard";
 import DonationDetailsModal from "@/components/common/DonationDetailsModal";
 import CountUp from "@/components/common/CountUp";
 import { downloadDonationImpactReportPdf, downloadDonationRecordPdf } from "@/lib/pdfGenerator";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
+import { useSafeReducedMotion } from "@/lib/useHydrated";
 import { MOTION_SPRINGS, MOTION_DURATIONS, tabSpringTransition } from "@/lib/motion";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import {
@@ -37,7 +38,7 @@ export default function HotelDashboard() {
   const router = useRouter();
   const { donations, activeDonor, completeDonation, cancelDonation } = useApp();
   const { t } = useLang();
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = useSafeReducedMotion();
   const [selectedDonation, setSelectedDonation] = useState<DonationItem | null>(null);
   const [activeTab, setActiveTab] = useState<"ALL" | "AVAILABLE" | "EN_ROUTE">("ALL");
   const [copiedOtpId, setCopiedOtpId] = useState<string | null>(null);
@@ -168,7 +169,7 @@ export default function HotelDashboard() {
         <div className="flex items-center gap-2.5 flex-wrap">
           <Link
             href="/hotel/donate"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-md shadow-emerald-950/20 transition-all hover:brightness-110 active:scale-95 cursor-pointer btn-brand"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white whitespace-nowrap shrink-0 transition-all hover:brightness-110 active:scale-95 cursor-pointer btn-brand"
           >
             <PlusCircle className="w-4 h-4 text-emerald-400" />
             <span>{t("+ Post Surplus Food")}</span>

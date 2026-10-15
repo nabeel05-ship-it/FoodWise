@@ -19,7 +19,8 @@ import {
 } from "lucide-react";
 import { downloadDonationRecordPdf } from "@/lib/pdfGenerator";
 import { useLang } from "@/context/LanguageContext";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
+import { useSafeReducedMotion } from "@/lib/useHydrated";
 import { MOTION_SPRINGS, MOTION_DURATIONS } from "@/lib/motion";
 
 export interface DonationDetailsModalProps {
@@ -43,7 +44,7 @@ export default function DonationDetailsModal({
 }: DonationDetailsModalProps) {
   const { t } = useLang();
   const { userRole: globalUserRole } = useApp();
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = useSafeReducedMotion();
 
   useEffect(() => {
     if (!isOpen) return;

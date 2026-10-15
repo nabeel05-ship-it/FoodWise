@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { usePathname } from "next/navigation";
 import {
   InstitutionRole,
@@ -348,6 +348,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [dbConnected, setDbConnected] = useState(false);
   const [qualityReports, setQualityReports] = useState<FoodQualityReport[]>(INITIAL_QUALITY_REPORTS);
 
+  // Read the latest donors through a ref so setUserRole stays referentially stable
+  // and callers with mount-only effects never see a stale donor list.
+  const donorsListRef = useRef(donorsList);
+  useEffect(() => {
+    donorsListRef.current = donorsList;
+  }, [donorsList]);
+
   const setUserRole = useCallback(
     (role: "HOTEL" | "HOUSEHOLD" | "NGO") => {
       setUserRoleState(role);
@@ -365,7 +372,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         };
         const targetType = donorTypeMap[role];
         setActiveDonorId((prevId) => {
-          const current = donorsList.find((d) => d.id === prevId);
+          const current = donorsListRef.current.find((d) => d.id === prevId);
           if (
             current &&
             (current.type === targetType ||
@@ -376,7 +383,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           ) {
             return prevId;
           }
-          const matched = donorsList.find(
+          const matched = donorsListRef.current.find(
             (d) =>
               d.type === targetType ||
               ((role === "HOTEL") &&
@@ -394,7 +401,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
       }
     },
-    [donorsList]
+    []
   );
 
   // ─── Load data on mount (Local Prototype Layer) ───────────────────────────────
@@ -464,21 +471,33 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           }
 
           // Hydrate donor hotels from DB
+          // The API may return general donor records here (id/city, no score fields),
+          // so fall back to the matching seed hotel and safe defaults per field.
           if (d.donorHotels?.length > 0) {
+            const num = (v: unknown, fallback: number) =>
+              typeof v === "number" && Number.isFinite(v) ? v : fallback;
             setDonorHotels(
-              d.donorHotels.map((h: Record<string, unknown>) => ({
-                id: (h.hotelId as string) || (h._id as string),
-                name: h.name as string,
-                location: h.location as string,
-                totalPoints: h.totalPoints as number,
-                totalDonations: h.totalDonations as number,
-                avgRating: h.avgRating as number,
-                totalRatings: h.totalRatings as number,
-                lastDonation: h.lastDonation as string,
-                specialBadges: (h.specialBadges as string[]) || [],
-                streak: h.streak as number,
-                fssaiVerified: h.fssaiVerified as boolean,
-              }))
+              d.donorHotels.map((h: Record<string, unknown>, i: number) => {
+                const seed = INITIAL_HOTELS.find((s) => s.name === h.name);
+                return {
+                  id: (h.hotelId as string) || (h._id as string) || (h.id as string) || seed?.id || `hotel-${i}`,
+                  name: h.name as string,
+                  location: (h.location as string) || (h.city as string) || seed?.location || "",
+                  totalPoints: num(h.totalPoints, seed?.totalPoints ?? 0),
+                  totalDonations: num(h.totalDonations, seed?.totalDonations ?? 0),
+                  avgRating: num(h.avgRating, seed?.avgRating ?? 0),
+                  totalRatings: num(h.totalRatings, seed?.totalRatings ?? 0),
+                  lastDonation: (h.lastDonation as string) || seed?.lastDonation || "",
+                  specialBadges: (h.specialBadges as string[]) || seed?.specialBadges || [],
+                  streak: num(h.streak, seed?.streak ?? 0),
+                  fssaiVerified:
+                    typeof h.fssaiVerified === "boolean"
+                      ? h.fssaiVerified
+                      : typeof h.verified === "boolean"
+                      ? h.verified
+                      : seed?.fssaiVerified ?? false,
+                };
+              })
             );
           }
 
@@ -621,7 +640,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     } catch {}
 
     loadFromDb();
-  }, []);
+  }, [setUserRole]);
 
   const pathname = usePathname() || "";
 
@@ -1095,7 +1114,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         } catch {}
       }
     },
-    [donorsList, ngosList]
+    [donorsList, ngosList, setUserRole]
   );
 
   const logout = useCallback(() => {
@@ -1134,7 +1153,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("foodwise_active_donor_id", newDonor.id);
     } catch {}
     return newDonor;
-  }, []);
+  }, [setUserRole]);
 
   const registerNgo = useCallback((data: {
     name: string;
@@ -1166,7 +1185,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("foodwise_active_ngo_id", newNgo.id);
     } catch {}
     return newNgo;
-  }, []);
+  }, [setUserRole]);
 
   const addDonation = useCallback((itemData: Omit<DonationItem, "id" | "status" | "createdAt">): DonationItem => {
     const newDonation: DonationItem = {

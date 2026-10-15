@@ -4,7 +4,8 @@ import React, { useState } from "react";
 import { downloadFoodDonationCertificatePdf } from "@/lib/pdfGenerator";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
+import { useSafeReducedMotion } from "@/lib/useHydrated";
 import { MOTION_SPRINGS, tabSpringTransition, fireMilestoneConfetti } from "@/lib/motion";
 import CountUp from "@/components/common/CountUp";
 import {
@@ -45,7 +46,7 @@ const MONTHLY_COMMUNITY_TREND = [
 export default function ImpactDashboard({ role }: { role: "HOUSEHOLD" | "RESTAURANT" | "HOTEL" | "NGO" }) {
   const { activeDonor, activeNgo, donations, communityMetrics } = useApp();
   const { t } = useLang();
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = useSafeReducedMotion();
   const [viewMode, setViewMode] = useState<"role" | "community">("role");
 
   const isHousehold = role === "HOUSEHOLD";

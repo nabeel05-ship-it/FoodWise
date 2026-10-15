@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
+import { useSafeReducedMotion } from "@/lib/useHydrated";
 import { MOTION_SPRINGS, MOTION_DURATIONS } from "@/lib/motion";
 import {
   X,
@@ -20,7 +21,7 @@ export default function SettingsModal() {
   const router = useRouter();
   const { isSettingsOpen, setIsSettingsOpen, userRole, activeDonor, activeNgo, logout } = useApp();
   const { t } = useLang();
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = useSafeReducedMotion();
   const [activeTab, setActiveTab] = useState<"location" | "notifications" | "security">("location");
 
   const isHousehold = userRole === "HOUSEHOLD";
@@ -146,7 +147,7 @@ export default function SettingsModal() {
                   transition={{ duration: MOTION_DURATIONS.fast }}
                   className="mx-6 mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-semibold flex items-center gap-2"
                 >
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 animate-check-pop" />
                   <span>{t("Settings updated successfully.")}</span>
                 </motion.div>
               )}

@@ -27,7 +27,8 @@ import {
   Copy,
   ChevronDown,
 } from "lucide-react";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
+import { useSafeReducedMotion } from "@/lib/useHydrated";
 import { MOTION_SPRINGS, MOTION_DURATIONS, tabSpringTransition, buttonPressProps } from "@/lib/motion";
 import SmoothScrollWrapper from "@/components/common/SmoothScrollWrapper";
 import FoodRedistributionWorkflow from "@/components/common/FoodRedistributionWorkflow";
@@ -40,7 +41,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { login, registerDonor, registerNgo } = useApp();
   const { t: _t } = useLang();
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = useSafeReducedMotion();
 
   // Ensure document canvas and viewport background strictly match the dark green theme
   useEffect(() => {

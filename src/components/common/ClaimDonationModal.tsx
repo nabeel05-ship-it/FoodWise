@@ -5,7 +5,8 @@ import { DonationItem } from "@/lib/types";
 import { useApp } from "@/context/AppContext";
 import { HeartHandshake, X, Truck, User, Phone, ShieldCheck } from "lucide-react";
 import { useLang } from "@/context/LanguageContext";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
+import { useSafeReducedMotion } from "@/lib/useHydrated";
 import { MOTION_SPRINGS, MOTION_DURATIONS, fireMilestoneConfetti } from "@/lib/motion";
 
 export interface ClaimDonationModalProps {
@@ -27,7 +28,7 @@ export default function ClaimDonationModal({
 }: ClaimDonationModalProps) {
   const { t } = useLang();
   const { acceptDonation, activeNgo } = useApp();
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = useSafeReducedMotion();
   const [driverName, setDriverName] = useState("Rajesh Kumar (Volunteer)");
   const [driverPhone, setDriverPhone] = useState("+91 98765 23412");
 

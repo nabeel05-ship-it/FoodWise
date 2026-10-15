@@ -143,8 +143,8 @@ export default function SettingsPage() {
       </div>
 
       {savedSuccess && (
-        <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+        <div role="status" className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-semibold flex items-center gap-2 animate-success-in">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 animate-check-pop" />
           <span>{t("settings_page.your_settings_and_pr")}</span>
         </div>
       )}

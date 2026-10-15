@@ -15,7 +15,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useLang } from "@/context/LanguageContext";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
+import { useSafeReducedMotion } from "@/lib/useHydrated";
 import { MOTION_SPRINGS, fireMilestoneConfetti } from "@/lib/motion";
 
 const HOUSEHOLD_CATEGORIES = [
@@ -40,7 +41,7 @@ export default function HouseholdDonatePage() {
   const router = useRouter();
   const { addDonation, activeDonor } = useApp();
   const { t } = useLang();
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = useSafeReducedMotion();
 
   const [foodName, setFoodName] = useState("Vegetable Pulao & Dal");
   const [foodCategory, setFoodCategory] = useState(HOUSEHOLD_CATEGORIES[0]);

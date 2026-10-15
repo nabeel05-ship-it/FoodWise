@@ -230,8 +230,8 @@ export default function HotelProfilePage() {
 
         <div className="pt-3 flex items-center justify-between">
           {saved && (
-            <span className="text-xs font-bold text-emerald-800 flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span role="status" className="text-xs font-bold text-emerald-800 flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 animate-success-in">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 animate-check-pop" />
               <span>{t("Establishment profile saved successfully!")}</span>
             </span>
           )}

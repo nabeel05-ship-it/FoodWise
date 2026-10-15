@@ -37,7 +37,8 @@ import {
   Phone,
   User,
 } from "lucide-react";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
+import { useHydrated, useSafeReducedMotion } from "@/lib/useHydrated";
 import { MOTION_SPRINGS, fireMilestoneConfetti } from "@/lib/motion";
 import CountUp from "@/components/common/CountUp";
 
@@ -375,7 +376,9 @@ function NgoDashboardContent() {
     qualityReports,
   } = useApp();
   const { t } = useLang();
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = useSafeReducedMotion();
+  // Urgency labels depend on the current time; render them only after hydration
+  const hydrated = useHydrated();
   const [filterType, setFilterType] = useState<string>("All");
   const [selectedPickup, setSelectedPickup] = useState<SurplusFeedItem | null>(null);
   const [selectedDonationId, setSelectedDonationId] = useState<string | null>(null);
@@ -931,7 +934,7 @@ function NgoDashboardContent() {
               <div className="space-y-2.5">
                 {dynamicFeed.slice(0, 4).map((item, idx) => {
                   const isAccepted = isItemAccepted(item.id);
-                  const urgency = calculateUrgency(item.safeUntil);
+                  const urgency = hydrated ? calculateUrgency(item.safeUntil) : null;
                   const isSelected = activeSelectedDonation?.id === item.id;
 
                   return (
@@ -953,17 +956,19 @@ function NgoDashboardContent() {
                         </div>
                         <p className="text-[11px] text-gray-500 truncate mt-0.5">{item.foodType}</p>
                         <div className="flex items-center gap-2 text-[10px] mt-1.5 flex-wrap">
+                          {urgency && (
                           <span
                             style={{
                               color: urgency.color,
                               backgroundColor: urgency.bgColor,
                               borderColor: urgency.borderColor,
                             }}
-                            className="px-2 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1"
+                            className="px-2 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1 animate-fade-in"
                           >
                             <Clock className="w-3 h-3" />
                             <span>{urgency.timeLabel}</span>
                           </span>
+                          )}
                           <span className="text-gray-400 truncate max-w-[140px]">📍 {item.location}</span>
                         </div>
                       </div>
@@ -985,7 +990,7 @@ function NgoDashboardContent() {
                               {t("ngo.dash.view_arrow")}
                             </button>
                           </div>
-                        ) : !urgency.isExpired ? (
+                        ) : !urgency ? null : !urgency.isExpired ? (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1088,7 +1093,7 @@ function NgoDashboardContent() {
                   </div>
 
                   {(() => {
-                    const urgency = calculateUrgency(item.safeUntil);
+                    const urgency = hydrated ? calculateUrgency(item.safeUntil) : null;
                     return (
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div className="p-2 rounded-xl bg-gray-50 border border-gray-100">
@@ -1098,12 +1103,14 @@ function NgoDashboardContent() {
                             <span>{item.safeUntil}</span>
                           </span>
                         </div>
-                        <div className="p-2 rounded-xl border" style={{ backgroundColor: urgency.bgColor, borderColor: urgency.borderColor }}>
+                        {urgency && (
+                        <div className="p-2 rounded-xl border animate-fade-in" style={{ backgroundColor: urgency.bgColor, borderColor: urgency.borderColor }}>
                           <span className="block text-[10px] uppercase font-bold tracking-wider" style={{ color: urgency.color }}>Urgency Status</span>
                           <span className="font-bold text-xs flex items-center gap-1 mt-0.5" style={{ color: urgency.color }}>
                             {urgency.badgeLabel} ({urgency.timeLabel})
                           </span>
                         </div>
+                        )}
                       </div>
                     );
                   })()}
@@ -1134,7 +1141,7 @@ function NgoDashboardContent() {
                           <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                    ) : !calculateUrgency(item.safeUntil).isExpired ? (
+                    ) : !hydrated ? null : !calculateUrgency(item.safeUntil).isExpired ? (
                       <button
                         onClick={() => handleOpenScheduleModal(item)}
                         className="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/30 flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
@@ -1336,7 +1343,7 @@ function NgoDashboardContent() {
 
       {/* SCHEDULE PICKUP MODAL */}
       {scheduleModalItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#03140C]/55 backdrop-blur-sm animate-in fade-in duration-150">
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-gray-200 space-y-5 animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-3 border-b border-gray-100">
               <div>

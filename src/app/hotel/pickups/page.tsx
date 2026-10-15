@@ -6,7 +6,8 @@ import { DonationItem } from "@/lib/types";
 import DonationDetailsModal from "@/components/common/DonationDetailsModal";
 import { useLang } from "@/context/LanguageContext";
 import { downloadDonationRecordPdf } from "@/lib/pdfGenerator";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
+import { useSafeReducedMotion } from "@/lib/useHydrated";
 import { MOTION_SPRINGS } from "@/lib/motion";
 import {
   Truck,
@@ -26,7 +27,7 @@ import {
 export default function HotelPickupsPage() {
   const { donations, activeDonor, completeDonation } = useApp();
   const { t } = useLang();
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = useSafeReducedMotion();
   const [selectedDonation, setSelectedDonation] = useState<DonationItem | null>(null);
   const [copiedOtpId, setCopiedOtpId] = useState<string | null>(null);
 

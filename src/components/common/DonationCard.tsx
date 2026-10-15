@@ -2,7 +2,8 @@
 
 import React from "react";
 import { useLang } from "@/context/LanguageContext";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
+import { useHydrated, useSafeReducedMotion } from "@/lib/useHydrated";
 import { DonationItem } from "@/lib/types";
 import {
   Clock,
@@ -42,7 +43,11 @@ export default function DonationCard({
   onDonateAgain,
 }: DonationCardProps) {
   const { t } = useLang();
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = useSafeReducedMotion();
+  // Urgency depends on the current time, so compute it only after hydration
+  const hydrated = useHydrated();
+  const urgency = hydrated ? calculateUrgency(donation.pickupDeadline) : null;
+  const isExpired = urgency?.isExpired ?? false;
   const isAvailable = donation.status === "AVAILABLE";
   const isAccepted = donation.status === "ACCEPTED" || donation.status === "PICKUP";
   const isCompleted = donation.status === "COMPLETED";
@@ -173,20 +178,21 @@ export default function DonationCard({
 
         {/* Urgency Pill & Storage Standard */}
         {(() => {
-          const urgency = calculateUrgency(donation.pickupDeadline);
           return (
             <div className="mt-2.5 flex items-center justify-between gap-2 flex-wrap text-[11px]">
+              {urgency && (
               <span
                 style={{
                   color: urgency.color,
                   backgroundColor: urgency.bgColor,
                   borderColor: urgency.borderColor,
                 }}
-                className="px-2 py-0.5 rounded-full font-bold border flex items-center gap-1 shadow-2xs"
+                className="px-2 py-0.5 rounded-full font-bold border flex items-center gap-1 shadow-2xs animate-fade-in"
               >
                 <Clock className="w-3 h-3" />
                 <span>{urgency.badgeLabel}: {urgency.timeLabel}</span>
               </span>
+              )}
 
               {donation.storageCondition && (
                 <span className="text-[10px] font-semibold text-gray-500 bg-gray-50 px-2 py-0.5 rounded border border-gray-100 flex items-center gap-1">
@@ -245,18 +251,18 @@ export default function DonationCard({
         <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
           {isNgo && isAvailable && handleRequest && (
             <motion.button
-              disabled={calculateUrgency(donation.pickupDeadline).isExpired}
+              disabled={isExpired}
               onClick={() => handleRequest(donation)}
-              whileHover={prefersReduced || calculateUrgency(donation.pickupDeadline).isExpired ? undefined : { scale: 1.03 }}
-              whileTap={prefersReduced || calculateUrgency(donation.pickupDeadline).isExpired ? undefined : { scale: 0.95 }}
+              whileHover={prefersReduced || isExpired ? undefined : { scale: 1.03 }}
+              whileTap={prefersReduced || isExpired ? undefined : { scale: 0.95 }}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs ${
-                calculateUrgency(donation.pickupDeadline).isExpired
+                isExpired
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                   : "text-white bg-emerald-700 hover:bg-emerald-800 cursor-pointer"
               }`}
             >
               <HeartHandshake className="w-3.5 h-3.5" />
-              <span>{calculateUrgency(donation.pickupDeadline).isExpired ? "Expired" : t("dash.card_request")}</span>
+              <span>{isExpired ? "Expired" : t("dash.card_request")}</span>
             </motion.button>
           )}
 

@@ -329,12 +329,12 @@ export default function NgoComplaintsPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-indigo-50 border border-indigo-200 text-indigo-700">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-indigo-50 border border-indigo-200 text-indigo-700">
             <Phone className="w-3.5 h-3.5" />
             <span>{t("ngo.complaints.admin_helpline")}</span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-rose-50 border border-rose-200 text-rose-700">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-rose-50 border border-rose-200 text-rose-700">
             <span>{pastComplaints.length} {t("ngo.complaints.open_incidents")}</span>
           </div>
         </div>
