@@ -27,8 +27,8 @@ export default function AboutPage() {
     },
     {
       num: "03",
-      title: "Real-Time Logistics & Pickup",
-      desc: "Relief teams coordinate pickup windows, dispatch volunteers, and track transit while keeping cold-chain and thermal storage requirements intact.",
+      title: "Coordinated Pickup & Handover",
+      desc: "Relief teams coordinate pickup windows, dispatch volunteers, and confirm handover with a secure code while keeping cold-chain and thermal storage requirements intact.",
       icon: Truck,
     },
     {

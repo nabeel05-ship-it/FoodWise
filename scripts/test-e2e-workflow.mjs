@@ -56,7 +56,7 @@ async function runTests() {
   // ------------------------------------------------------------
   // TEST SUITE 1: CODEBASE MAP REMOVAL AUDIT
   // ------------------------------------------------------------
-  console.log('--- SUITE 1: Complete Map & Live Tracking Elimination Audit ---');
+  console.log('--- SUITE 1: Complete Map Dependency Elimination Audit ---');
   
   function searchCodebaseForForbiddenTerms(dir, forbiddenRegexes) {
     const entries = fs.readdirSync(dir, { withFileTypes: true });

@@ -437,7 +437,7 @@ flowchart TD
 3. **Application Logic & Service Layer (`src/lib/`)**:
    - **`dataService.ts`:** Centralized business logic and data abstraction layer governing status transitions, timeline logging, and database operations.
    - **Atomic Concurrency Protection (`claimDonationAtomic`):** When multiple NGOs attempt to claim the same donation concurrently, `dataService` uses atomic conditional database queries (`findOneAndUpdate` checking `{ id, status: "AVAILABLE" }`). Only the first request succeeds; any conflicting attempt receives an HTTP 409 Conflict error.
-   - **Deterministic Smart Matching (`smartMatching.ts`):** Calculates donation urgency scores based on perishable shelf-life windows and ranks partner proximity using geographic locality heuristics, without external map dependencies or live location tracking.
+   - **Deterministic Smart Matching (`smartMatching.ts`):** Calculates donation urgency scores based on perishable shelf-life windows and ranks partner proximity using geographic locality heuristics, without external map dependencies.
    - **Handover State Machine:** Enforces rigid linear progression (`AVAILABLE` → `ACCEPTED` → `COMPLETED`), preventing uncoordinated transitions and requiring 4-digit digital OTP verification at physical handover.
 
 4. **Persistence & Resilience Layer (`src/lib/mongodb.ts`, `src/lib/mockData.ts`)**:

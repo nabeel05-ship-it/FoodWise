@@ -101,7 +101,6 @@ export const PHRASE_DICTIONARY: Record<string, string> = {
   "Keep track of all surplus meals you have shared with community relief organizations.": "सामुदायिक राहत संगठनों के साथ साझा किए गए अपने सभी अतिरिक्त भोजन पर नज़र रखें।",
   "Track claims waiting for kitchen confirmation before dispatching volunteer drivers.": "स्वयंसेवक ड्राइवरों को भेजने से पहले रसोई की पुष्टि की प्रतीक्षा कर रहे दावों को ट्रैक करें।",
   "Discover available food donations near your relief organization. Request immediately before pickup deadlines.": "अपने राहत संगठन के पास उपलब्ध भोजन दान खोजें। पिकअप की समय सीमा से पहले तुरंत अनुरोध करें।",
-  "Track volunteer drivers en route to kitchens, verify handovers with OTP, and confirm safe delivery.": "रसोई के रास्ते में स्वयंसेवक चालकों को ट्रैक करें, OTP के साथ हस्तांतरण सत्यापित करें और सुरक्षित वितरण की पुष्टि करें।",
   "Historical audit log of verified food rescues delivered to local shelters and hunger relief centers.": "स्थानीय आश्रयों और भूख राहत केंद्रों को वितरित सत्यापित भोजन बचाव का ऐतिहासिक ऑडिट लॉग।",
   "Manage volunteer vehicle collections, verify handover OTPs, and track completed deliveries.": "स्वयंसेवक वाहन संग्रह प्रबंधित करें, हस्तांतरण OTP सत्यापित करें और पूर्ण वितरण ट्रैक करें।",
   "Coordinate dock access, volunteer vehicles, and security verification OTPs for banquet surplus.": "बैंक्वेट अधिशेष के लिए डॉक एक्सेस, स्वयंसेवक वाहनों और सुरक्षा सत्यापन OTP का समन्वय करें।",

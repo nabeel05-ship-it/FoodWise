@@ -69,7 +69,7 @@ To ensure absolute technical credibility, this document strictly enforces the fo
 - **Repository as Sole Authority:** Claims are derived directly from the active TypeScript/React source code, Next.js route handlers, MongoDB data services, and automated test scripts.
 - **Zero Hypothetical Claims:** A feature is never documented as "working" merely because a mock UI exists or a library is present in `package.json`.
 - **Zero Marketing Inflation:** All metrics, partner lists, and meal counts are explicitly categorized as either real calculated values or demonstration reference data. No fabricated enterprise partnerships or false user counts are presented as fact.
-- **Explicit Omission of Removed Features:** Interactive third-party GIS maps (e.g., Leaflet, Google Maps JS SDK, Mapbox) and live GPS vehicle telematics have been deliberately removed from the platform. This fact is documented explicitly, and no recommendations are made to reinstate them.
+- **Explicit Omission of Removed Features:** Interactive third-party GIS maps (e.g., Leaflet, Google Maps JS SDK, Mapbox) have been deliberately removed from the platform, and no recommendations are made to reinstate them.
 
 ### 2.2 Standard Implementation Status Taxonomy
 Throughout this document, features and modules are tagged with one of five standardized verification statuses:
@@ -1091,7 +1091,7 @@ The active platform utilizes curated demonstration reference data rooted in the 
 🧪 FOODWISE SIH 2026 E2E VERIFICATION TEST SUITE RESULTS
 ============================================================
 
-SUITE 1: Codebase Map & Live Tracking Elimination Audit
+SUITE 1: Codebase Map Elimination Audit
   ✅ PASS: Codebase is 100% free of map components & API keys
           (Forbidden components checked: GoogleMapView, LiveMapView,
            NgoDirectionModal, js-api-loader, /api/routes)

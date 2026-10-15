@@ -101,7 +101,6 @@ export const KN_PHRASE_DICTIONARY: Record<string, string> = {
   "Keep track of all surplus meals you have shared with community relief organizations.": "ಸಮುದಾಯ ಪರಿಹಾರ ಸಂಸ್ಥೆಗಳೊಂದಿಗೆ ನೀವು ಹಂಚಿಕೊಂಡ ಎಲ್ಲಾ ಹೆಚ್ಚುವರಿ ಊಟಗಳನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ.",
   "Track claims waiting for kitchen confirmation before dispatching volunteer drivers.": "ಸ್ವಯಂಸೇವಕ ಚಾಲಕರನ್ನು ಕಳುಹಿಸುವ ಮೊದಲು ಅಡುಗೆಮನೆಯ ದೃಢೀಕರಣಕ್ಕಾಗಿ ಕಾಯುತ್ತಿರುವ ಕ್ಲೈಮ್‌ಗಳನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ.",
   "Discover available food donations near your relief organization. Request immediately before pickup deadlines.": "ನಿಮ್ಮ ಪರಿಹಾರ ಸಂಸ್ಥೆಯ ಸಮೀಪದಲ್ಲಿ ಲಭ್ಯವಿರುವ ಆಹಾರ ದಾನಗಳನ್ನು ಅನ್ವೇಷಿಸಿ. ಪಿಕಪ್ ಗಡುವಿನ ಮೊದಲು ತಕ್ಷಣ ವಿನಂತಿಸಿ.",
-  "Track volunteer drivers en route to kitchens, verify handovers with OTP, and confirm safe delivery.": "ಅಡಿಗೆಮನೆಗಳಿಗೆ ಹೋಗುವ ದಾರಿಯಲ್ಲಿರುವ ಸ್ವಯಂಸೇವಕ ಚಾಲಕರನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ, OTP ಯೊಂದಿಗೆ ಹಸ್ತಾಂತರಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಸುರಕ್ಷಿತ ವಿತರಣೆಯನ್ನು ಖಚಿತಪಡಿಸಿ.",
   "Historical audit log of verified food rescues delivered to local shelters and hunger relief centers.": "ಸ್ಥಳೀಯ ಆಶ್ರಯ ತಾಣಗಳು ಮತ್ತು ಹಸಿವು ಪರಿಹಾರ ಕೇಂದ್ರಗಳಿಗೆ ತಲುಪಿಸಲಾದ ಪರಿಶೀಲಿಸಿದ ಆಹಾರ ರಕ್ಷಣೆಗಳ ಐತಿಹಾಸಿಕ ಆಡಿಟ್ ಲಾಗ್.",
   "Manage volunteer vehicle collections, verify handover OTPs, and track completed deliveries.": "ಸ್ವಯಂಸೇವಕ ವಾಹನ ಸಂಗ್ರಹಣೆಗಳನ್ನು ನಿರ್ವಹಿಸಿ, ಹಸ್ತಾಂತರ OTP ಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಪೂರ್ಣಗೊಂಡ ವಿತರಣೆಗಳನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ.",
   "Coordinate dock access, volunteer vehicles, and security verification OTPs for banquet surplus.": "ಔತಣಕೂಟದ ಹೆಚ್ಚುವರಿ ಆಹಾರಕ್ಕಾಗಿ ಡಾಕ್ ಪ್ರವೇಶ, ಸ್ವಯಂಸೇವಕ ವಾಹನಗಳು ಮತ್ತು ಭದ್ರತಾ ಪರಿಶೀಲನಾ OTP ಗಳನ್ನು ಸಮನ್ವಯಗೊಳಿಸಿ.",
