@@ -33,6 +33,7 @@ import { MOTION_SPRINGS, MOTION_DURATIONS, tabSpringTransition, buttonPressProps
 import SmoothScrollWrapper from "@/components/common/SmoothScrollWrapper";
 import FoodRedistributionWorkflow from "@/components/common/FoodRedistributionWorkflow";
 import Footer from "@/components/common/Footer";
+import LanguageToggle from "@/components/common/LanguageToggle";
 
 type AuthType = "DONOR" | "NGO";
 type DonorCategory = "HOTEL" | "HOUSEHOLD";
@@ -267,6 +268,7 @@ export default function LoginPage() {
                   </span>
                 </div>
               </div>
+              <LanguageToggle compact tone="light" className="shrink-0" />
             </div>
 
             {/* Header Message */}

@@ -3,7 +3,74 @@
 import React, { useState } from "react";
 import { useApp } from "@/context/AppContext";
 import { ShieldCheck, AlertTriangle, FileText, CheckCircle2, Search, ArrowRight, Eye, Camera, Utensils, Upload, X } from "lucide-react";
-import { FoodQualityIssueType, QualityReportSeverity } from "@/lib/types";
+import { FoodQualityIssueType, QualityReportSeverity, FoodQualityReport, QualityReportStatus } from "@/lib/types";
+import { useLang } from "@/context/LanguageContext";
+
+const REVIEW_STEPS: QualityReportStatus[] = ["REPORTED", "UNDER REVIEW", "RESOLVED"];
+
+/** Moves a report through review (REPORTED → UNDER REVIEW → RESOLVED) with an optional note */
+function ReportReviewControls({ report }: { report: FoodQualityReport }) {
+  const { updateQualityReportStatus } = useApp();
+  const { t } = useLang();
+  const [note, setNote] = useState("");
+  const stepIndex = REVIEW_STEPS.indexOf(report.status);
+  const next = REVIEW_STEPS[stepIndex + 1];
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+      <ol className="flex items-center gap-2" aria-label={t("quality.review_progress")}>
+        {REVIEW_STEPS.map((step, i) => (
+          <li key={step} className="flex items-center gap-2 flex-1 last:flex-none">
+            <span
+              className={`flex items-center gap-1.5 text-[11px] font-bold whitespace-nowrap ${
+                i <= stepIndex ? "text-emerald-700" : "text-gray-400"
+              }`}
+            >
+              <span
+                className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] transition-colors ${
+                  i < stepIndex
+                    ? "bg-emerald-600 text-white"
+                    : i === stepIndex
+                    ? "bg-emerald-100 text-emerald-800 ring-2 ring-emerald-500"
+                    : "bg-gray-100 text-gray-400"
+                }`}
+              >
+                {i < stepIndex ? <CheckCircle2 className="w-3 h-3" /> : i + 1}
+              </span>
+              {step === "REPORTED" ? t("quality.step_reported") : step === "UNDER REVIEW" ? t("quality.step_review") : t("quality.step_resolved")}
+            </span>
+            {i < REVIEW_STEPS.length - 1 && (
+              <span className={`h-0.5 flex-1 rounded-full ${i < stepIndex ? "bg-emerald-500" : "bg-gray-200"}`} />
+            )}
+          </li>
+        ))}
+      </ol>
+
+      {next && (
+        <div className="flex flex-col sm:flex-row gap-2">
+          <input
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            maxLength={500}
+            placeholder={t("quality.note_placeholder")}
+            className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-xs outline-none hover:border-gray-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              updateQualityReportStatus(report.id, next, note.trim() || undefined);
+              setNote("");
+            }}
+            className="px-4 py-2 rounded-xl text-xs font-bold text-white btn-brand cursor-pointer flex items-center justify-center gap-1.5"
+          >
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+            {next === "UNDER REVIEW" ? t("quality.start_review") : t("quality.mark_resolved")}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function FoodIssuesPage() {
   const { donations, qualityReports, createQualityReport, activeNgo } = useApp();
@@ -345,6 +412,7 @@ export default function FoodIssuesPage() {
                      )}
                   </div>
                 </div>
+                <ReportReviewControls report={report} />
               </div>
             ))
           )}

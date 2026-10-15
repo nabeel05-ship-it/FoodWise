@@ -227,24 +227,25 @@ The multilingual system operates on a dual-layer architectural strategy:
 
 | File | Purpose |
 |------|---------|
-| [`src/context/LanguageContext.tsx`](file:///Users/nsa/Library/Mobile%20Documents/com~apple~CloudDocs/Projects/CP_FoodWise/src/context/LanguageContext.tsx) | Centralized i18n context provider, `Language` type (`"en" \| "hi" \| "kn"`), base translations dictionary, and `useLang` hook |
-| [`src/context/locales/kn.ts`](file:///Users/nsa/Library/Mobile%20Documents/com~apple~CloudDocs/Projects/CP_FoodWise/src/context/locales/kn.ts) | Complete compiled Kannada translation dictionary covering 1,500+ keys |
-| [`src/context/dictionary.ts`](file:///Users/nsa/Library/Mobile%20Documents/com~apple~CloudDocs/Projects/CP_FoodWise/src/context/dictionary.ts) | Hindi phrase dictionary, dynamic pattern replacements, and reverse translation dictionary |
-| [`src/context/kannadaDictionary.ts`](file:///Users/nsa/Library/Mobile%20Documents/com~apple~CloudDocs/Projects/CP_FoodWise/src/context/kannadaDictionary.ts) | Kannada phrase dictionary, dynamic pattern replacements, and reverse translation dictionary |
-| [`src/context/domTranslator.ts`](file:///Users/nsa/Library/Mobile%20Documents/com~apple~CloudDocs/Projects/CP_FoodWise/src/context/domTranslator.ts) | Headless DOM tree-walker and mutation observer for dynamic client-side translation |
-| [`src/components/common/LanguageToggle.tsx`](file:///Users/nsa/Library/Mobile%20Documents/com~apple~CloudDocs/Projects/CP_FoodWise/src/components/common/LanguageToggle.tsx) | Interactive language switcher component supporting both compact and full variants |
-| [`src/components/layout/Navbar.tsx`](file:///Users/nsa/Library/Mobile%20Documents/com~apple~CloudDocs/Projects/CP_FoodWise/src/components/layout/Navbar.tsx) | Top navigation bar with integrated compact language switcher |
+| `src/context/LanguageContext.tsx` | i18n provider, `Language` type (`"en" \| "hi" \| "kn"`), the English dictionary, and the `useLang` hook. Persists the choice in `localStorage` (`fw_lang`). |
+| `src/context/locales/hi.ts` | Hindi translations keyed by translation key |
+| `src/context/locales/kn.ts` | Kannada translations keyed by translation key |
+| `src/context/dictionary.ts` | Hindi phrase dictionary for raw English text, plus reverse (Hindi → English) lookup |
+| `src/context/kannadaDictionary.ts` | Kannada phrase dictionary for raw English text, plus reverse lookup |
+| `src/context/locales/phrases-extra.ts` | Additional Hindi and Kannada phrases for copy rendered without `t()` (public and legal pages, NGO portal labels) |
+| `src/context/domTranslator.ts` | DOM auto-translator: translates rendered text, placeholders and titles; re-translates text React updates; handles dynamic labels such as countdowns |
+| `src/components/common/LanguageToggle.tsx` | Language switcher (compact and full variants), shown in the sidebar, public header, sign-in card and Settings |
 
 ### 10.3 How to Add Future Translations
 
-To add a new translation string:
-1. Open [`src/context/LanguageContext.tsx`](file:///Users/nsa/Library/Mobile%20Documents/com~apple~CloudDocs/Projects/CP_FoodWise/src/context/LanguageContext.tsx) and add the key with `en` and `hi` values under the `translations` object:
+1. Add the English string to the `translations` object in `src/context/LanguageContext.tsx`:
    ```ts
-   "my_feature.title": { en: "Feature Title", hi: "सुविधा शीर्षक" }
+   "my_feature.title": "Feature Title",
    ```
-2. Open [`src/context/locales/kn.ts`](file:///Users/nsa/Library/Mobile%20Documents/com~apple~CloudDocs/Projects/CP_FoodWise/src/context/locales/kn.ts) and add the corresponding Kannada entry:
+2. Add the Hindi value to `src/context/locales/hi.ts` and the Kannada value to `src/context/locales/kn.ts` under the same key:
    ```ts
-   "my_feature.title": "ವೈಶಿಷ್ಟ್ಯದ ಶೀರ್ಷಿಕೆ"
+   "my_feature.title": "सुविधा शीर्षक",   // hi.ts
+   "my_feature.title": "ವೈಶಿಷ್ಟ್ಯದ ಶೀರ್ಷಿಕೆ", // kn.ts
    ```
 3. In components, access it with:
    ```tsx
@@ -252,4 +253,4 @@ To add a new translation string:
    return <h1>{t("my_feature.title")}</h1>;
    ```
 
-
+Copy that isn't passed through `t()` is translated by the DOM auto-translator when an exact phrase exists in `locales/phrases-extra.ts` (or the phrase dictionaries). User-entered content is never translated.

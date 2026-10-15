@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useApp } from "@/context/AppContext";
 import { DonationItem } from "@/lib/types";
 import DonationDetailsModal from "@/components/common/DonationDetailsModal";
+import HandoverCodeForm from "@/components/common/HandoverCodeForm";
 import { useLang } from "@/context/LanguageContext";
 import { downloadDonationRecordPdf } from "@/lib/pdfGenerator";
 import { motion, AnimatePresence } from "motion/react";
@@ -12,12 +13,10 @@ import { MOTION_SPRINGS } from "@/lib/motion";
 import {
   Truck,
   CheckCircle2,
-  Key,
+
   Hotel,
   Phone,
   ShieldCheck,
-  Copy,
-  Check,
   Download,
   Clock,
   ThermometerSnowflake,
@@ -25,11 +24,10 @@ import {
 } from "lucide-react";
 
 export default function HotelPickupsPage() {
-  const { donations, activeDonor, completeDonation } = useApp();
+  const { donations, activeDonor } = useApp();
   const { t } = useLang();
   const prefersReduced = useSafeReducedMotion();
   const [selectedDonation, setSelectedDonation] = useState<DonationItem | null>(null);
-  const [copiedOtpId, setCopiedOtpId] = useState<string | null>(null);
 
   const commercialPickups = donations.filter(
     (d) =>
@@ -39,14 +37,6 @@ export default function HotelPickupsPage() {
 
   const activePickups = commercialPickups.filter((d) => d.status === "ACCEPTED" || d.status === "PICKUP");
   const pastPickups = commercialPickups.filter((d) => d.status === "COMPLETED");
-
-  const handleCopyOtp = (otp: string, id: string) => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(otp);
-      setCopiedOtpId(id);
-      setTimeout(() => setCopiedOtpId(null), 2000);
-    }
-  };
 
   const handleDownloadRecordPdf = (d: DonationItem) => {
     downloadDonationRecordPdf({
@@ -101,7 +91,7 @@ export default function HotelPickupsPage() {
               {t("Gate & Loading Dock Handover Standard")}
             </div>
             <p className="text-xs text-blue-900 mt-0.5">
-              {t("Ensure thermal container seals remain unbroken until handover. Confirm driver phone and vehicle ID before sharing the security OTP.")}
+              {t("Ensure thermal container seals remain unbroken until handover. Confirm the driver's phone and enter the 4-digit code they show before releasing the food.")}
             </p>
           </div>
         </div>
@@ -126,7 +116,7 @@ export default function HotelPickupsPage() {
             <Truck className="w-10 h-10 text-gray-300 mx-auto mb-2.5" />
             <h3 className="font-bold text-gray-800 text-sm">{t("No active collections en route")}</h3>
             <p className="mt-1 max-w-md mx-auto text-gray-500">
-              {t("When an NGO accepts your listed food, driver credentials, vehicle details, and the dock handover OTP will appear here in real time.")}
+              {t("When an NGO accepts your listed food, the driver and vehicle details appear here, and you verify the driver's handover code right here.")}
             </p>
           </div>
         ) : (
@@ -187,35 +177,17 @@ export default function HotelPickupsPage() {
                     )}
                   </div>
 
-                  {/* Handover OTP */}
-                  {item.otp && (
-                    <div className="mt-3.5 p-3 bg-linear-to-r from-blue-50 to-indigo-50 border-2 border-dashed border-blue-300 rounded-2xl flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-xs font-bold text-blue-900">
-                        <Key className="w-4 h-4 text-blue-700" />
-                        <div>
-                          <div>{t("Dock Security OTP:")}</div>
-                          <div className="text-[10px] font-normal text-blue-700">{t("Verify before loading")}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl font-black font-mono tracking-widest text-blue-950 bg-white px-3 py-1 rounded-xl border border-blue-200 shadow-2xs">
-                          {item.otp}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyOtp(item.otp!, item.id)}
-                          className="p-2 rounded-xl bg-white border border-blue-200 text-blue-800 hover:bg-blue-50 transition-all cursor-pointer shadow-2xs"
-                          title="Copy OTP"
-                        >
-                          {copiedOtpId === item.id ? (
-                            <Check className="w-4 h-4 text-emerald-600" />
-                          ) : (
-                            <Copy className="w-4 h-4" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  {/* Handover: the volunteer shows their code; the donor verifies it before loading */}
+                  <div className="mt-3.5 p-3 bg-linear-to-r from-blue-50 to-indigo-50 border-2 border-dashed border-blue-300 rounded-2xl">
+                    {item.status === "ACCEPTED" ? (
+                      <HandoverCodeForm donationId={item.id} />
+                    ) : (
+                      <span className="flex items-center gap-2 text-xs font-bold text-blue-900 animate-success-in" role="status">
+                        <CheckCircle2 className="w-4 h-4 text-blue-700" />
+                        {t("handover.awaiting_delivery")}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
@@ -224,13 +196,6 @@ export default function HotelPickupsPage() {
                     className="text-xs font-bold text-gray-600 hover:text-gray-900 cursor-pointer"
                   >
                     {t("View Details")}
-                  </button>
-                  <button
-                    onClick={() => completeDonation(item.id)}
-                    className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 transition-all cursor-pointer shadow-xs flex items-center gap-1.5 active:scale-95"
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>{t("Confirm Dock Handover")}</span>
                   </button>
                 </div>
               </div>
@@ -299,7 +264,6 @@ export default function HotelPickupsPage() {
         donation={selectedDonation}
         userRole="HOTEL"
         onClose={() => setSelectedDonation(null)}
-        onCompleteDonation={(id) => completeDonation(id)}
       />
     </div>
   );

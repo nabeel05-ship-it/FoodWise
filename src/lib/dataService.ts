@@ -539,6 +539,85 @@ export async function claimDonationAtomic(
   }
 }
 
+export interface LifecycleTransitionResult {
+  success: boolean;
+  status: number;
+  error?: string;
+  donation?: DonationItem;
+}
+
+/**
+ * Pickup handover: the donor enters the code the volunteer presents.
+ * ACCEPTED → PICKUP only when the code matches the OTP issued at claim time.
+ */
+export async function verifyHandoverAtomic(
+  donationId: string,
+  code: string,
+  verifiedBy?: string
+): Promise<LifecycleTransitionResult> {
+  const entered = String(code || "").trim();
+  if (!/^\d{4}$/.test(entered)) {
+    return { success: false, status: 400, error: "A 4-digit handover code is required." };
+  }
+  const collectEvent: DonationTimelineEvent = {
+    id: `evt-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    action: "COLLECTED",
+    actor: verifiedBy || "Donor",
+    timestamp: new Date().toISOString(),
+    details: "Handover code verified at pickup.",
+  };
+
+  const check = (item: { status: string; otp?: string }): LifecycleTransitionResult | null => {
+    if (item.status === "PICKUP" || item.status === "PICKUP_IN_PROGRESS") return null;
+    if (item.status !== "ACCEPTED") {
+      return {
+        success: false,
+        status: 400,
+        error: `Invalid state transition: Cannot hand over donation with status '${item.status}'.`,
+      };
+    }
+    if (item.otp && item.otp !== entered) {
+      return { success: false, status: 403, error: "Handover code does not match." };
+    }
+    return null;
+  };
+
+  if (!isMongoConfigured()) {
+    const item = memDonations.find((d) => d.id === donationId);
+    if (!item) return { success: false, status: 404, error: "Donation not found" };
+    const failure = check(item);
+    if (failure) return failure;
+    if (item.status !== "ACCEPTED") return { success: true, status: 200, donation: { ...item } };
+    item.status = "PICKUP";
+    item.timeline = [...(item.timeline || []), collectEvent];
+    return { success: true, status: 200, donation: { ...item } };
+  }
+
+  try {
+    const db = await getDatabase();
+    const existing = await db.collection("donations").findOne({ id: donationId });
+    if (!existing) return { success: false, status: 404, error: "Donation not found" };
+    const failure = check(existing as unknown as DonationItem);
+    if (failure) return failure;
+    if (existing.status !== "ACCEPTED") {
+      return { success: true, status: 200, donation: cleanDoc<DonationItem>(existing) };
+    }
+
+    const res = await db.collection<DonationItem>("donations").findOneAndUpdate(
+      { id: donationId, status: "ACCEPTED" },
+      { $set: { status: "PICKUP" }, $push: { timeline: collectEvent } },
+      { returnDocument: "after", projection: { _id: 0 } }
+    );
+    if (!res) {
+      return { success: false, status: 409, error: "Handover conflict: the donation changed state. Please refresh." };
+    }
+    return { success: true, status: 200, donation: cleanDoc<DonationItem>(res) };
+  } catch (error) {
+    console.error("[MongoDB] verifyHandoverAtomic error:", (error as Error).message);
+    return { success: false, status: 500, error: "Failed to verify handover" };
+  }
+}
+
 export interface CompleteDonationResult {
   success: boolean;
   status: number;
@@ -571,11 +650,11 @@ export async function completeDonationAtomic(
     if (item.status === "COMPLETED") {
       return { success: true, status: 200, donation: { ...item } };
     }
-    if (!["ACCEPTED", "PICKUP", "PICKUP_IN_PROGRESS"].includes(item.status)) {
+    if (!["PICKUP", "PICKUP_IN_PROGRESS"].includes(item.status)) {
       return {
         success: false,
         status: 400,
-        error: `Invalid state transition: Cannot complete donation with status '${item.status}'. Donation must be accepted first.`,
+        error: `Invalid state transition: Cannot complete donation with status '${item.status}'. The handover code must be verified at pickup first.`,
       };
     }
     item.status = "COMPLETED";
@@ -593,16 +672,16 @@ export async function completeDonationAtomic(
     if (existing.status === "COMPLETED") {
       return { success: true, status: 200, donation: cleanDoc<DonationItem>(existing) };
     }
-    if (!["ACCEPTED", "PICKUP", "PICKUP_IN_PROGRESS"].includes(existing.status)) {
+    if (!["PICKUP", "PICKUP_IN_PROGRESS"].includes(existing.status)) {
       return {
         success: false,
         status: 400,
-        error: `Invalid state transition: Cannot complete donation with status '${existing.status}'. Donation must be accepted first.`,
+        error: `Invalid state transition: Cannot complete donation with status '${existing.status}'. The handover code must be verified at pickup first.`,
       };
     }
 
     const res = await db.collection<DonationItem>("donations").findOneAndUpdate(
-      { id: donationId, status: { $in: ["ACCEPTED", "PICKUP", "PICKUP_IN_PROGRESS"] } },
+      { id: donationId, status: { $in: ["PICKUP", "PICKUP_IN_PROGRESS"] } },
       {
         $set: {
           status: "COMPLETED",
@@ -846,6 +925,28 @@ export async function createQualityReport(
     console.error("[MongoDB] createQualityReport error:", (error as Error).message);
     memQualityReports = [report, ...memQualityReports];
     return report;
+  }
+}
+
+export async function updateQualityReport(
+  id: string,
+  updates: Pick<FoodQualityReport, "status"> & { statusNote?: string }
+): Promise<FoodQualityReport | null> {
+  if (!isMongoConfigured()) {
+    const idx = memQualityReports.findIndex((r) => r.id === id);
+    if (idx === -1) return null;
+    memQualityReports[idx] = { ...memQualityReports[idx], ...updates };
+    return memQualityReports[idx];
+  }
+  try {
+    const db = await getDatabase();
+    const res = await db
+      .collection<FoodQualityReport>("quality_reports")
+      .findOneAndUpdate({ id }, { $set: updates }, { returnDocument: "after", projection: { _id: 0 } });
+    return res ? cleanDoc<FoodQualityReport>(res) : null;
+  } catch (error) {
+    console.error("[MongoDB] updateQualityReport error:", (error as Error).message);
+    return null;
   }
 }
 

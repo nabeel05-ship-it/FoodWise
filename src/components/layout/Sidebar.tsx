@@ -34,6 +34,7 @@ import { INSTITUTIONS } from "@/lib/mockData";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
 import { tabSpringTransition, badgePopVariants } from "@/lib/motion";
+import LanguageToggle from "@/components/common/LanguageToggle";
 
 interface SidebarProps {
   type: "hotel" | "household" | "ngo" | "kitchen";
@@ -303,6 +304,7 @@ function SidebarContent({ type }: SidebarProps) {
 
               {/* Bottom Actions */}
               <div className="p-3 border-t border-white/[0.06] bg-black/20 space-y-2 shrink-0">
+                <LanguageToggle compact tone="dark" className="w-full justify-between" />
                 <Link
                   href="/"
                   onClick={() => setMobileOpen(false)}
@@ -483,6 +485,11 @@ function SidebarContent({ type }: SidebarProps) {
 
       {/* Bottom Section - Notifications + Settings */}
       <div className="px-3 py-2 border-t border-white/[0.06] space-y-0.5">
+        {!collapsed && (
+          <div className="px-1 pt-1 pb-1.5">
+            <LanguageToggle compact tone="dark" className="w-full justify-between" />
+          </div>
+        )}
         <button
           onClick={() => setIsNotificationOpen(true)}
           className={`w-full flex items-center gap-3 rounded-xl text-[13px] font-medium transition-colors cursor-pointer text-emerald-50/75 hover:text-white hover:bg-white/[0.045] ${

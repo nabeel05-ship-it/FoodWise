@@ -42,16 +42,22 @@ export default function ClaimDonationModal({
       return;
     }
 
+    let issuedOtp = donation.otp;
     if (onConfirmClaim) {
       onConfirmClaim(donation.id, resolvedNgoName, {
         name: driverName,
         phone: driverPhone,
       });
     } else {
-      acceptDonation(donation.id, resolvedNgoName, {
+      const result = acceptDonation(donation.id, resolvedNgoName, {
         name: driverName,
         phone: driverPhone,
       });
+      if (!result.ok) {
+        alert(result.error);
+        return;
+      }
+      issuedOtp = result.otp;
     }
 
     fireMilestoneConfetti({ particleCount: 70, spread: 50 });
@@ -63,7 +69,7 @@ export default function ClaimDonationModal({
         acceptedBy: resolvedNgoName,
         driverName,
         driverPhone,
-        otp: donation.otp || String(Math.floor(1000 + Math.random() * 9000)),
+        otp: issuedOtp,
       });
     } else {
       onClose();

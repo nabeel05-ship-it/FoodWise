@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import Groq from 'groq-sdk';
+import { getFallbackAnswer } from '@/lib/foodieFallback';
 
 const SYSTEM_PROMPT_TEMPLATE = `You are Foodie AI, the built-in assistant for the FoodWise surplus-food redistribution platform.
 
@@ -27,25 +28,36 @@ Role Specific Guidelines (Provide hyper-specific advice for these exact scenario
 - NGO/RELIEF PARTNER: Give flawless instructions on querying available food, claiming donations, managing pickup/handover logistics, last-mile delivery to beneficiaries, logging delivery status, and filing strict food-quality issue reports.
 `;
 
+type ChatMessage = { role: string; content: string };
+
+function lastUserText(messages: ChatMessage[]): string {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i]?.role === 'user' && typeof messages[i].content === 'string') return messages[i].content;
+  }
+  return '';
+}
+
 export async function POST(req: Request) {
+  let messages: ChatMessage[] = [];
+  let role: string | undefined;
+
   try {
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) {
-      console.error('GROQ_API_KEY is missing from environment variables');
-      return NextResponse.json(
-        { error: 'Foodie AI is currently unavailable.' },
-        { status: 503 }
-      );
-    }
-
-    const groq = new Groq({ apiKey });
-
     const body = await req.json();
-    const { messages, role, currentSection } = body;
+    messages = body.messages;
+    role = body.role;
+    const { currentSection } = body;
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json({ error: 'Invalid messages' }, { status: 400 });
     }
+
+    // Without a model key, answer from the built-in FoodWise guide instead of failing
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ message: getFallbackAnswer(lastUserText(messages), role), source: 'offline' });
+    }
+
+    const groq = new Groq({ apiKey });
 
     const systemPrompt = SYSTEM_PROMPT_TEMPLATE
       .replace('{{role}}', role || 'Unknown')
@@ -54,7 +66,7 @@ export async function POST(req: Request) {
     const apiMessages = [
       { role: 'system', content: systemPrompt },
       ...messages
-    ];
+    ] as Groq.Chat.ChatCompletionMessageParam[];
 
     const model = process.env.GROQ_MODEL || 'openai/gpt-oss-20b';
 
@@ -71,6 +83,10 @@ export async function POST(req: Request) {
 
   } catch (error: unknown) {
     console.error('Foodie AI API Error:', error instanceof Error ? error.message : String(error));
+    if (Array.isArray(messages) && messages.length > 0) {
+      // Model call failed (network, quota): fall back to the built-in guide
+      return NextResponse.json({ message: getFallbackAnswer(lastUserText(messages), role), source: 'offline' });
+    }
     return NextResponse.json(
       { error: 'Foodie AI is temporarily unavailable. Please try again.' },
       { status: 500 }

@@ -1,6 +1,11 @@
 "use client";
 
-import React, { createContext, useContext, useCallback, useEffect } from "react";
+import React, { createContext, useContext, useCallback, useEffect, useSyncExternalStore } from "react";
+import { PHRASE_DICTIONARY, translateHindiToEnglish, isDevanagari } from "./dictionary";
+import { KN_PHRASE_DICTIONARY, translateKannadaToEnglish, isKannada } from "./kannadaDictionary";
+import { HI_TRANSLATIONS } from "./locales/hi";
+import { KN_TRANSLATIONS } from "./locales/kn";
+import DomAutoTranslator from "./domTranslator";
 
 export type Language = "en" | "hi" | "kn";
 
@@ -105,7 +110,7 @@ const translations: Record<string, string> = {
   "notif.new_surplus_posted_title": "New Surplus Food Donation Posted",
   "notif.new_surplus_posted_msg": "{{donor}} ({{type}}) posted {{quantity}} kg of {{food}} ({{servings}} servings) in {{city}}.",
   "notif.donation_claimed_title": "Donation Claimed by NGO!",
-  "notif.donation_claimed_msg": "{{ngo}} accepted {{food}} from {{donor}}. Pickup OTP: {{otp}}.",
+  "notif.donation_claimed_msg": "{{ngo}} accepted {{food}} from {{donor}}. Volunteer {{driver}} will show a 4-digit handover code at pickup.",
   "notif.food_delivered_title": "Food Delivered & Verified!",
   "notif.food_delivered_msg": "Handover verified! ~{{people}} people fed and {{weight}} kg food waste prevented.",
   "notif.category.donation": "Donation",
@@ -1818,63 +1823,141 @@ const translations: Record<string, string> = {
   "impact.total_food_donated": "Total Food Donated",
   "impact.people_fed_servings": "People Fed / Servings",
   "impact.cumulative_surplus_desc": "Cumulative surplus food preserved and meals served across all donor partners.",
-  "impact.verified_community_ledger": "Verified Community Ledger"
+  "impact.verified_community_ledger": "Verified Community Ledger",
+  "common.saving": "Saving...",
+  "handover.enter_code": "Enter the volunteer's 4-digit handover code",
+  "handover.verify_button": "Verify & hand over",
+  "handover.verified": "Code verified — food handed over to the volunteer.",
+  "handover.collected": "Collected · in transit",
+  "handover.awaiting_delivery": "Collected — awaiting delivery confirmation from the NGO",
+  "handover.share_code": "Share this code with your volunteer; the donor enters it at pickup",
+  "handover.awaiting_code": "Waiting for the donor to verify the code at pickup",
+  "handover.awaiting_driver_code": "Awaiting handover code",
+  "handover.confirm_delivery": "Confirm Delivery to Shelter",
+  "handover.no_history": "No completed deliveries yet. Delivered donations will appear here.",
+  "notif.food_collected_title": "Food Handed Over",
+  "notif.food_collected_msg": "Handover code verified. {{driver}} collected {{food}}.",
+  "quality.review_progress": "Review progress",
+  "quality.step_reported": "Reported",
+  "quality.step_review": "Under review",
+  "quality.step_resolved": "Resolved",
+  "quality.note_placeholder": "Add a review note (optional)",
+  "quality.start_review": "Start review",
+  "quality.mark_resolved": "Mark resolved",
+  "donation.cancel_listing": "Cancel listing",
+  "donation.confirm_cancel": "Confirm cancellation",
 };
+
+const LANG_STORAGE_KEY = "fw_lang";
+
+/**
+ * Resolves a translation key (or raw English text) for the active language.
+ * Order: keyed locale dictionary → phrase dictionary for the English text → English.
+ */
+function resolve(keyOrText: string, lang: Language): string {
+  const english = translations[keyOrText];
+
+  if (lang === "en") {
+    if (english !== undefined) return english;
+    if (isDevanagari(keyOrText)) return translateHindiToEnglish(keyOrText);
+    if (isKannada(keyOrText)) return translateKannadaToEnglish(keyOrText);
+    return keyOrText;
+  }
+
+  const source = (english ?? keyOrText).trim();
+  if (lang === "hi") {
+    return HI_TRANSLATIONS[keyOrText] ?? PHRASE_DICTIONARY[source] ?? PHRASE_DICTIONARY[keyOrText] ?? english ?? keyOrText;
+  }
+  return (
+    KN_TRANSLATIONS[keyOrText] ??
+    KN_PHRASE_DICTIONARY[source] ??
+    KN_PHRASE_DICTIONARY[keyOrText] ??
+    KN_TRANSLATIONS[source] ??
+    english ??
+    keyOrText
+  );
+}
+
+function interpolate(text: string, params?: Record<string, string | number>): string {
+  if (!params) return text;
+  let result = text;
+  Object.entries(params).forEach(([key, value]) => {
+    result = result.replace(new RegExp(`{{${key}}}`, "g"), String(value));
+  });
+  return result;
+}
+
+// Language store backed by localStorage (with an in-memory fallback when storage is blocked)
+let memoryLang: Language = "en";
+const langListeners = new Set<() => void>();
+
+function readLang(): Language {
+  try {
+    const stored = localStorage.getItem(LANG_STORAGE_KEY);
+    if (stored === "hi" || stored === "kn" || stored === "en") return stored;
+  } catch {
+    // storage unavailable
+  }
+  return memoryLang;
+}
+
+function subscribeLang(listener: () => void) {
+  langListeners.add(listener);
+  window.addEventListener("storage", listener);
+  return () => {
+    langListeners.delete(listener);
+    window.removeEventListener("storage", listener);
+  };
+}
+
+function writeLang(next: Language) {
+  memoryLang = next;
+  try {
+    localStorage.setItem(LANG_STORAGE_KEY, next);
+  } catch {
+    // keep the in-memory choice
+  }
+  langListeners.forEach((listener) => listener());
+}
 
 const LanguageContext = createContext<LanguageContextType>({
   lang: "en",
   setLang: () => {},
-  t: (key: string, params?: Record<string, string | number>) => {
-    let result = translations[key] ?? key;
-    if (params) {
-      Object.entries(params).forEach(([k, v]) => {
-        result = result.replace(new RegExp(`{{${k}}}`, "g"), String(v));
-      });
-    }
-    return result;
-  },
+  t: (key: string, params?: Record<string, string | number>) => interpolate(resolve(key, "en"), params),
   toggleLang: () => {},
 });
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
+  // English on the server and during hydration; the saved choice applies right after
+  const lang = useSyncExternalStore(subscribeLang, readLang, () => "en" as Language);
+
   useEffect(() => {
-    try {
-      localStorage.removeItem("fw_lang");
-      localStorage.setItem("fw_lang", "en");
-    } catch {
-      // ignore
-    }
-  }, []);
+    document.documentElement.lang = lang;
+  }, [lang]);
+
+  const setLang = useCallback((next: Language) => writeLang(next), []);
+
+  const toggleLang = useCallback(() => {
+    setLang(lang === "en" ? "hi" : lang === "hi" ? "kn" : "en");
+  }, [lang, setLang]);
 
   const t = useCallback(
     (keyOrText: string, params?: Record<string, string | number>): string => {
       if (!keyOrText) return "";
-      let result = translations[keyOrText] ?? keyOrText;
-      if (params) {
-        Object.entries(params).forEach(([key, value]) => {
-          const regex = new RegExp(`{{${key}}}`, "g");
-          result = result.replace(regex, String(value));
-        });
-      }
-      return result;
+      return interpolate(resolve(keyOrText, lang), params);
     },
-    []
+    [lang]
   );
 
-  const setLang = useCallback((_lang: Language) => {}, []);
-  const toggleLang = useCallback(() => {}, []);
-
   return (
-    <LanguageContext.Provider value={{ lang: "en", setLang, t, toggleLang }}>
+    <LanguageContext.Provider value={{ lang, setLang, t, toggleLang }}>
+      {/* Translates rendered text that doesn't pass through t() (hard-coded copy, dynamic labels) */}
+      <DomAutoTranslator />
       {children}
     </LanguageContext.Provider>
   );
 }
 
 export function useLang() {
-  const context = useContext(LanguageContext);
-  if (!context) {
-    throw new Error("useLang must be used within a LanguageProvider");
-  }
-  return context;
+  return useContext(LanguageContext);
 }

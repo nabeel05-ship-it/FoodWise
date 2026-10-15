@@ -58,7 +58,7 @@ const EXAMPLE = {
 };
 
 type Actor = "Donor" | "NGO" | "Donor & Volunteer" | "FoodWise";
-type Status = "AVAILABLE" | "ACCEPTED" | "COMPLETED" | "FLAGGED_FOR_REVIEW";
+type Status = "AVAILABLE" | "ACCEPTED" | "PICKUP" | "COMPLETED" | "FLAGGED_FOR_REVIEW";
 
 interface Stage {
   id: number;
@@ -70,7 +70,7 @@ interface Stage {
   icon: React.ComponentType<{ className?: string }>;
   description: string;
   records: string[];
-  status: { from?: Status; to: Status; note: string };
+  status: { from?: Status; via?: Status; to: Status; note: string };
   Visual: React.ComponentType<{ reduced: boolean }>;
 }
 
@@ -113,6 +113,7 @@ const ACTOR_STYLES: Record<Actor, string> = {
 const STATUS_STYLES: Record<Status, string> = {
   AVAILABLE: "bg-emerald-400/15 text-emerald-200 ring-emerald-300/35",
   ACCEPTED: "bg-sky-400/15 text-sky-200 ring-sky-300/35",
+  PICKUP: "bg-violet-400/15 text-violet-200 ring-violet-300/35",
   COMPLETED: "bg-teal-300/20 text-teal-100 ring-teal-200/40",
   FLAGGED_FOR_REVIEW: "bg-amber-400/15 text-amber-200 ring-amber-300/35",
 };
@@ -367,21 +368,7 @@ function ClaimDemo({ reduced }: { reduced: boolean }) {
 }
 
 function HandoverDemo({ reduced }: { reduced: boolean }) {
-  const otpCard = (role: string, name: string) => (
-    <div className="flex-1 min-w-0 p-2.5 rounded-lg bg-white/[0.03] ring-1 ring-inset ring-white/[0.07] text-center">
-      <span className="block text-[10px] uppercase tracking-wider text-emerald-200/55 font-semibold">{role}</span>
-      <span className="block text-[11px] text-emerald-50/85 truncate">{name}</span>
-      <motion.span
-        initial={reduced ? false : { color: "#FFFFFF" }}
-        animate={{ color: "#6EE7B7" }}
-        transition={{ delay: 1.9, duration: 0.4 }}
-        className="block font-mono text-xl font-bold tracking-[0.3em] mt-1 pl-[0.3em]"
-      >
-        {EXAMPLE.otp}
-      </motion.span>
-    </div>
-  );
-
+  const digits = EXAMPLE.otp.split("");
   return (
     <DemoFrame title="Pickup & handover" meta="Pickup gate" icon={KeyRound}>
       <motion.div variants={demoVariants} initial={reduced ? false : "hidden"} animate="visible" className="space-y-3">
@@ -393,15 +380,36 @@ function HandoverDemo({ reduced }: { reduced: boolean }) {
             className="absolute bottom-0 w-8 h-8 rounded-full bg-emerald-400 text-emerald-950 flex items-center justify-center shadow-[0_0_16px_rgba(52,211,153,0.6)]"
             initial={reduced ? false : { left: "0%" }}
             animate={{ left: "calc(100% - 2rem)" }}
-            transition={{ duration: 1.4, delay: 0.35, ease: MOTION_EASINGS.apple }}
+            transition={{ duration: 1.2, delay: 0.3, ease: MOTION_EASINGS.apple }}
           >
             <Truck className="w-4 h-4" />
           </motion.div>
         </motion.div>
 
         <motion.div variants={itemVariants} className="relative flex items-stretch gap-2">
-          {otpCard("Volunteer", "Rajesh Kumar")}
-          {otpCard("Donor", "Pickup gate")}
+          <div className="flex-1 min-w-0 p-2.5 rounded-lg bg-white/[0.03] ring-1 ring-inset ring-white/[0.07] text-center">
+            <span className="block text-[10px] uppercase tracking-wider text-emerald-200/55 font-semibold">Volunteer shows</span>
+            <span className="block font-mono text-xl font-bold tracking-[0.3em] pl-[0.3em] mt-1 text-white">{EXAMPLE.otp}</span>
+          </div>
+          <div className="flex-1 min-w-0 p-2.5 rounded-lg bg-white/[0.03] ring-1 ring-inset ring-white/[0.07] text-center">
+            <span className="block text-[10px] uppercase tracking-wider text-emerald-200/55 font-semibold">Donor enters</span>
+            <span className="flex justify-center gap-1 mt-1">
+              {digits.map((digit, i) => (
+                <span
+                  key={i}
+                  className="w-6 h-7 rounded-md bg-white/[0.06] ring-1 ring-inset ring-emerald-300/30 flex items-center justify-center font-mono text-base font-bold text-emerald-200"
+                >
+                  <motion.span
+                    initial={reduced ? false : { opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1.2 + i * 0.16, duration: 0.2 }}
+                  >
+                    {digit}
+                  </motion.span>
+                </span>
+              ))}
+            </span>
+          </div>
           <motion.span
             initial={reduced ? false : { opacity: 0, scale: 0.4 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -414,13 +422,25 @@ function HandoverDemo({ reduced }: { reduced: boolean }) {
 
         <motion.div variants={itemVariants} className="text-[11px] text-emerald-50/85 flex items-center gap-1.5">
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
-          Codes match · donor confirms handover
+          Codes match · food released · NGO confirms delivery
         </motion.div>
 
-        <motion.div variants={itemVariants} className="flex items-center gap-1.5">
+        <motion.div variants={itemVariants} className="flex items-center gap-1.5 flex-wrap">
           <StatusChip status="ACCEPTED" className="opacity-50" />
           <ArrowRight className="w-3 h-3 text-emerald-200/50" />
-          <motion.span variants={popVariants}>
+          <motion.span
+            initial={reduced ? false : { opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 2.2, type: "spring", stiffness: 420, damping: 18 }}
+          >
+            <StatusChip status="PICKUP" />
+          </motion.span>
+          <ArrowRight className="w-3 h-3 text-emerald-200/50" />
+          <motion.span
+            initial={reduced ? false : { opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 2.7, type: "spring", stiffness: 420, damping: 18 }}
+          >
             <StatusChip status="COMPLETED" />
           </motion.span>
         </motion.div>
@@ -598,11 +618,11 @@ const STAGES: Stage[] = [
     actor: "NGO",
     icon: HeartHandshake,
     description:
-      "The NGO claims the donation and names the volunteer driver who will collect it. FoodWise generates a one-time 4-digit handover code and notifies the donor.",
+      "The NGO claims the donation and names the volunteer driver who will collect it. FoodWise issues a one-time 4-digit handover code to the NGO's volunteer and notifies the donor.",
     records: [
       "Claiming NGO and time of claim",
       "Volunteer driver name and phone number",
-      "4-digit handover OTP, shown to donor and NGO",
+      "4-digit handover code, held by the volunteer",
     ],
     status: { from: "AVAILABLE", to: "ACCEPTED", note: "Reserved for the claiming NGO" },
     Visual: ClaimDemo,
@@ -611,17 +631,17 @@ const STAGES: Stage[] = [
     id: 4,
     short: "OTP Handover",
     tiny: "OTP",
-    title: "Pickup and OTP handover",
+    title: "Verified pickup and delivery",
     actor: "Donor & Volunteer",
     icon: KeyRound,
     description:
-      "The volunteer arrives at the pickup point and the 4-digit code is matched on both sides. The donor then confirms the handover, which completes the donation.",
+      "At pickup the volunteer shows their 4-digit code and the donor enters it. A matching code releases the food; once it reaches a shelter, the NGO confirms delivery and the donation completes.",
     records: [
-      "Matching OTP on the donor and NGO screens",
-      "Handover confirmation and completion time",
+      "Donor enters the volunteer's code; a wrong code is rejected",
+      "Collection and delivery recorded on the donation's timeline",
       "Donation record available as a PDF",
     ],
-    status: { from: "ACCEPTED", to: "COMPLETED", note: "Donor receives a delivery notification" },
+    status: { from: "ACCEPTED", via: "PICKUP", to: "COMPLETED", note: "Donor and NGO are notified at each step" },
     Visual: HandoverDemo,
   },
   {
@@ -634,7 +654,7 @@ const STAGES: Stage[] = [
     description:
       "If something is wrong, like spoiled food, damaged packaging or a mismatch with the listing, the NGO files a quality report. Good donations are rated, and ratings earn the donor points.",
     records: [
-      "Issue type, severity (Low, Medium or High) and an optional photo",
+      "Issue type, severity and optional photo, reviewed from Reported to Resolved",
       "Ratings for food quality, packaging, timeliness and quantity",
       "Points toward Bronze, Silver, Gold and Platinum donor tiers",
     ],
@@ -954,6 +974,12 @@ export default function FoodRedistributionWorkflow({
               {current.status.from && current.status.from !== current.status.to && (
                 <>
                   <StatusChip status={current.status.from} className="opacity-55" />
+                  <ArrowRight className="w-3 h-3 text-emerald-200/50" />
+                </>
+              )}
+              {current.status.via && (
+                <>
+                  <StatusChip status={current.status.via} className="opacity-80" />
                   <ArrowRight className="w-3 h-3 text-emerald-200/50" />
                 </>
               )}

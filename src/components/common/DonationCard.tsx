@@ -29,7 +29,6 @@ interface DonationCardProps {
   onViewDetails: (item: DonationItem) => void;
   onRequestClaim?: (item: DonationItem) => void;
   onRequestFood?: (item: DonationItem) => void;
-  onCompleteHandover?: (item: DonationItem) => void;
   onDonateAgain?: (item: DonationItem) => void;
 }
 
@@ -39,7 +38,6 @@ export default function DonationCard({
   onViewDetails,
   onRequestClaim,
   onRequestFood,
-  onCompleteHandover,
   onDonateAgain,
 }: DonationCardProps) {
   const { t } = useLang();
@@ -232,11 +230,24 @@ export default function DonationCard({
               <AlertTriangle className="w-3 h-3 text-amber-600" />
               <span>Quality Review</span>
             </span>
-          ) : isAccepted && donation.otp ? (
-            <div className="flex items-center gap-1.5 text-blue-900 bg-blue-100 px-2 py-0.5 rounded-lg font-mono font-bold text-[11px]">
+          ) : donation.status === "PICKUP" || donation.status === "PICKUP_IN_PROGRESS" ? (
+            <span className="text-blue-800 font-semibold text-[11px] flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3 text-blue-600" />
+              {t("handover.collected")}
+            </span>
+          ) : isAccepted && isNgo && donation.otp ? (
+            <div
+              className="flex items-center gap-1.5 text-blue-900 bg-blue-100 px-2 py-0.5 rounded-lg font-mono font-bold text-[11px]"
+              title={t("handover.share_code")}
+            >
               <Key className="w-3 h-3 text-blue-700" />
               <span>OTP: {donation.otp}</span>
             </div>
+          ) : isAccepted && !isNgo ? (
+            <span className="text-blue-800 font-semibold text-[11px] flex items-center gap-1">
+              <Key className="w-3 h-3 text-blue-600" />
+              {t("handover.awaiting_driver_code")}
+            </span>
           ) : isCompleted ? (
             <span className="text-emerald-700 font-semibold text-[11px] flex items-center gap-1">
               <CheckCircle2 className="w-3 h-3 text-emerald-600" />
@@ -266,9 +277,9 @@ export default function DonationCard({
             </motion.button>
           )}
 
-          {!isNgo && isAccepted && onCompleteHandover && (
+          {!isNgo && donation.status === "ACCEPTED" && (
             <motion.button
-              onClick={() => onCompleteHandover(donation)}
+              onClick={() => onViewDetails(donation)}
               whileHover={prefersReduced ? undefined : { scale: 1.03 }}
               whileTap={prefersReduced ? undefined : { scale: 0.95 }}
               className="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-blue-700 hover:bg-blue-800 transition-all cursor-pointer flex items-center gap-1 shadow-xs"

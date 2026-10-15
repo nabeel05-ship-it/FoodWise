@@ -5,8 +5,9 @@
  * 1. Valid donation creation with storage condition & allergens
  * 2. Invalid donation input rejection (quantity <= 0, empty food, expired date)
  * 3. Atomic claim & concurrency protection (prevent duplicate NGO claims)
- * 4. Safe pickup & delivery lifecycle (AVAILABLE -> ACCEPTED -> COMPLETED)
- * 5. Invalid status transition rejection (cannot jump AVAILABLE -> COMPLETED)
+ * 4. Verified pickup & delivery lifecycle (AVAILABLE -> ACCEPTED -> PICKUP via OTP -> COMPLETED)
+ * 5. Invalid status transition rejection (cannot jump AVAILABLE/ACCEPTED -> COMPLETED)
+ * 9. Live API lifecycle checks (set FOODWISE_BASE_URL to a running, non-production server)
  * 6. Food quality reporting workflow & donation review flagging
  * 7. Real impact metrics calculation from persisted records
  * 8. Zero map references audit across codebase
@@ -103,9 +104,10 @@ async function runTests() {
 
   let client;
   try {
+   suite2: {
     if (!mongoUri) {
       console.log('  ⚠️ MONGODB_URI not configured. Skipping live MongoDB tests.');
-      return;
+      break suite2;
     }
 
     client = new MongoClient(mongoUri);
@@ -226,15 +228,48 @@ async function runTests() {
     const fakeAvailableId = `fake-avail-${Date.now()}`;
     await donationsCol.insertOne({ id: fakeAvailableId, status: 'AVAILABLE', foodName: 'Unclaimed Food', quantityKg: 5 });
     const invalidComplete = await donationsCol.findOneAndUpdate(
-      { id: fakeAvailableId, status: { $in: ['ACCEPTED', 'PICKUP', 'PICKUP_IN_PROGRESS'] } },
+      { id: fakeAvailableId, status: { $in: ['PICKUP', 'PICKUP_IN_PROGRESS'] } },
       { $set: { status: 'COMPLETED' } }
     );
     assert(invalidComplete === null, 'Invalid transition rejected: Cannot mark donation as COMPLETED directly from AVAILABLE');
     await donationsCol.deleteOne({ id: fakeAvailableId });
 
-    // 5. Valid Delivery Completion & OTP Verification
+    // 5. Handover verification: completion is blocked until the donor verifies the volunteer's code
+    const prematureComplete = await donationsCol.findOneAndUpdate(
+      { id: testDonationId, status: { $in: ['PICKUP', 'PICKUP_IN_PROGRESS'] } },
+      { $set: { status: 'COMPLETED' } }
+    );
+    assert(prematureComplete === null, 'Completion rejected while ACCEPTED: handover code not yet verified');
+
+    const claimed = await donationsCol.findOne({ id: testDonationId });
+    const wrongCode = claimed.otp === '0000' ? '1111' : '0000';
+    const wrongHandover = await donationsCol.findOneAndUpdate(
+      { id: testDonationId, status: 'ACCEPTED', otp: wrongCode },
+      { $set: { status: 'PICKUP' } }
+    );
+    assert(wrongHandover === null, 'Handover with a wrong code is rejected');
+
+    const handoverRes = await donationsCol.findOneAndUpdate(
+      { id: testDonationId, status: 'ACCEPTED', otp: claimed.otp },
+      {
+        $set: { status: 'PICKUP' },
+        $push: {
+          timeline: {
+            id: `evt-${Date.now()}-2b`,
+            action: 'COLLECTED',
+            actor: 'Bengaluru Grand Banquet',
+            timestamp: new Date().toISOString(),
+            details: 'Handover code verified at pickup.',
+          },
+        },
+      },
+      { returnDocument: 'after' }
+    );
+    assert(handoverRes !== null && handoverRes.status === 'PICKUP', 'Matching handover code moves the donation from ACCEPTED to PICKUP');
+
+    // 6. Valid Delivery Completion after verified handover
     const completeRes = await donationsCol.findOneAndUpdate(
-      { id: testDonationId, status: { $in: ['ACCEPTED', 'PICKUP', 'PICKUP_IN_PROGRESS'] } },
+      { id: testDonationId, status: { $in: ['PICKUP', 'PICKUP_IN_PROGRESS'] } },
       {
         $set: {
           status: 'COMPLETED',
@@ -252,8 +287,8 @@ async function runTests() {
       },
       { returnDocument: 'after' }
     );
-    assert(completeRes !== null && completeRes.status === 'COMPLETED', 'Valid state transition: Successfully updated from ACCEPTED to COMPLETED');
-    assert(completeRes.timeline.length === 3, `Chain of custody timeline has all 3 chronological milestones (Actions: ${completeRes.timeline.map(t => t.action).join(' -> ')})`);
+    assert(completeRes !== null && completeRes.status === 'COMPLETED', 'Valid state transition: Successfully updated from PICKUP to COMPLETED');
+    assert(completeRes.timeline.length === 4, `Chain of custody timeline has all 4 chronological milestones (Actions: ${completeRes.timeline.map(t => t.action).join(' -> ')})`);
 
     // 6. Food Quality Issue Reporting
     const reportId = `fqr-test-${Date.now()}`;
@@ -316,11 +351,70 @@ async function runTests() {
     await qualityCol.deleteOne({ id: reportId });
     console.log('  🧹 Cleaned up temporary test donation & quality report records');
 
+   }
   } catch (err) {
     console.error('Database test error:', err.message);
     failed++;
   } finally {
     if (client) await client.close();
+  }
+
+  // ------------------------------------------------------------
+  // TEST SUITE 3: LIVE API LIFECYCLE (against a running dev/staging server)
+  // ------------------------------------------------------------
+  console.log('\n--- SUITE 3: Live API Lifecycle & Handover Verification ---');
+  const baseUrl = process.env.FOODWISE_BASE_URL;
+  if (!baseUrl) {
+    console.log('  ⚠️ FOODWISE_BASE_URL not set. Skipping live API tests (e.g. FOODWISE_BASE_URL=http://localhost:3000 npm test).');
+  } else {
+    try {
+      const api = async (method, body) => {
+        const res = await fetch(`${baseUrl}/api/surplus`, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: body ? JSON.stringify(body) : undefined,
+        });
+        return { status: res.status, json: await res.json().catch(() => ({})) };
+      };
+      const id = `api-test-${Date.now()}`;
+      const later = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
+      const created = await api('POST', { id, foodName: 'API Test Meals', quantityKg: 12, pickupDeadline: later });
+      assert(created.status === 200, 'API: donation created');
+
+      const badComplete = await api('PATCH', { id, status: 'COMPLETED' });
+      assert(badComplete.status === 400, 'API: AVAILABLE -> COMPLETED rejected');
+
+      const claim = await api('PATCH', { id, status: 'ACCEPTED', acceptedBy: 'API Test NGO', otp: '2468' });
+      assert(claim.status === 200 && claim.json.data?.otp === '2468', 'API: claim accepted and OTP issued');
+
+      const doubleClaim = await api('PATCH', { id, status: 'ACCEPTED', acceptedBy: 'Second NGO' });
+      assert(doubleClaim.status === 409, 'API: second claim rejected (409)');
+
+      const early = await api('PATCH', { id, status: 'COMPLETED' });
+      assert(early.status === 400, 'API: completion before verified handover rejected');
+
+      const wrong = await api('PATCH', { id, status: 'PICKUP', otp: '1357' });
+      assert(wrong.status === 403, 'API: wrong handover code rejected (403)');
+
+      const jump = await api('PATCH', { id, status: 'AVAILABLE' });
+      assert(jump.status === 400, 'API: direct status jump rejected');
+
+      const handover = await api('PATCH', { id, status: 'PICKUP', otp: '2468' });
+      assert(handover.status === 200 && handover.json.data?.status === 'PICKUP', 'API: matching code verifies the handover');
+
+      const cancelLate = await api('PATCH', { id, status: 'CANCELLED' });
+      assert(cancelLate.status === 400, 'API: cancelling after pickup rejected');
+
+      const done = await api('PATCH', { id, status: 'COMPLETED' });
+      const actions = (done.json.data?.timeline || []).map((e) => e.action).join(' -> ');
+      assert(done.status === 200 && done.json.data?.status === 'COMPLETED', 'API: delivery confirmed after verified handover');
+      assert(actions.includes('ACCEPTED') && actions.includes('COLLECTED') && actions.includes('DELIVERED'), `API: timeline recorded (${actions})`);
+
+      await fetch(`${baseUrl}/api/surplus?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    } catch (err) {
+      console.error('API test error:', err.message);
+      failed++;
+    }
   }
 
   // ------------------------------------------------------------

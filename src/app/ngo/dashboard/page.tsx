@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense, useMemo, useEffect } from "react";
+import React, { useState, Suspense, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
@@ -93,41 +93,6 @@ const RELIEF_DESTINATIONS = [
   { name: "Jayanagar Community Kitchen Distribution Point, Bengaluru", capacity: "200 meals" },
 ];
 
-const DEFAULT_SCHEDULED_PICKUPS: ScheduledPickup[] = [
-  {
-    id: "sched-1",
-    itemId: "feed-3",
-    institution: "Hotel Jewel Rock & Banquets",
-    food: "Breakfast Buffet Surplus (25 kg)",
-    destination: "Rotary Food Relief Shelter, Jayanagara",
-    driver: "Ramesh Kumar (Van KA-14-EA-4492)",
-    phone: "+91 81822 34567",
-    otp: "6482",
-    eta: "Arriving at Kitchen in 8 mins",
-    status: "En Route to Kitchen",
-    lat: 13.9351265,
-    lng: 75.5684887,
-    quantityKg: 25,
-    timestamp: Date.now() - 1000 * 60 * 15,
-  },
-  {
-    id: "sched-2",
-    itemId: "feed-1",
-    institution: "Hotel Mathura Paradise & Dining",
-    food: "South Indian Thali Surplus (18 kg)",
-    destination: "Hasiru Dala Community Camp, Hosamane",
-    driver: "Satish Poojary (E-Loader KA-14-M-9021)",
-    phone: "+91 81822 12345",
-    otp: "4119",
-    eta: "Loaded & In Transit to Shelter",
-    status: "Delivering to Shelter",
-    lat: 13.9350486,
-    lng: 75.5743626,
-    quantityKg: 18,
-    timestamp: Date.now() - 1000 * 60 * 45,
-  },
-];
-
 export interface PastPickupHistoryItem {
   id: string;
   date: string;
@@ -138,39 +103,6 @@ export interface PastPickupHistoryItem {
   driver: string;
   status: string;
 }
-
-const INITIAL_PAST_HISTORY: PastPickupHistoryItem[] = [
-  {
-    id: "hist-1",
-    date: "Yesterday, 3:30 PM",
-    institution: "Meenakshi Bhavan Heritage Restaurant",
-    food: "Rice, Sambhar & Poriyal (15 kg)",
-    recipient: "Rotary Food Relief Shelter (45 meals)",
-    receipt: "FW-RELIEF-9041",
-    driver: "Ramesh Kumar (Van KA-14-EA-4492)",
-    status: "Delivered & Verified",
-  },
-  {
-    id: "hist-2",
-    date: "Yesterday, 2:15 PM",
-    institution: "Local Resident",
-    food: "Homemade Pulao & Sabzi (3.5 kg)",
-    recipient: "Ashraya Care Center (10 meals)",
-    receipt: "FW-RELIEF-8992",
-    driver: "Satish Poojary (E-Loader KA-14-M-9021)",
-    status: "Delivered & Verified",
-  },
-  {
-    id: "hist-3",
-    date: "Sep 22, 4:00 PM",
-    institution: "Hotel Jewel Rock & Banquets",
-    food: "Banquet Dinner Surplus (45 kg)",
-    recipient: "Sahyadri Relief Center (140 meals)",
-    receipt: "FW-RELIEF-8951",
-    driver: "Vikram Naik (Van KA-14-B-1108)",
-    status: "Delivered & Verified",
-  },
-];
 
 const initialFeed: SurplusFeedItem[] = [
   {
@@ -349,7 +281,6 @@ const BENGALURU_DONOR_PROFILES: Record<
 };
 
 const generateOtp = () => String(Math.floor(1000 + Math.random() * 9000));
-const generateHistId = () => `hist-${Date.now()}`;
 const getNow = () => Date.now();
 
 function dedupeById<T extends { id?: string }>(items: T[]): T[] {
@@ -437,52 +368,71 @@ function NgoDashboardContent() {
     return dedupeById(list);
   }, [donations]);
 
-  // Scheduled pickups state (with localStorage persistence)
-  const [scheduledPickups, setScheduledPickups] = useState<ScheduledPickup[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("foodwise_ngo_scheduled_pickups");
-        if (saved) return dedupeById(JSON.parse(saved));
-      } catch {}
+  // Dispatch details the NGO chooses when scheduling (destination shelter, vehicle); the
+  // donation itself (status, driver, OTP) remains the single source of truth.
+  const [dispatchDetails, setDispatchDetails] = useState<
+    Record<string, { destination: string; driver: string; eta: string }>
+  >(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      return JSON.parse(localStorage.getItem("foodwise_ngo_dispatch_details") || "{}");
+    } catch {
+      return {};
     }
-    return dedupeById(DEFAULT_SCHEDULED_PICKUPS);
   });
+  const [lifecycleError, setLifecycleError] = useState<string | null>(null);
 
-  // Pickup delivery history state (with localStorage persistence)
-  const [pickupHistory, setPickupHistory] = useState<PastPickupHistoryItem[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("foodwise_ngo_pickup_history");
-        if (saved) return dedupeById(JSON.parse(saved));
-      } catch {}
-    }
-    return dedupeById(INITIAL_PAST_HISTORY);
-  });
+  const myNgoName = activeNgo?.name;
 
-  // Hydrate scheduled pickups and pickup history from MongoDB via /api/pickups
-  useEffect(() => {
-    let isMounted = true;
-    async function loadPickups() {
-      try {
-        const res = await fetch("/api/pickups");
-        const json = await res.json();
-        if (isMounted && json.success && json.data) {
-          if (Array.isArray(json.data.scheduledPickups) && json.data.scheduledPickups.length > 0) {
-            setScheduledPickups(dedupeById(json.data.scheduledPickups));
-          }
-          if (Array.isArray(json.data.pickupHistory) && json.data.pickupHistory.length > 0) {
-            setPickupHistory(dedupeById(json.data.pickupHistory));
-          }
-        }
-      } catch (err) {
-        console.warn("Could not fetch pickups from server:", err);
-      }
-    }
-    loadPickups();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  // Active collections: donations this NGO has claimed that aren't delivered yet
+  const scheduledPickups: ScheduledPickup[] = useMemo(
+    () =>
+      donations
+        .filter(
+          (d) =>
+            (d.status === "ACCEPTED" || d.status === "PICKUP" || d.status === "PICKUP_IN_PROGRESS") &&
+            (!myNgoName || d.acceptedBy === myNgoName)
+        )
+        .map((d) => {
+          const details = dispatchDetails[d.id];
+          const collected = d.status !== "ACCEPTED";
+          return {
+            id: `sched-${d.id}`,
+            itemId: d.id,
+            institution: d.donorName,
+            food: `${d.foodName} (${d.quantityKg} kg)`,
+            destination: details?.destination || RELIEF_DESTINATIONS[0].name,
+            driver: details?.driver || d.driverName || "Volunteer driver",
+            phone: d.driverPhone || "",
+            otp: d.otp || "",
+            eta: collected ? "Loaded & In Transit to Shelter" : details?.eta || "Heading to pickup",
+            status: collected ? "Delivering to Shelter" : "En Route to Kitchen",
+            quantityKg: d.quantityKg,
+          };
+        }),
+    [donations, dispatchDetails, myNgoName]
+  );
+
+  // Delivery history: completed donations this NGO handled
+  const pickupHistory: PastPickupHistoryItem[] = useMemo(
+    () =>
+      donations
+        .filter((d) => d.status === "COMPLETED" && (!myNgoName || d.acceptedBy === myNgoName))
+        .map((d) => {
+          const details = dispatchDetails[d.id];
+          return {
+            id: `hist-${d.id}`,
+            date: d.completedAt || "Earlier",
+            institution: d.donorName,
+            food: `${d.foodName} (${d.quantityKg} kg)`,
+            recipient: `${details?.destination || "Partner shelter"} (${d.servings} meals)`,
+            receipt: `FW-RELIEF-${d.otp || d.id.slice(-4).toUpperCase()}`,
+            driver: details?.driver || d.driverName || "Volunteer driver",
+            status: "Delivered & Verified",
+          };
+        }),
+    [donations, dispatchDetails, myNgoName]
+  );
 
   // Schedule modal state
   const [scheduleModalItem, setScheduleModalItem] = useState<SurplusFeedItem | null>(null);
@@ -512,47 +462,58 @@ function NgoDashboardContent() {
     otp: string
   ) => {
     const driver = VOLUNTEER_DRIVERS[driverIdx] || VOLUNTEER_DRIVERS[0];
-    const newPickup: ScheduledPickup = {
-      id: `sched-${getNow()}`,
-      itemId: item.id,
-      institution: item.institution,
-      food: `${item.foodType} (${item.quantityKg} kg)`,
+    const result = acceptDonation(item.id, activeNgo?.name || "Robin Hood Army (Delhi Chapter)", {
+      name: driver.name,
+      phone: driver.phone,
+    }, otp);
+
+    if (!result.ok) {
+      setLifecycleError(result.error);
+      setScheduleModalItem(null);
+      return;
+    }
+
+    const issuedOtp = result.otp || otp;
+    const details = {
       destination,
       driver: `${driver.name} (${driver.vehicle})`,
-      phone: driver.phone,
-      otp,
       eta: `Arriving in ${item.etaMinutes} mins`,
-      status: "En Route to Kitchen",
-      lat: item.lat,
-      lng: item.lng,
-      quantityKg: item.quantityKg,
-      timestamp: getNow(),
     };
+    setDispatchDetails((prev) => {
+      const next = { ...prev, [item.id]: details };
+      try {
+        localStorage.setItem("foodwise_ngo_dispatch_details", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
 
-    const updated = dedupeById([newPickup, ...scheduledPickups]);
-    setScheduledPickups(updated);
-    try {
-      localStorage.setItem("foodwise_ngo_scheduled_pickups", JSON.stringify(updated));
-    } catch {}
-
-    // Persist scheduled pickup to MongoDB via API
+    // Keep the dispatch record in the pickups collection
     fetch("/api/pickups", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newPickup),
-    }).catch((err) => console.warn("Failed to persist scheduled pickup to MongoDB:", err));
+      body: JSON.stringify({
+        id: `sched-${item.id}`,
+        itemId: item.id,
+        institution: item.institution,
+        food: `${item.foodType} (${item.quantityKg} kg)`,
+        destination,
+        driver: details.driver,
+        phone: driver.phone,
+        otp: issuedOtp,
+        eta: details.eta,
+        status: "En Route to Kitchen",
+        quantityKg: item.quantityKg,
+        timestamp: getNow(),
+      }),
+    }).catch((err) => console.warn("Failed to persist scheduled pickup:", err));
 
     acceptNgoPickup(item.id);
-    acceptDonation(item.id, activeNgo?.name || "Robin Hood Army (Delhi Chapter)", {
-      name: driver.name,
-      phone: driver.phone,
-    });
-
+    setLifecycleError(null);
     setScheduleModalItem(null);
     setScheduleSuccess({
       foodType: item.foodType,
       driver: driver.name,
-      otp,
+      otp: issuedOtp,
       institution: item.institution,
     });
 
@@ -562,50 +523,48 @@ function NgoDashboardContent() {
   };
 
   const handleMarkDelivered = (pickup: ScheduledPickup) => {
-    const newHistoryItem = {
-      id: generateHistId(),
-      date: "Just now",
-      institution: pickup.institution,
-      food: pickup.food,
-      recipient: pickup.destination,
-      receipt: `FSSAI-RELIEF-${pickup.otp}`,
-      driver: pickup.driver,
-      status: "Delivered & Verified",
-    };
-
-    const updatedHistory = dedupeById([newHistoryItem, ...pickupHistory]);
-    const updatedScheduled = dedupeById(scheduledPickups.filter((p) => p.id !== pickup.id));
-
-    setPickupHistory(updatedHistory);
-    setScheduledPickups(updatedScheduled);
-
-    if (pickup.itemId) {
-      completeDonation(pickup.itemId);
+    if (!pickup.itemId) return;
+    const result = completeDonation(pickup.itemId);
+    if (!result.ok) {
+      setLifecycleError(result.error);
+      return;
     }
+    setLifecycleError(null);
 
-    try {
-      localStorage.setItem("foodwise_ngo_pickup_history", JSON.stringify(updatedHistory));
-      localStorage.setItem("foodwise_ngo_scheduled_pickups", JSON.stringify(updatedScheduled));
-    } catch {}
-
-    // Persist delivery to history & remove scheduled pickup in MongoDB via API
     fetch("/api/pickups", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...newHistoryItem, isHistory: true }),
-    }).catch((err) => console.warn("Failed to persist pickup history to MongoDB:", err));
+      body: JSON.stringify({
+        id: `hist-${pickup.itemId}`,
+        date: "Just now",
+        institution: pickup.institution,
+        food: pickup.food,
+        recipient: pickup.destination,
+        receipt: `FW-RELIEF-${pickup.otp}`,
+        driver: pickup.driver,
+        status: "Delivered & Verified",
+        isHistory: true,
+      }),
+    }).catch((err) => console.warn("Failed to persist pickup history:", err));
 
-    fetch(`/api/pickups?id=${encodeURIComponent(pickup.id)}`, {
-      method: "DELETE",
-    }).catch((err) => console.warn("Failed to remove scheduled pickup from MongoDB:", err));
+    fetch(`/api/pickups?id=${encodeURIComponent(pickup.id)}`, { method: "DELETE" }).catch((err) =>
+      console.warn("Failed to remove scheduled pickup:", err)
+    );
 
     fireMilestoneConfetti();
   };
 
   const isItemAccepted = (itemId: string) => {
     const donation = donations.find((d) => d.id === itemId);
-    if (donation && (donation.status === "ACCEPTED" || donation.status === "PICKUP_IN_PROGRESS" || donation.status === "COMPLETED")) return true;
-    return acceptedPickups.includes(itemId) || scheduledPickups.some((p) => p.itemId === itemId);
+    if (
+      donation &&
+      (donation.status === "ACCEPTED" ||
+        donation.status === "PICKUP" ||
+        donation.status === "PICKUP_IN_PROGRESS" ||
+        donation.status === "COMPLETED")
+    )
+      return true;
+    return acceptedPickups.includes(itemId);
   };
 
   const filteredFeed = dynamicFeed.filter((item) => {
@@ -759,6 +718,25 @@ function NgoDashboardContent() {
               </button>
             );
           })}
+        </div>
+      )}
+
+      {lifecycleError && (
+        <div
+          role="alert"
+          className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-center justify-between gap-3 animate-success-in"
+        >
+          <span className="flex items-center gap-2 font-semibold">
+            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+            {lifecycleError}
+          </span>
+          <button
+            type="button"
+            onClick={() => setLifecycleError(null)}
+            className="text-[11px] font-bold text-rose-700 hover:underline cursor-pointer shrink-0"
+          >
+            {t("common.close")}
+          </button>
         </div>
       )}
 
@@ -1223,18 +1201,28 @@ function NgoDashboardContent() {
                       </div>
 
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-mono-data bg-gray-900 text-white px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-xs">
-                          <Key className="w-3.5 h-3.5 text-amber-400" />
-                          {t("ngo.dash.handover_otp")} <strong className="text-amber-400 text-sm">{pickup.otp}</strong>
-                        </span>
-
-                        <button
-                          onClick={() => handleMarkDelivered(pickup)}
-                          className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs cursor-pointer active:scale-95 transition-all flex items-center gap-1.5"
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>{t("ngo.dash.mark_delivered")}</span>
-                        </button>
+                        {pickup.status === "En Route to Kitchen" ? (
+                          <>
+                            <span
+                              className="text-xs font-mono-data bg-gray-900 text-white px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-xs"
+                              title={t("handover.share_code")}
+                            >
+                              <Key className="w-3.5 h-3.5 text-amber-400" />
+                              {t("ngo.dash.handover_otp")} <strong className="text-amber-400 text-sm">{pickup.otp}</strong>
+                            </span>
+                            <span className="text-[11px] font-semibold text-blue-800 bg-blue-50 border border-blue-200 px-2.5 py-1.5 rounded-xl">
+                              {t("handover.awaiting_code")}
+                            </span>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => handleMarkDelivered(pickup)}
+                            className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs cursor-pointer active:scale-95 transition-all flex items-center gap-1.5"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>{t("ngo.dash.mark_delivered")}</span>
+                          </button>
+                        )}
                       </div>
                     </div>
 
@@ -1302,6 +1290,11 @@ function NgoDashboardContent() {
             </div>
 
             <div className="space-y-3">
+              {pickupHistory.length === 0 && (
+                <div className="text-center py-10 px-4 border border-dashed border-gray-200 rounded-2xl text-xs text-gray-500">
+                  {t("handover.no_history")}
+                </div>
+              )}
               {pickupHistory
                 .filter(
                   (h) =>

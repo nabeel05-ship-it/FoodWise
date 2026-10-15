@@ -1,9 +1,17 @@
 import { jsPDF } from "jspdf";
 import { FOODWISE_LOGO_BASE64 } from "./pdfAssets";
+import { isDevanagari, translateHindiToEnglish } from "@/context/dictionary";
+import { isKannada, translateKannadaToEnglish } from "@/context/kannadaDictionary";
 
+/**
+ * PDF fonts only cover Latin glyphs, so UI text shown in Hindi or Kannada is mapped
+ * back to English before any remaining unsupported characters are stripped.
+ */
 export function safePdfText(val: unknown): string {
   if (val === undefined || val === null) return "";
-  const str = String(val).trim();
+  let str = String(val).trim();
+  if (isDevanagari(str)) str = translateHindiToEnglish(str);
+  if (isKannada(str)) str = translateKannadaToEnglish(str);
   return str.replace(/[^\x20-\x7E\xA0-\xFF]/g, " ").replace(/\s+/g, " ").trim();
 }
 

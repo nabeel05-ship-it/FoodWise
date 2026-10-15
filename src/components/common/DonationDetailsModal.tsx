@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { DonationItem } from "@/lib/types";
 import { useApp } from "@/context/AppContext";
 import {
@@ -16,9 +16,11 @@ import {
   HeartHandshake,
   Download,
   AlertTriangle,
+  XCircle,
 } from "lucide-react";
 import { downloadDonationRecordPdf } from "@/lib/pdfGenerator";
 import { useLang } from "@/context/LanguageContext";
+import HandoverCodeForm from "@/components/common/HandoverCodeForm";
 import { motion, AnimatePresence } from "motion/react";
 import { useSafeReducedMotion } from "@/lib/useHydrated";
 import { MOTION_SPRINGS, MOTION_DURATIONS } from "@/lib/motion";
@@ -28,23 +30,33 @@ export interface DonationDetailsModalProps {
   isOpen?: boolean;
   userRole?: "RESTAURANT" | "HOTEL" | "HOUSEHOLD" | "NGO" | "restaurant" | "hotel" | "household" | "ngo";
   onClose: () => void;
-  onCancelDonation?: (id: string) => void;
-  onCompleteDonation?: (id: string) => void;
   onRequestFood?: (item: DonationItem) => void;
 }
 
 export default function DonationDetailsModal({
-  donation,
+  donation: donationProp,
   isOpen = true,
   userRole,
   onClose,
-  onCancelDonation: _onCancelDonation,
-  onCompleteDonation,
   onRequestFood,
 }: DonationDetailsModalProps) {
   const { t } = useLang();
-  const { userRole: globalUserRole } = useApp();
+  const { userRole: globalUserRole, donations, cancelDonation } = useApp();
   const prefersReduced = useSafeReducedMotion();
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+
+  // Read the live record so status changes made inside the modal (handover, cancel) show immediately
+  const donation = (donationProp && donations.find((d) => d.id === donationProp.id)) || donationProp;
+
+  // Reset the cancel confirmation whenever a different donation is shown or the modal reopens
+  const resetKey = `${donationProp?.id}-${isOpen}`;
+  const [lastResetKey, setLastResetKey] = useState(resetKey);
+  if (lastResetKey !== resetKey) {
+    setLastResetKey(resetKey);
+    setConfirmCancel(false);
+    setCancelError(null);
+  }
 
   useEffect(() => {
     if (!isOpen) return;
@@ -318,12 +330,26 @@ export default function DonationDetailsModal({
                     {t("Driver:")} <strong>{donation.driverName}</strong> ({donation.driverPhone})
                   </p>
                 )}
-                {donation.otp && (
-                  <div className="flex items-center justify-between pt-1 border-t border-blue-200/60">
-                    <span className="text-blue-900 font-semibold">{t("Handover Verification OTP:")}</span>
-                    <span className="px-3 py-1 rounded bg-white border border-blue-300 font-mono font-bold text-blue-900">
-                      {donation.otp}
-                    </span>
+                {donation.status === "PICKUP" || donation.status === "PICKUP_IN_PROGRESS" ? (
+                  <div className="flex items-center gap-1.5 pt-1.5 border-t border-blue-200/60 text-blue-900 font-semibold">
+                    <CheckCircle2 className="w-4 h-4 text-blue-700" />
+                    <span>{t("handover.awaiting_delivery")}</span>
+                  </div>
+                ) : normalizedRole === "NGO" ? (
+                  donation.otp && (
+                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-blue-200/60">
+                      <span className="text-blue-900 font-semibold">
+                        {t("Handover Verification OTP:")}
+                        <span className="block text-[10px] font-medium text-blue-700">{t("handover.share_code")}</span>
+                      </span>
+                      <span className="px-3 py-1 rounded bg-white border border-blue-300 font-mono font-bold text-blue-900 tracking-widest">
+                        {donation.otp}
+                      </span>
+                    </div>
+                  )
+                ) : (
+                  <div className="pt-2 border-t border-blue-200/60">
+                    <HandoverCodeForm donationId={donation.id} />
                   </div>
                 )}
               </div>
@@ -361,6 +387,12 @@ export default function DonationDetailsModal({
               </button>
             </div>
 
+            {cancelError && (
+              <p role="alert" className="text-[11px] font-semibold text-rose-600">
+                {cancelError}
+              </p>
+            )}
+
             {/* Action Buttons */}
             <div className="flex items-center gap-3 pt-1">
               <button
@@ -369,6 +401,33 @@ export default function DonationDetailsModal({
               >
                 {t("common.close")}
               </button>
+
+              {normalizedRole !== "NGO" && (donation.status === "AVAILABLE" || donation.status === "ACCEPTED") && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!confirmCancel) {
+                      setConfirmCancel(true);
+                      return;
+                    }
+                    const result = cancelDonation(donation.id);
+                    if (result.ok) {
+                      onClose();
+                    } else {
+                      setCancelError(result.error);
+                      setConfirmCancel(false);
+                    }
+                  }}
+                  className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
+                    confirmCancel
+                      ? "bg-rose-600 text-white hover:bg-rose-700"
+                      : "text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200"
+                  }`}
+                >
+                  <XCircle className="w-4 h-4" />
+                  <span>{confirmCancel ? t("donation.confirm_cancel") : t("donation.cancel_listing")}</span>
+                </button>
+              )}
 
               {normalizedRole === "NGO" && isAvailable && onRequestFood && (
                 <button
@@ -382,18 +441,6 @@ export default function DonationDetailsModal({
                 </button>
               )}
 
-              {normalizedRole !== "NGO" && isAccepted && onCompleteDonation && (
-                <button
-                  onClick={() => {
-                    onCompleteDonation(donation.id);
-                    onClose();
-                  }}
-                  className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white bg-blue-700 hover:bg-blue-800 transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>{t("Confirm Handover")}</span>
-                </button>
-              )}
             </div>
           </motion.div>
         </motion.div>

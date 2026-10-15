@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useHydrated, useSafeReducedMotion } from "@/lib/useHydrated";
+import { useLang } from "@/context/LanguageContext";
 
 interface OperationalPickupHubProps {
   selectedItem: DonationItem | null;
@@ -42,6 +43,7 @@ export default function OperationalPickupHub({
   onRequestClaim,
 }: OperationalPickupHubProps) {
   const { activeNgo, completeDonation } = useApp();
+  const { t } = useLang();
   const prefersReduced = useSafeReducedMotion();
   const hydrated = useHydrated();
   const [showMatchReasons, setShowMatchReasons] = useState(false);
@@ -349,8 +351,11 @@ export default function OperationalPickupHub({
             </span>
           </div>
 
-          {activeItem.otp && (
-            <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-gray-200 shadow-2xs">
+          {activeItem.otp && activeItem.status === "ACCEPTED" && (
+            <div
+              className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-gray-200 shadow-2xs"
+              title={t("handover.share_code")}
+            >
               <Key className="w-3.5 h-3.5 text-blue-600" />
               <span className="text-xs font-semibold text-gray-600">Handover OTP:</span>
               <span className="font-mono text-sm font-extrabold text-blue-900 tracking-wider">
@@ -414,7 +419,15 @@ export default function OperationalPickupHub({
               </motion.button>
             )}
 
-            {isClaimed && (
+            {/* Delivery can only be confirmed once the donor has verified the handover code */}
+            {isClaimed && activeItem.status === "ACCEPTED" && (
+              <span className="px-3 py-1.5 rounded-xl text-[11px] font-semibold bg-blue-50 text-blue-800 border border-blue-200 flex items-center gap-1.5">
+                <Key className="w-3.5 h-3.5 text-blue-600" />
+                <span>{t("handover.awaiting_code")}</span>
+              </span>
+            )}
+
+            {isClaimed && activeItem.status !== "ACCEPTED" && (
               <motion.button
                 type="button"
                 whileHover={prefersReduced ? undefined : { scale: 1.02 }}
@@ -423,7 +436,7 @@ export default function OperationalPickupHub({
                 className="px-4 py-2 rounded-xl text-xs font-extrabold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/20 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
               >
                 <CheckCircle2 className="w-4 h-4" />
-                <span>Confirm Handover & Delivery</span>
+                <span>{t("handover.confirm_delivery")}</span>
               </motion.button>
             )}
 

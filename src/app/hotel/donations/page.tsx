@@ -21,7 +21,7 @@ import {
 
 export default function HotelDonationsPage() {
   const router = useRouter();
-  const { donations, activeDonor, completeDonation, cancelDonation } = useApp();
+  const { donations, activeDonor } = useApp();
   const { t } = useLang();
 
   const [filterStatus, setFilterStatus] = useState<
@@ -209,7 +209,6 @@ export default function HotelDonationsPage() {
               donation={item}
               userRole="HOTEL"
               onViewDetails={(d) => setSelectedDonation(d)}
-              onCompleteHandover={(d) => completeDonation(d.id)}
               onDonateAgain={(d) => handleDonateAgain(d)}
             />
           ))}
@@ -222,9 +221,7 @@ export default function HotelDonationsPage() {
           donation={selectedDonation}
           userRole="HOTEL"
           onClose={() => setSelectedDonation(null)}
-          onCancelDonation={(id) => cancelDonation(id)}
-          onCompleteDonation={(id) => completeDonation(id)}
-        />
+            />
       )}
     </div>
   );

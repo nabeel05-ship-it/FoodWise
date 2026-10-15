@@ -142,15 +142,25 @@ Typical donation states include:
 - `CANCELLED`
 - `FLAGGED_FOR_REVIEW`
 
-The application validates important status transitions to help maintain a consistent donation workflow.
+The application validates important status transitions to help maintain a consistent donation workflow:
+
+- `AVAILABLE → ACCEPTED` when an NGO claims a listing that hasn't passed its pickup deadline.
+- `ACCEPTED → PICKUP` only when the donor enters the volunteer's matching handover code.
+- `PICKUP → COMPLETED` when the NGO confirms delivery to beneficiaries.
+- `AVAILABLE` or `ACCEPTED → CANCELLED` when the donor withdraws a listing.
+- `FLAGGED_FOR_REVIEW` when a Medium or High severity quality issue is reported.
+
+Other jumps (for example `AVAILABLE → COMPLETED`) are rejected by the API, and the interface rolls back any change the server rejects. Each step is recorded on the donation's timeline (`ACCEPTED`, `COLLECTED`, `DELIVERED`, `CANCELLED`).
 
 When MongoDB-backed persistence is active, database operations help prevent multiple NGOs from claiming the same available donation simultaneously.
 
 ### 🔐 6. Digital Handover Verification
 
-FoodWise includes a four-digit OTP workflow to support the handover of donated food.
+FoodWise includes a four-digit OTP workflow to support the handover of donated food:
 
-The process helps coordinate transfers between donors and recipient organizations.
+1. When an NGO claims a donation, FoodWise issues a one-time 4-digit code to the NGO and its volunteer driver, and notifies the donor that the volunteer will present a code.
+2. At pickup, the volunteer shows the code and the donor enters it on their dashboard, Pickups page or the donation's details. A wrong code is rejected.
+3. A matching code marks the food as collected (`PICKUP`); the NGO can then confirm delivery, which completes the donation.
 
 The OTP supports the handover workflow but does not independently verify participant identity or certify food safety.
 
@@ -163,7 +173,7 @@ The reporting workflow supports:
 - Food quality and packaging concerns.
 - Severity information.
 - Supporting evidence where available.
-- Review and follow-up workflows.
+- Review and follow-up workflows: reports move from **Reported → Under review → Resolved** on the NGO Food Issues page, with optional review notes.
 
 This feature helps improve visibility into issues that arise during food redistribution.
 
@@ -180,6 +190,8 @@ Potential use cases include:
 - Understanding donation statuses.
 - Accessing platform-related guidance.
 
+If no `GROQ_API_KEY` is configured, or the model is unreachable, Foodie AI answers from a built-in guide to FoodWise features, so the assistant keeps working.
+
 Foodie AI is intended to support platform usage. It does not certify food as safe to consume and does not replace qualified food safety professionals.
 
 ### 🌐 9. Multilingual Interface
@@ -189,6 +201,8 @@ FoodWise includes interface support for:
 - English
 - Hindi
 - Kannada
+
+Switch languages from the sidebar, the public page header, the sign-in card or Settings. The choice is remembered on the device. User-entered content (names, addresses, dish names) is shown as entered.
 
 The multilingual interface aims to make the platform more accessible to users from different linguistic backgrounds.
 
@@ -299,7 +313,7 @@ FoodWise follows a structured food donation and redistribution workflow.
 2. The donation becomes available for NGO discovery.
 3. An NGO reviews and claims a suitable donation.
 4. Pickup arrangements are coordinated.
-5. The handover process supports digital OTP verification.
+5. At pickup, the donor enters the volunteer's 4-digit handover code; a matching code releases the food.
 6. The receiving organization records delivery completion.
 7. The completed record contributes to applicable impact metrics.
 8. Food quality concerns can be reported through the platform.
@@ -657,6 +671,10 @@ Before deploying or submitting, verify the platform using both automated test sc
 ```bash
 # Execute the full E2E workflow and codebase constraint test suite
 npm run test
+
+# Also exercise the live API lifecycle (claim, wrong/right handover code, delivery)
+# against a running local or staging server — never production
+FOODWISE_BASE_URL=http://localhost:3000 npm run test
 ```
 
 ### Manual Verification Checklist
@@ -666,14 +684,14 @@ npm run test
 - [ ] Create a restaurant or hotel donation (`/hotel/donate`).
 - [ ] View available donations from the NGO dashboard (`/ngo/dashboard`).
 - [ ] Claim an available donation and observe atomic claim lock.
-- [ ] Coordinate a pickup and test the 4-digit OTP digital handover.
-- [ ] Record delivery completion and verify state update.
+- [ ] As the donor, enter a wrong handover code (rejected), then the volunteer's code (food marked collected).
+- [ ] As the NGO, confirm delivery and verify the donation is completed.
 - [ ] Submit a food quality issue report (`/ngo/complaints` or `/ngo/food-issues`).
 - [ ] Verify notification count and toast triggers.
 - [ ] Verify real impact calculations on the impact dashboard (`/ngo/impact`, `/hotel/impact`).
 - [ ] Test PDF generation for donation receipts and certificates.
 - [ ] Switch languages across English, Hindi, and Kannada.
-- [ ] Test conversational guidance with Foodie AI (using configured Groq key).
+- [ ] Test conversational guidance with Foodie AI (with or without a configured Groq key).
 - [ ] Verify MongoDB persistence across page refreshes and server restarts.
 - [ ] Run `npm run lint` with 0 errors.
 - [ ] Run `npm run build` with 0 production build errors.

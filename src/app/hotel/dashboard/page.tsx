@@ -7,6 +7,7 @@ import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
 import { DonationItem } from "@/lib/types";
 import DonationCard from "@/components/common/DonationCard";
+import HandoverCodeForm from "@/components/common/HandoverCodeForm";
 import DonationDetailsModal from "@/components/common/DonationDetailsModal";
 import CountUp from "@/components/common/CountUp";
 import { downloadDonationImpactReportPdf, downloadDonationRecordPdf } from "@/lib/pdfGenerator";
@@ -25,8 +26,6 @@ import {
   RotateCcw,
   Sparkles,
   Download,
-  Copy,
-  Check,
   Clock,
   Phone,
   ThermometerSnowflake,
@@ -36,12 +35,11 @@ import {
 
 export default function HotelDashboard() {
   const router = useRouter();
-  const { donations, activeDonor, completeDonation, cancelDonation } = useApp();
+  const { donations, activeDonor } = useApp();
   const { t } = useLang();
   const prefersReduced = useSafeReducedMotion();
   const [selectedDonation, setSelectedDonation] = useState<DonationItem | null>(null);
   const [activeTab, setActiveTab] = useState<"ALL" | "AVAILABLE" | "EN_ROUTE">("ALL");
-  const [copiedOtpId, setCopiedOtpId] = useState<string | null>(null);
   const [cardsListRef] = useAutoAnimate<HTMLDivElement>();
 
   // Filter donations for commercial kitchen domain (Hotel + Restaurant)
@@ -85,14 +83,6 @@ export default function HotelDashboard() {
       repeatDiet: item.diet || "Vegetarian",
     }).toString();
     router.push(`/hotel/donate?${query}`);
-  };
-
-  const handleCopyOtp = (otp: string, id: string) => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(otp);
-      setCopiedOtpId(id);
-      setTimeout(() => setCopiedOtpId(null), 2000);
-    }
   };
 
   const handleDownloadImpactPdf = () => {
@@ -330,36 +320,16 @@ export default function HotelDashboard() {
               </div>
             </div>
 
-            {upcomingPickups[0].otp && (
-              <div className="flex items-center gap-2.5 bg-white p-2 sm:p-2.5 rounded-xl border border-blue-200 shadow-xs">
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-gray-500 block">
-                    {t("Security Handover OTP")}
-                  </span>
-                  <span className="text-base sm:text-lg font-black font-mono tracking-widest text-blue-950">
-                    {upcomingPickups[0].otp}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleCopyOtp(upcomingPickups[0].otp!, upcomingPickups[0].id)}
-                  className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all cursor-pointer"
-                  title="Copy OTP for Security Gate"
-                >
-                  {copiedOtpId === upcomingPickups[0].id ? (
-                    <Check className="w-4 h-4 text-emerald-600" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </button>
-                <button
-                  onClick={() => completeDonation(upcomingPickups[0].id)}
-                  className="px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-blue-700 hover:bg-blue-800 cursor-pointer shadow-xs transition-all active:scale-95"
-                >
-                  {t("Confirm Dock Handover")}
-                </button>
-              </div>
-            )}
+            <div className="bg-white p-2.5 sm:p-3 rounded-xl border border-blue-200 shadow-xs">
+              {upcomingPickups[0].status === "ACCEPTED" ? (
+                <HandoverCodeForm donationId={upcomingPickups[0].id} />
+              ) : (
+                <span className="flex items-center gap-2 text-xs font-semibold text-blue-900 animate-success-in" role="status">
+                  <Truck className="w-4 h-4 text-blue-700" />
+                  {t("handover.awaiting_delivery")}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -442,8 +412,7 @@ export default function HotelDashboard() {
                 donation={item}
                 userRole="HOTEL"
                 onViewDetails={(d) => setSelectedDonation(d)}
-                onCompleteHandover={(d) => completeDonation(d.id)}
-              />
+                />
             ))}
           </div>
         )}
@@ -523,8 +492,6 @@ export default function HotelDashboard() {
         donation={selectedDonation}
         userRole="HOTEL"
         onClose={() => setSelectedDonation(null)}
-        onCancelDonation={(id) => cancelDonation(id)}
-        onCompleteDonation={(id) => completeDonation(id)}
       />
     </div>
   );

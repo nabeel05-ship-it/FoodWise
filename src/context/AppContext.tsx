@@ -11,7 +11,9 @@ import {
   DonationStatus,
   FoodQualityReport,
   QualityReportStatus,
+  DonationTimelineEvent,
 } from "@/lib/types";
+import { isDonationExpired } from "@/lib/smartMatching";
 import {
   INITIAL_NOTIFICATIONS,
   SURPLUS_ITEMS,
@@ -293,9 +295,18 @@ interface AppContextType {
   // ─── COMMUNITY PROJECT: FOOD DONATION PLATFORM ───
   donations: DonationItem[];
   addDonation: (item: Omit<DonationItem, "id" | "status" | "createdAt">) => DonationItem;
-  acceptDonation: (donationId: string, ngoName: string, driver?: { name: string; phone: string }) => void;
-  completeDonation: (donationId: string) => void;
-  cancelDonation: (donationId: string) => void;
+  /** NGO claims an AVAILABLE donation; returns the issued 4-digit handover OTP */
+  acceptDonation: (
+    donationId: string,
+    ngoName: string,
+    driver?: { name: string; phone: string },
+    otp?: string
+  ) => LifecycleResult & { otp?: string };
+  /** Donor enters the volunteer's code at pickup: ACCEPTED → PICKUP */
+  verifyHandover: (donationId: string, code: string, verifiedBy?: string) => LifecycleResult;
+  /** NGO confirms delivery after a verified handover: PICKUP → COMPLETED */
+  completeDonation: (donationId: string) => LifecycleResult;
+  cancelDonation: (donationId: string) => LifecycleResult;
   allDonors: CommunityDonor[];
   activeDonor: CommunityDonor;
   setActiveDonorId: (id: string) => void;
@@ -317,7 +328,19 @@ interface AppContextType {
   updateQualityReportStatus: (reportId: string, status: QualityReportStatus, statusNote?: string) => void;
 }
 
+export type LifecycleResult = { ok: true; error?: undefined } | { ok: false; error: string };
+
 const AppContext = createContext<AppContextType | undefined>(undefined);
+
+function timelineEvent(action: DonationTimelineEvent["action"], actor: string, details: string): DonationTimelineEvent {
+  return {
+    id: `evt-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    action,
+    actor,
+    timestamp: new Date().toISOString(),
+    details,
+  };
+}
 
 // Helper: fire-and-forget API call (no await needed in handlers)
 function apiCall(url: string, options?: RequestInit) {
@@ -612,8 +635,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       // ignore
     }
 
-    // Hydrate user role & IDs from localStorage
+    // Hydrate user role & IDs from localStorage.
+    // Restore the stored IDs first, then apply the role: setUserRole re-checks the active
+    // donor against the role, so a portal layout that already set a different role (child
+    // effects run before this one) never ends up with a donor of the wrong type.
     try {
+      const storedDonorId = localStorage.getItem("foodwise_active_donor_id");
+      if (storedDonorId) setActiveDonorId(storedDonorId);
+      const storedNgoId = localStorage.getItem("foodwise_active_ngo_id");
+      if (storedNgoId) setActiveNgoId(storedNgoId);
       const storedRole = localStorage.getItem("foodwise_user_role") as "HOTEL" | "HOUSEHOLD" | "NGO" | null;
       if (storedRole) {
         setUserRole(storedRole);
@@ -623,10 +653,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setCurrentRole("DONOR");
         }
       }
-      const storedDonorId = localStorage.getItem("foodwise_active_donor_id");
-      if (storedDonorId) setActiveDonorId(storedDonorId);
-      const storedNgoId = localStorage.getItem("foodwise_active_ngo_id");
-      if (storedNgoId) setActiveNgoId(storedNgoId);
     } catch {}
 
     // Hydrate read notification IDs from localStorage if available
@@ -1227,124 +1253,218 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return newDonation;
   }, [addNotification]);
 
-  const acceptDonation = useCallback((donationId: string, ngoName: string, driver?: { name: string; phone: string }) => {
-    const generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
-    const nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
+  // ─── Donation lifecycle ─────────────────────────────────────────────────────
+  // AVAILABLE → (NGO claims, OTP issued) ACCEPTED → (donor enters the volunteer's code) PICKUP
+  //           → (NGO confirms delivery) COMPLETED. Donors may cancel while AVAILABLE or ACCEPTED.
+  // Each step validates locally, updates optimistically, and rolls back if the server rejects it.
 
+  const donationsRef = useRef(donations);
+  useEffect(() => {
+    donationsRef.current = donations;
+  }, [donations]);
+
+  const writeDonation = useCallback((donationId: string, next: (d: DonationItem) => DonationItem) => {
     setDonations((prev) => {
-      const updated = prev.map((d) => {
-        if (d.id === donationId) {
-          return {
-            ...d,
-            status: "ACCEPTED" as const,
-            acceptedBy: ngoName,
-            acceptedAt: `Today, ${nowTime}`,
-            otp: generatedOtp,
-            driverName: driver?.name || "Ramesh Kumar (Volunteer)",
-            driverPhone: driver?.phone || "+91 98112 34567",
-          };
-        }
-        return d;
-      });
+      const updated = prev.map((d) => (d.id === donationId ? next(d) : d));
       try {
         localStorage.setItem("foodwise_community_donations", JSON.stringify(updated));
       } catch {}
       return updated;
     });
+  }, []);
 
-    // Persist claim acceptance to MongoDB
-    apiCall("/api/surplus", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: donationId,
+  const syncLifecycleWithServer = useCallback(
+    (body: Record<string, unknown>, snapshot: DonationItem, failureTitle: string) => {
+      fetch("/api/surplus", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+        .then(async (res) => {
+          // 404: the record only exists in this browser; 5xx: keep the optimistic state and retry later
+          if (res.ok || res.status === 404 || res.status >= 500) return;
+          const data = await res.json().catch(() => ({}));
+          writeDonation(snapshot.id, () => snapshot);
+          addNotification({
+            id: `notif-${crypto.randomUUID()}`,
+            title: failureTitle,
+            message: (data as { error?: string }).error || "The server rejected this update.",
+            time: "Just now",
+            severity: "warning",
+            category: "Redistribution",
+            read: false,
+          });
+        })
+        .catch((err) => console.error("Lifecycle sync failed:", err));
+    },
+    [writeDonation, addNotification]
+  );
+
+  const acceptDonation = useCallback(
+    (
+      donationId: string,
+      ngoName: string,
+      driver?: { name: string; phone: string },
+      otp?: string
+    ): LifecycleResult & { otp?: string } => {
+      const target = donationsRef.current.find((d) => d.id === donationId);
+      if (!target) return { ok: false, error: "This donation could not be found." };
+      if (target.status !== "AVAILABLE") {
+        return { ok: false, error: `Already claimed by ${target.acceptedBy || "another organisation"}.` };
+      }
+      if (isDonationExpired(target.pickupDeadline)) {
+        return { ok: false, error: "The pickup deadline has passed, so this donation can't be claimed." };
+      }
+
+      const generatedOtp = otp && /^\d{4}$/.test(otp) ? otp : Math.floor(1000 + Math.random() * 9000).toString();
+      const nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
+      const driverName = driver?.name || "Ramesh Kumar (Volunteer)";
+      const driverPhone = driver?.phone || "+91 98112 34567";
+
+      writeDonation(donationId, (d) => ({
+        ...d,
         status: "ACCEPTED",
         acceptedBy: ngoName,
         acceptedAt: `Today, ${nowTime}`,
         otp: generatedOtp,
-        driverName: driver?.name || "Ramesh Kumar (Volunteer)",
-        driverPhone: driver?.phone || "+91 98112 34567",
-      }),
-    });
+        driverName,
+        driverPhone,
+        timeline: [...(d.timeline || []), timelineEvent("ACCEPTED", ngoName, `Claimed by ${ngoName}. Volunteer: ${driverName}`)],
+      }));
 
-    const target = donations.find((d) => d.id === donationId);
-    const newNotif: NotificationAlert = {
-      id: `notif-${crypto.randomUUID()}`,
-      title: "notif.donation_claimed_title",
-      message: "notif.donation_claimed_msg",
-      messageParams: { ngo: ngoName, food: target?.foodName || "Surplus Food", donor: target?.donorName || "Donor", otp: generatedOtp },
-      time: "Just now",
-      severity: "success",
-      category: "Redistribution",
-      read: false,
-    };
-    addNotification(newNotif);
-  }, [donations, addNotification]);
+      syncLifecycleWithServer(
+        {
+          id: donationId,
+          status: "ACCEPTED",
+          acceptedBy: ngoName,
+          acceptedAt: `Today, ${nowTime}`,
+          otp: generatedOtp,
+          driverName,
+          driverPhone,
+        },
+        target,
+        "Claim could not be completed"
+      );
 
-  const completeDonation = useCallback((donationId: string) => {
-    const nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
-
-    setDonations((prev) => {
-      const updated = prev.map((d) => {
-        if (d.id === donationId) {
-          return {
-            ...d,
-            status: "COMPLETED" as const,
-            completedAt: `Today, ${nowTime}`,
-          };
-        }
-        return d;
+      addNotification({
+        id: `notif-${crypto.randomUUID()}`,
+        title: "notif.donation_claimed_title",
+        message: "notif.donation_claimed_msg",
+        messageParams: { ngo: ngoName, food: target.foodName, donor: target.donorName, driver: driverName },
+        time: "Just now",
+        severity: "success",
+        category: "Redistribution",
+        read: false,
       });
-      try {
-        localStorage.setItem("foodwise_community_donations", JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
 
-    // Persist completion to MongoDB
-    apiCall("/api/surplus", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: donationId,
+      return { ok: true, otp: generatedOtp };
+    },
+    [writeDonation, syncLifecycleWithServer, addNotification]
+  );
+
+  /** Donor-side handover check: the code shown by the volunteer must match the claim's OTP. */
+  const verifyHandover = useCallback(
+    (donationId: string, code: string, verifiedBy?: string): LifecycleResult => {
+      const target = donationsRef.current.find((d) => d.id === donationId);
+      if (!target) return { ok: false, error: "This donation could not be found." };
+      if (target.status === "PICKUP" || target.status === "PICKUP_IN_PROGRESS") return { ok: true };
+      if (target.status !== "ACCEPTED") {
+        return { ok: false, error: "Only a claimed donation can be handed over." };
+      }
+      const entered = code.trim();
+      if (!/^\d{4}$/.test(entered)) return { ok: false, error: "Enter the 4-digit code from the volunteer." };
+      if (target.otp && entered !== target.otp) {
+        return { ok: false, error: "That code doesn't match. Check it with the volunteer and try again." };
+      }
+
+      const actor = verifiedBy || target.donorName;
+      writeDonation(donationId, (d) => ({
+        ...d,
+        status: "PICKUP",
+        timeline: [...(d.timeline || []), timelineEvent("COLLECTED", actor, `Handover code verified. Collected by ${d.driverName || "volunteer"}.`)],
+      }));
+
+      syncLifecycleWithServer({ id: donationId, status: "PICKUP", otp: entered, verifiedBy: actor }, target, "Handover could not be verified");
+
+      addNotification({
+        id: `notif-${crypto.randomUUID()}`,
+        title: "notif.food_collected_title",
+        message: "notif.food_collected_msg",
+        messageParams: { driver: target.driverName || "The volunteer", food: target.foodName },
+        time: "Just now",
+        severity: "success",
+        category: "Redistribution",
+        read: false,
+      });
+
+      return { ok: true };
+    },
+    [writeDonation, syncLifecycleWithServer, addNotification]
+  );
+
+  /** NGO-side delivery confirmation, allowed once the handover code has been verified. */
+  const completeDonation = useCallback(
+    (donationId: string): LifecycleResult => {
+      const target = donationsRef.current.find((d) => d.id === donationId);
+      if (!target) return { ok: false, error: "This donation could not be found." };
+      if (target.status === "COMPLETED") return { ok: true };
+      if (target.status === "ACCEPTED") {
+        return { ok: false, error: "Waiting for the donor to verify the handover code at pickup." };
+      }
+      if (target.status !== "PICKUP" && target.status !== "PICKUP_IN_PROGRESS") {
+        return { ok: false, error: "Only collected donations can be marked as delivered." };
+      }
+
+      const nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
+      const actor = target.acceptedBy || "NGO partner";
+      writeDonation(donationId, (d) => ({
+        ...d,
         status: "COMPLETED",
         completedAt: `Today, ${nowTime}`,
-      }),
-    });
+        timeline: [...(d.timeline || []), timelineEvent("DELIVERED", actor, "Delivered to beneficiaries.")],
+      }));
 
-    const target = donations.find((d) => d.id === donationId);
-    const newNotif: NotificationAlert = {
-      id: `notif-${crypto.randomUUID()}`,
-      title: "notif.food_delivered_title",
-      message: "notif.food_delivered_msg",
-      messageParams: { people: target?.servings || 40, weight: target?.quantityKg || 10 },
-      time: "Just now",
-      severity: "success",
-      category: "Redistribution",
-      read: false,
-    };
-    addNotification(newNotif);
-  }, [donations, addNotification]);
+      syncLifecycleWithServer(
+        { id: donationId, status: "COMPLETED", completedAt: `Today, ${nowTime}`, completedBy: actor },
+        target,
+        "Delivery could not be confirmed"
+      );
 
-  const cancelDonation = useCallback((donationId: string) => {
-    setDonations((prev) => {
-      const updated = prev.map((d) => (d.id === donationId ? { ...d, status: "CANCELLED" as const } : d));
-      try {
-        localStorage.setItem("foodwise_community_donations", JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
+      addNotification({
+        id: `notif-${crypto.randomUUID()}`,
+        title: "notif.food_delivered_title",
+        message: "notif.food_delivered_msg",
+        messageParams: { people: target.servings || 40, weight: target.quantityKg || 10 },
+        time: "Just now",
+        severity: "success",
+        category: "Redistribution",
+        read: false,
+      });
 
-    // Persist cancellation to MongoDB
-    apiCall("/api/surplus", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: donationId,
+      return { ok: true };
+    },
+    [writeDonation, syncLifecycleWithServer, addNotification]
+  );
+
+  const cancelDonation = useCallback(
+    (donationId: string): LifecycleResult => {
+      const target = donationsRef.current.find((d) => d.id === donationId);
+      if (!target) return { ok: false, error: "This donation could not be found." };
+      if (target.status !== "AVAILABLE" && target.status !== "ACCEPTED") {
+        return { ok: false, error: "Only open or claimed donations can be cancelled." };
+      }
+
+      writeDonation(donationId, (d) => ({
+        ...d,
         status: "CANCELLED",
-      }),
-    });
-  }, []);
+        timeline: [...(d.timeline || []), timelineEvent("CANCELLED", d.donorName, "Listing cancelled by donor.")],
+      }));
+
+      syncLifecycleWithServer({ id: donationId, status: "CANCELLED" }, target, "Cancellation failed");
+      return { ok: true };
+    },
+    [writeDonation, syncLifecycleWithServer]
+  );
 
   const createQualityReport = useCallback((reportData: Omit<FoodQualityReport, "id" | "createdAt" | "dateStr" | "status">): FoodQualityReport => {
     const newId = `fqr-${Date.now()}`;
@@ -1409,6 +1529,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }),
     });
 
+    // Persist the full report so it can be reviewed and followed up
+    apiCall("/api/quality-reports", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newReport),
+    });
+
     // Persist complaint record to MongoDB
     apiCall("/api/complaints", {
       method: "POST",
@@ -1462,6 +1589,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       } catch {}
       return updated;
     });
+
+    apiCall("/api/quality-reports", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: reportId, status, statusNote }),
+    });
   }, []);
 
   const communityMetrics = useMemo(() => {
@@ -1470,12 +1603,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     let completedCount = 0;
     let activeCount = 0;
 
+    // Diverted food and servings count only delivered (COMPLETED) donations
     donations.forEach((d) => {
-      const kg = Number(d.quantityKg) || 0;
-      const serves = Number(d.servings) || 0;
-      totalKg += kg;
-      totalServings += serves;
       if (d.status === "COMPLETED") {
+        totalKg += Number(d.quantityKg) || 0;
+        totalServings += Number(d.servings) || 0;
         completedCount++;
       } else if (d.status === "AVAILABLE" || d.status === "ACCEPTED" || d.status === "PICKUP") {
         activeCount++;
@@ -1541,6 +1673,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         donations,
         addDonation,
         acceptDonation,
+        verifyHandover,
         completeDonation,
         cancelDonation,
         allDonors: donorsList,

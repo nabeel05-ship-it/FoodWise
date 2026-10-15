@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowLeft, Sparkles } from "lucide-react";
+import LanguageToggle from "@/components/common/LanguageToggle";
 
 interface PublicHeaderProps {
   currentPage?: string;
@@ -38,7 +39,8 @@ export default function PublicHeader({ currentPage }: PublicHeaderProps) {
           </div>
         </Link>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <LanguageToggle compact tone="dark" />
           {currentPage && (
             <span className="text-xs font-medium text-emerald-200/80 hidden md:inline-block px-2.5 py-1 rounded-full bg-white/[0.04] ring-1 ring-inset ring-white/[0.08]">
               {currentPage}

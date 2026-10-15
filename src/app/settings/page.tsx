@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { useLang } from "@/context/LanguageContext";
+import LanguageToggle from "@/components/common/LanguageToggle";
 import {
   Settings,
   Bell,
@@ -131,7 +132,8 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <LanguageToggle tone="light" />
           <button
             onClick={handleSave}
             className="px-4 py-2.5 rounded-xl text-white text-xs font-bold shadow-md shadow-emerald-950/20 flex items-center gap-2 transition-all cursor-pointer hover:brightness-110 active:scale-95 btn-brand"

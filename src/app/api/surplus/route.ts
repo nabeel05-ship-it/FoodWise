@@ -5,6 +5,8 @@ import {
   updateDonation,
   claimDonationAtomic,
   completeDonationAtomic,
+  verifyHandoverAtomic,
+  getDonationById,
   deleteDonation,
   createNotification,
 } from "@/lib/dataService";
@@ -132,7 +134,39 @@ export async function PATCH(request: Request) {
       });
     }
 
-    // 2. NGO Delivery Confirmation (Enforce valid state transition)
+    // 2. Pickup handover: donor enters the volunteer's code (ACCEPTED -> PICKUP)
+    if (body.status === "PICKUP") {
+      const handover = await verifyHandoverAtomic(id, body.otp, body.verifiedBy);
+      if (!handover.success) {
+        return NextResponse.json({ error: handover.error }, { status: handover.status || 400 });
+      }
+
+      await createNotification({
+        title: "Food Collected",
+        message: "Handover code verified at pickup. The volunteer is on the way to the shelter.",
+        severity: "success",
+        category: "Redistribution",
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: handover.donation,
+        message: "Handover verified.",
+      });
+    }
+
+    // 3. Donor cancellation: only open or claimed donations can be withdrawn
+    if (body.status === "CANCELLED") {
+      const existing = await getDonationById(id);
+      if (existing && existing.status !== "AVAILABLE" && existing.status !== "ACCEPTED") {
+        return NextResponse.json(
+          { error: `Invalid state transition: Cannot cancel donation with status '${existing.status}'.` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // 4. NGO Delivery Confirmation (Enforce valid state transition)
     if (body.status === "COMPLETED") {
       const completeResult = await completeDonationAtomic(id, body.completedBy || body.acceptedBy);
 
@@ -157,7 +191,15 @@ export async function PATCH(request: Request) {
       });
     }
 
-    // 3. General Updates (Storage, description, location, quality flags)
+    // 5. General Updates (Storage, description, location, quality flags).
+    // Lifecycle statuses must go through the guarded transitions above.
+    const GENERAL_STATUSES = ["FLAGGED_FOR_REVIEW", "CANCELLED"];
+    if (body.status !== undefined && !GENERAL_STATUSES.includes(body.status)) {
+      return NextResponse.json(
+        { error: `Invalid state transition: status '${body.status}' cannot be set directly.` },
+        { status: 400 }
+      );
+    }
     const updates: Partial<DonationItem> = {};
     if (body.status !== undefined) updates.status = body.status;
     if (body.acceptedBy !== undefined) updates.acceptedBy = body.acceptedBy;
