@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, type Variants } from "motion/react";
 import { useSafeReducedMotion } from "@/lib/useHydrated";
 import {
   Utensils,
@@ -18,7 +18,25 @@ import {
   Pause,
   RotateCcw,
 } from "lucide-react";
-import { MOTION_DURATIONS, MOTION_EASINGS, runSafeGsap } from "@/lib/motion";
+import { MOTION_EASINGS, runSafeGsap } from "@/lib/motion";
+
+// How long each stage stays on screen during autoplay — long enough to read the detail copy
+const STAGE_DWELL_MS = 5200;
+
+// Detail card: quick exit, then badge → title → copy → metric arrive in a gentle stagger
+const detailCardVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { duration: 0.25, ease: MOTION_EASINGS.apple, staggerChildren: 0.07, delayChildren: 0.04 },
+  },
+  exit: { opacity: 0, y: -6, transition: { duration: 0.18, ease: MOTION_EASINGS.appleAccelerate } },
+};
+
+const detailItemVariants: Variants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: MOTION_EASINGS.apple } },
+};
 
 export interface WorkflowStep {
   id: number;
@@ -111,6 +129,7 @@ export default function FoodRedistributionWorkflow({
   const [activeStep, setActiveStep] = useState<number>(1);
   const [isPlaying, setIsPlaying] = useState<boolean>(!prefersReduced);
   const [isInView, setIsInView] = useState<boolean>(true);
+  const [isHovered, setIsHovered] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Monitor visibility in viewport using IntersectionObserver
@@ -122,25 +141,27 @@ export default function FoodRedistributionWorkflow({
       ([entry]) => {
         setIsInView(entry.isIntersecting);
       },
-      { threshold: 0.15 }
+      // Start advancing only once the section is substantially on screen
+      { threshold: 0.5 }
     );
 
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
-  // Automatic continuous playback loop across all 5 stages
+  // Autoplay advances while visible and not hovered; hovering pauses so a stage can be read
+  const isAutoplayOn = isPlaying && !prefersReduced;
+  const isAutoAdvancing = isAutoplayOn && isInView && !isHovered;
+
   useEffect(() => {
-    if (!isPlaying || prefersReduced || !isInView) return;
+    if (!isAutoAdvancing) return;
 
-    // 2.6 seconds per stage: brisk but still readable pacing
-    const intervalTime = 2600;
-    const timer = setInterval(() => {
+    const timer = setTimeout(() => {
       setActiveStep((prev) => (prev >= WORKFLOW_STEPS.length ? 1 : prev + 1));
-    }, intervalTime);
+    }, STAGE_DWELL_MS);
 
-    return () => clearInterval(timer);
-  }, [isPlaying, prefersReduced, isInView, activeStep]);
+    return () => clearTimeout(timer);
+  }, [isAutoAdvancing, activeStep]);
 
   // Handle Play/Pause toggle
   const handleTogglePlay = useCallback(() => {
@@ -203,7 +224,9 @@ export default function FoodRedistributionWorkflow({
   return (
     <div
       ref={containerRef}
-      className={`w-full rounded-3xl bg-[#0B2519] text-white border border-emerald-500/20 shadow-xl overflow-hidden relative ${
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`w-full rounded-3xl bg-linear-to-b from-[#0F3324] to-[#0A2117] text-white ring-1 ring-inset ring-white/10 shadow-2xl shadow-black/30 overflow-hidden relative ${
         compact ? "p-4 sm:p-5" : "p-5 sm:p-7 lg:p-8"
       }`}
     >
@@ -231,10 +254,10 @@ export default function FoodRedistributionWorkflow({
           <button
             type="button"
             onClick={handleTogglePlay}
-            aria-label={isPlaying ? "Pause automatic workflow cycle" : "Resume automatic workflow cycle"}
+            aria-label={isAutoplayOn ? "Pause automatic workflow cycle" : "Resume automatic workflow cycle"}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-900/60 border border-emerald-500/30 text-emerald-200 hover:text-white text-xs font-semibold hover:bg-emerald-800/80 transition-colors cursor-pointer shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
           >
-            {isPlaying ? (
+            {isAutoplayOn ? (
               <>
                 <Pause className="w-3.5 h-3.5 text-emerald-400" />
                 <span className="text-xs">Pause</span>
@@ -271,13 +294,13 @@ export default function FoodRedistributionWorkflow({
               passing through the exact center of every circular stage indicator.
           */}
           <div
-            className="absolute top-5 sm:top-6 -translate-y-1/2 h-1 bg-emerald-950/90 rounded-full overflow-hidden z-0"
+            className="absolute top-5 sm:top-6 -translate-y-1/2 h-1 bg-white/10 rounded-full overflow-hidden z-0"
             style={{ left: "10%", right: "10%" }}
             aria-hidden="true"
           >
             {/* Active progress track terminating precisely at the active stage center */}
             <div
-              className="h-full bg-linear-to-r from-emerald-500 via-teal-400 to-emerald-300 rounded-full transition-all duration-300 ease-out"
+              className="h-full bg-linear-to-r from-emerald-500 via-teal-400 to-emerald-300 rounded-full shadow-[0_0_12px_rgba(52,211,153,0.6)] transition-[width] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
               style={{
                 width: `${progressPercent}%`,
               }}
@@ -303,19 +326,31 @@ export default function FoodRedistributionWorkflow({
                 >
                   {/* Circle Node Container: Fixed height guarantees rail passes through exact center */}
                   <div className="h-10 sm:h-12 w-full flex items-center justify-center relative">
+                    {/* Soft breathing halo behind the active stage */}
+                    {isCurrent && !prefersReduced && (
+                      <motion.span
+                        aria-hidden="true"
+                        className="absolute w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-emerald-400/40"
+                        initial={{ scale: 1, opacity: 0.55 }}
+                        animate={{ scale: 1.55, opacity: 0 }}
+                        transition={{ duration: 2.2, repeat: Infinity, ease: "easeOut" }}
+                      />
+                    )}
                     <motion.div
-                      whileHover={prefersReduced ? undefined : { scale: 1.08 }}
+                      animate={{ scale: isCurrent ? 1.1 : 1 }}
+                      transition={{ type: "spring", stiffness: 260, damping: 22 }}
+                      whileHover={prefersReduced ? undefined : { scale: isCurrent ? 1.14 : 1.08 }}
                       whileTap={prefersReduced ? undefined : { scale: 0.94 }}
-                      className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all shrink-0 ${
+                      className={`relative w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-colors duration-300 shrink-0 ${
                         isCurrent
-                          ? "bg-emerald-500 border-2 border-white text-gray-950 shadow-xl shadow-emerald-500/40 ring-4 ring-emerald-400/30 font-bold"
+                          ? "bg-linear-to-b from-emerald-300 to-emerald-500 border-2 border-white text-emerald-950 shadow-lg shadow-emerald-500/40"
                           : isPast
-                          ? "bg-[#0B3822] border-2 border-emerald-400 text-emerald-300 shadow-sm"
-                          : "bg-[#081F14] border-2 border-emerald-800/80 text-emerald-600 hover:border-emerald-600 hover:text-emerald-400"
+                          ? "bg-[#145A3A] border-2 border-emerald-300 text-emerald-100 shadow-sm"
+                          : "bg-[#163F2C] border-2 border-emerald-400/45 text-emerald-100/85 hover:border-emerald-300 hover:text-white"
                       }`}
                     >
                       {isPast ? (
-                        <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-300" />
+                        <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-200" />
                       ) : (
                         <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                       )}
@@ -327,10 +362,10 @@ export default function FoodRedistributionWorkflow({
                     <span
                       className={`text-[10px] sm:text-xs leading-tight transition-colors line-clamp-2 ${
                         isCurrent
-                          ? "text-emerald-300 font-extrabold"
+                          ? "text-emerald-200 font-extrabold"
                           : isPast
                           ? "text-emerald-100/90 font-semibold"
-                          : "text-emerald-700/80 font-medium group-hover:text-emerald-400"
+                          : "text-emerald-100/55 font-medium group-hover:text-emerald-100"
                       }`}
                     >
                       {step.title}
@@ -347,15 +382,27 @@ export default function FoodRedistributionWorkflow({
       <AnimatePresence mode="wait">
         <motion.div
           key={current.id}
-          initial={prefersReduced ? false : { opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: MOTION_DURATIONS.fast, ease: MOTION_EASINGS.apple }}
-          className="bg-emerald-950/70 border border-emerald-500/30 rounded-2xl p-4 sm:p-5 relative z-10 grid grid-cols-1 md:grid-cols-12 gap-4 items-center"
+          variants={detailCardVariants}
+          initial={prefersReduced ? false : "hidden"}
+          animate="visible"
+          exit={prefersReduced ? undefined : "exit"}
+          className="bg-[#072016]/80 border border-emerald-400/25 rounded-2xl p-4 sm:p-5 relative z-10 grid grid-cols-1 md:grid-cols-12 gap-4 items-center overflow-hidden"
         >
+          {/* Time until autoplay advances to the next stage */}
+          {isAutoAdvancing && (
+            <motion.span
+              key={`dwell-${current.id}`}
+              aria-hidden="true"
+              className="absolute left-0 top-0 h-0.5 bg-linear-to-r from-emerald-400 to-teal-300 origin-left"
+              initial={{ width: "0%" }}
+              animate={{ width: "100%" }}
+              transition={{ duration: STAGE_DWELL_MS / 1000, ease: "linear" }}
+            />
+          )}
+
           {/* Left info (8 cols) */}
           <div className="md:col-span-8 space-y-2">
-            <div className="flex items-center gap-2 flex-wrap">
+            <motion.div variants={detailItemVariants} className="flex items-center gap-2 flex-wrap">
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
                 {current.badge}
               </span>
@@ -363,10 +410,10 @@ export default function FoodRedistributionWorkflow({
                 <MapPin className="w-3 h-3 text-emerald-400" />
                 <span>{current.locationContext}</span>
               </span>
-            </div>
+            </motion.div>
 
-            <div className="flex items-start gap-3 pt-1">
-              <div className="w-10 h-10 rounded-xl bg-emerald-900/80 border border-emerald-500/40 flex items-center justify-center text-emerald-300 shrink-0">
+            <motion.div variants={detailItemVariants} className="flex items-start gap-3 pt-1">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-b from-emerald-400/30 to-emerald-500/15 ring-1 ring-inset ring-emerald-300/50 shadow-[0_0_18px_-4px_rgba(52,211,153,0.55)] flex items-center justify-center text-emerald-100 shrink-0">
                 <StepIcon className="w-5 h-5" />
               </div>
               <div>
@@ -377,11 +424,14 @@ export default function FoodRedistributionWorkflow({
                   {current.detail}
                 </p>
               </div>
-            </div>
+            </motion.div>
           </div>
 
           {/* Right metric card (4 cols) */}
-          <div className="workflow-metric-card md:col-span-4 bg-[#061B12] rounded-xl p-3.5 border border-emerald-500/25 flex flex-col justify-between">
+          <motion.div
+            variants={detailItemVariants}
+            className="workflow-metric-card md:col-span-4 bg-[#051710] rounded-xl p-3.5 border border-emerald-500/25 flex flex-col justify-between"
+          >
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 block">
                 {current.metricLabel}
@@ -406,7 +456,7 @@ export default function FoodRedistributionWorkflow({
                 <ArrowRight className="w-3 h-3" />
               </button>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
       </AnimatePresence>
     </div>
